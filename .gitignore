@@ -1,5 +1,7 @@
 # Configuration files
 .env
+/deploy/.env*
+/deploy/.deployment-key*
 
 # Database
 db.sqlite3
@@ -11,3 +13,8 @@ __pycache__/
 
 # Editor settings
 .idea/
+
+# Local deployment
+.vagrant/
+playbook.retry
+ubuntu-bionic-18.04-cloudimg-console.log
