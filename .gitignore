@@ -1,0 +1,13 @@
+# Configuration files
+.env
+
+# Database
+db.sqlite3
+
+# Python environments and run time
+/env
+*.pyc
+__pycache__/
+
+# Editor settings
+.idea/
