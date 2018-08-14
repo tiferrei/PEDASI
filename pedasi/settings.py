@@ -42,7 +42,9 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
 ]
 
-THIRD_PARTY_APPS = []
+THIRD_PARTY_APPS = [
+    'bootstrap4',
+]
 
 CUSTOM_APPS = [
     'profiles',
@@ -65,7 +67,7 @@ ROOT_URLCONF = 'pedasi.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'pedasi', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
