@@ -48,6 +48,8 @@ THIRD_PARTY_APPS = [
 
 CUSTOM_APPS = [
     'profiles',
+    'applications',
+    'datasources',
 ]
 
 # Custom apps have to be listed before Django apps so they override default templates
