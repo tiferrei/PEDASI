@@ -28,6 +28,7 @@
         - python3-venv
         - git
         - mysql-server
+        - libmysqlclient-dev
         # Required for Ansible to setup DB
         - python3-mysqldb
 
