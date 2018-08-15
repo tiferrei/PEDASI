@@ -50,7 +50,8 @@ CUSTOM_APPS = [
     'profiles',
 ]
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
+# Custom apps have to be listed before Django apps so they override default templates
+INSTALLED_APPS = CUSTOM_APPS + THIRD_PARTY_APPS + DJANGO_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
