@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <h2>Applications / {{ application.name }} / Update</h2>
+
+    <form role="form" method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit='OK' reset='Cancel' %}{% endbuttons %}
+    </form>
+
+{% endblock %}

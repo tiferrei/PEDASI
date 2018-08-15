@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.urls import reverse
 
 
 MAX_LENGTH_NAME = 63
@@ -17,3 +18,7 @@ class Application(models.Model):
                               on_delete=models.PROTECT,
                               related_name='applications',
                               blank=False, null=False)
+
+    def get_absolute_url(self):
+        return reverse('applications:application.detail',
+                       kwargs={'pk': self.pk})

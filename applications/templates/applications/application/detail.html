@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <h2>Applications / {{ application.name }}</h2>
+
+    {% if application.description %}
+        <p>{{ application.description }}</p>
+    {% endif %}
+
+    <a href="{% url 'applications:application.update' pk=application.pk %}"
+       class="btn btn-success" role="button">Edit</a>
+    <a href="{% url 'applications:application.delete' pk=application.pk %}"
+       class="btn btn-danger" role="button">Delete</a>
+
+{% endblock %}

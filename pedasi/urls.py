@@ -29,4 +29,9 @@ urlpatterns = [
          include('profiles.urls',
                  namespace='profiles')
          ),
+
+    path('applications/',
+         include('applications.urls',
+                 namespace='applications')
+         ),
 ]

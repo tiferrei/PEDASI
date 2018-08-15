@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <h2>Applications</h2>
+
+    <a href="{% url 'applications:application.create' %}"
+       class="btn btn-success" role="button">Create Application</a>
+
+    <div class="mt-3"></div>
+
+    <table class="table">
+        <thead class="thead">
+            <tr>
+                <th>Name</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for application in applications %}
+            <tr>
+                <td>{{ application.name }}</td>
+                <td>
+                    <a href="{% url 'applications:application.detail' pk=application.pk %}"
+                       class="btn btn-primary" role="button">Detail</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td>There are no applications currently available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
