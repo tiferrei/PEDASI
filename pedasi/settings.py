@@ -16,6 +16,8 @@ https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 import os
 
+from django.urls import reverse_lazy
+
 from decouple import config
 import dj_database_url
 
@@ -128,6 +130,8 @@ PASSWORD_HASHERS = [
 
 # Set custom user model
 AUTH_USER_MODEL = 'profiles.User'
+
+LOGIN_URL = reverse_lazy('profiles:login')
 
 
 # Internationalization

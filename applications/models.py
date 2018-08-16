@@ -15,6 +15,9 @@ class Application(models.Model):
     url = models.URLField(blank=False, null=False)
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              limit_choices_to={
+                                  'groups__name': 'Application providers'
+                              },
                               on_delete=models.PROTECT,
                               related_name='applications',
                               blank=False, null=False)
@@ -22,3 +25,6 @@ class Application(models.Model):
     def get_absolute_url(self):
         return reverse('applications:application.detail',
                        kwargs={'pk': self.pk})
+
+    def __str__(self):
+        return self.name
