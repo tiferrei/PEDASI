@@ -2,7 +2,21 @@
 {% load bootstrap4 %}
 
 {% block content %}
-    <h2>Applications / {{ application.name }} / Update</h2>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'applications:application.list' %}">Applications</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'applications:application.detail' pk=application.pk %}">{{ application.name }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Update
+            </li>
+        </ol>
+    </nav>
+
+    <h2>Update Application - {{ application.name }}</h2>
 
     <form role="form" method="post">
         {% csrf_token %}
