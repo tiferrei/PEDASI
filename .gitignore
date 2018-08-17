@@ -18,3 +18,4 @@ __pycache__/
 .vagrant/
 playbook.retry
 ubuntu-bionic-18.04-cloudimg-console.log
+/static/

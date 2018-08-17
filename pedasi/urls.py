@@ -34,4 +34,9 @@ urlpatterns = [
          include('applications.urls',
                  namespace='applications')
          ),
+
+    path('datasources/',
+         include('datasources.urls',
+                 namespace='datasources')
+         ),
 ]
