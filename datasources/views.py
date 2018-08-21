@@ -45,3 +45,11 @@ class DataSourceDeleteView(OwnerPermissionRequiredMixin, DeleteView):
     success_url = reverse_lazy('datasources:datasource.list')
 
     permission_required = 'datasources.delete_datasource'
+
+
+class DataSourceManageAccessView(OwnerPermissionRequiredMixin, DetailView):
+    model = models.DataSource
+    template_name = 'datasources/datasource/manage_access.html'
+    context_object_name = 'datasource'
+
+    permission_required = 'datasources.change_datasource'

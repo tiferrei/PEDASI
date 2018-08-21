@@ -23,5 +23,9 @@
        class="btn btn-success" role="button">Edit</a>
     <a href="{% url 'datasources:datasource.delete' pk=datasource.pk %}"
        class="btn btn-danger" role="button">Delete</a>
+    {% if datasource.access_control %}
+        <a href="{% url 'datasources:datasource.manage-access' pk=datasource.pk %}"
+           class="btn btn-primary" role="button">Manage Access</a>
+    {% endif %}
 
 {% endblock %}

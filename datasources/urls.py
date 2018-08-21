@@ -24,4 +24,8 @@ urlpatterns = [
     path('<int:pk>/delete',
          views.DataSourceDeleteView.as_view(),
          name='datasource.delete'),
+
+    path('<int:pk>/manage-access',
+         views.DataSourceManageAccessView.as_view(),
+         name='datasource.manage-access'),
 ]
