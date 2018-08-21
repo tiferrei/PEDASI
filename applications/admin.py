@@ -3,8 +3,26 @@ from django.contrib import admin
 from . import models
 
 
+@admin.register(models.Application)
 class ApplicationAdmin(admin.ModelAdmin):
-    pass
+    def has_change_permission(self, request, obj=None) -> bool:
+        """
+        Does the user have permission to change this object?
+        """
+        permission = super().has_change_permission(request, obj)
 
+        if obj is not None:
+            permission &= obj.owner == request.user
 
-admin.site.register(models.Application, ApplicationAdmin)
+        return permission
+
+    def save_model(self, request, obj, form, change):
+        """
+        Set missing fields when model is saved.
+        """
+        try:
+            owner = form.instance.owner
+        except models.Application.owner.RelatedObjectDoesNotExist:
+            form.instance.owner = request.user
+
+        super().save_model(request, obj, form, change)

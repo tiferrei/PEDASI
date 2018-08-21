@@ -15,13 +15,17 @@
 
     <h2>View Application - {{ application.name }}</h2>
 
+    <p>
+        Owner: <a href="#" role="link">{{ application.owner }}</a>
+    </p>
+
     {% if application.description %}
         <p>{{ application.description }}</p>
     {% endif %}
 
-    <a href="{% url 'applications:application.update' pk=application.pk %}"
+    <a href="{% url 'admin:applications_application_change' application.id %}"
        class="btn btn-success" role="button">Edit</a>
-    <a href="{% url 'applications:application.delete' pk=application.pk %}"
+    <a href="{% url 'admin:applications_application_delete' application.id %}"
        class="btn btn-danger" role="button">Delete</a>
 
 {% endblock %}

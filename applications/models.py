@@ -33,6 +33,7 @@ class Application(models.Model):
                               },
                               on_delete=models.PROTECT,
                               related_name='applications',
+                              editable=False,
                               blank=False, null=False)
 
     def get_absolute_url(self):
