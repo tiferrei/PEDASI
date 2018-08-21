@@ -2,5 +2,43 @@
 {% load bootstrap4 %}
 
 {% block content %}
-    <h2>PEDASI-IoT</h2>
+    <h2 class="display-1">PEDASI-IoT</h2>
+
+    <h2>Recent Data Sources</h2>
+
+    <div class="row">
+        {% for datasource in datasources %}
+        <div class="card col-lg-4 col-md-6">
+            <div class="card-body">
+                <h5 class="card-title">{{ datasource.name }}</h5>
+                <p class="card-text">{{ datasource.description }}</p>
+
+            </div>
+
+            <div class="card-body">
+                <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}"
+                   class="btn btn-primary btn-block" role="button">Detail</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h2 class="mt-3">Recent Applications</h2>
+
+    <div class="row">
+        {% for application in applications %}
+            <div class="card col-lg-4 col-md-6">
+                <div class="card-body">
+                    <h5 class="card-title">{{ application.name }}</h5>
+                    <p class="card-text">{{ application.description }}</p>
+
+                </div>
+
+                <div class="card-body">
+                    <a href="{% url 'applications:application.detail' pk=application.pk %}"
+                       class="btn btn-primary btn-block" role="button">Detail</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 {% endblock %}
