@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ datasource.name }}
+            </li>
+        </ol>
+    </nav>
+
+    <h2>View Data Source - {{ datasource.name }}</h2>
+
+    <div class="alert alert-warning">
+        You do not have permission to access this resource.
+
+        <a href="#"
+           class="btn btn-primary" role="button">Request Access</a>
+    </div>
+
+    {% if datasource.description %}
+        <p>{{ datasource.description }}</p>
+    {% endif %}
+
+{% endblock %}

@@ -64,8 +64,10 @@ class DataSource(models.Model):
         """
         if not self.access_control:
             return True
+        if self.owner == user:
+            return True
 
-        return user.groups.exists(self.users_group)
+        return self.users_group.user_set.filter(pk=user.pk).exists()
 
     def save(self, **kwargs):
         if self.access_control:

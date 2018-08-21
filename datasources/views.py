@@ -28,6 +28,11 @@ class DataSourceDetailView(DetailView):
     template_name = 'datasources/datasource/detail.html'
     context_object_name = 'datasource'
 
+    def get_template_names(self):
+        if not self.object.has_permission(self.request.user):
+            return ['datasources/datasource/detail-no-access.html']
+        return super().get_template_names()
+
 
 class DataSourceUpdateView(OwnerPermissionRequiredMixin, UpdateView):
     model = models.DataSource
