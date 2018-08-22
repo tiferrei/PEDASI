@@ -57,6 +57,10 @@ class DataSource(models.Model):
     access_control = models.BooleanField(default=False,
                                          blank=False, null=False)
 
+    #: Name of plugin which allows interaction with this data source
+    plugin_name = models.CharField(max_length=MAX_LENGTH_NAME,
+                                   blank=False, null=False)
+
     def has_view_permission(self, user: settings.AUTH_USER_MODEL) -> bool:
         """
         Does a user have permission to use this data source?

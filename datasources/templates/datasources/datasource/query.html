@@ -23,16 +23,22 @@
         <p>{{ datasource.description }}</p>
     {% endif %}
 
-    <a href="{% url 'datasources:datasource.query' pk=datasource.id %}"
-       class="btn btn-success" role="link">Query</a>
+    <hr>
 
-    <a href="{% url 'admin:datasources_datasource_change' datasource.id %}"
-       class="btn btn-success" role="button">Edit</a>
-    <a href="{% url 'admin:datasources_datasource_delete' datasource.id %}"
-       class="btn btn-danger" role="button">Delete</a>
-    {% if datasource.access_control %}
-        <a href="{% url 'datasources:datasource.manage-access' pk=datasource.pk %}"
-           class="btn btn-primary" role="button">Manage Access</a>
-    {% endif %}
+    <table class="table">
+        <thead class="thead">
+            <tr>
+                <th>Name</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for data_row in results.data.values %}
+                <tr>
+                    <td>{{ data_row.organisation_name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
 {% endblock %}

@@ -16,4 +16,8 @@ urlpatterns = [
     path('<int:pk>/manage-access',
          views.DataSourceManageAccessView.as_view(),
          name='datasource.manage-access'),
+
+    path('<int:pk>/query',
+         views.DataSourceQueryView.as_view(),
+         name='datasource.query'),
 ]
