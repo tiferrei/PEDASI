@@ -43,19 +43,21 @@ class DataSource(models.Model):
     users_group = models.ForeignKey(Group,
                                     on_delete=models.SET_NULL,
                                     related_name='datasource',
+                                    editable=False,
                                     blank=True, null=True)
 
     #: Groups of users who have requested explicit permission to use this data source
     users_group_requested = models.ForeignKey(Group,
                                               on_delete=models.SET_NULL,
                                               related_name='datasource_requested',
+                                              editable=False,
                                               blank=True, null=True)
 
     #: Do users require explicit permission to use this data source?
     access_control = models.BooleanField(default=False,
                                          blank=False, null=False)
 
-    def has_permission(self, user: settings.AUTH_USER_MODEL) -> bool:
+    def has_view_permission(self, user: settings.AUTH_USER_MODEL) -> bool:
         """
         Does a user have permission to use this data source?
 

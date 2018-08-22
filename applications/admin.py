@@ -5,11 +5,24 @@ from . import models
 
 @admin.register(models.Application)
 class ApplicationAdmin(admin.ModelAdmin):
+    readonly_fields = ['owner']
+
     def has_change_permission(self, request, obj=None) -> bool:
         """
         Does the user have permission to change this object?
         """
         permission = super().has_change_permission(request, obj)
+
+        if obj is not None:
+            permission &= obj.owner == request.user
+
+        return permission
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        """
+        Does the user have permission to delete this object?
+        """
+        permission = super().has_delete_permission(request, obj)
 
         if obj is not None:
             permission &= obj.owner == request.user
