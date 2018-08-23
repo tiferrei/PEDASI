@@ -8,9 +8,6 @@ from .base import BaseDataConnector
 class IoTUK(BaseDataConnector):
     name = 'IoTUK'
 
-    def __init__(self, url='https://api.iotuk.org.uk/iotOrganisation'):
-        super().__init__(location=url)
-
     def get_data(self,
                  dataset: typing.Optional[str] = None,
                  query_params: typing.Optional[typing.Mapping[str, str]] = None):

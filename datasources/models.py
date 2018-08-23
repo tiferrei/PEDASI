@@ -3,6 +3,8 @@ from django.contrib.auth.models import Group
 from django.db import models
 from django.urls import reverse
 
+from datasources.connectors.base import BaseDataConnector
+
 
 #: Length of CharFields used to hold the names of objects
 MAX_LENGTH_NAME = 63
@@ -60,6 +62,19 @@ class DataSource(models.Model):
     #: Name of plugin which allows interaction with this data source
     plugin_name = models.CharField(max_length=MAX_LENGTH_NAME,
                                    blank=False, null=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._data_connector = None
+
+    @property
+    def data_connector(self):
+        if self._data_connector is None:
+            BaseDataConnector.load_plugins('datasources/connectors')
+            plugin = BaseDataConnector.get_plugin(self.plugin_name)
+            self._data_connector = plugin(self.url)
+
+        return self._data_connector
 
     def has_view_permission(self, user: settings.AUTH_USER_MODEL) -> bool:
         """
