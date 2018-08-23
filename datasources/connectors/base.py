@@ -72,17 +72,10 @@ class BaseDataConnector(metaclass=Plugin):
       or should we create a new connector for datasets within a catalogue?
     * What other operations do we need?
     """
-
-    def __init__(self, location):
+    def __init__(self, location: str,
+                 api_key: typing.Optional[str] = None):
         self.location = location
-
-    @property
-    @abc.abstractmethod
-    def name(self) -> str:
-        """
-        Friendly name of the connector class.
-        """
-        raise NotImplementedError
+        self.api_key = api_key
 
     @abc.abstractmethod
     def get_data(self,
@@ -99,13 +92,27 @@ class BaseDataConnector(metaclass=Plugin):
 
 
 class DataConnectorContainsDatasets:
+    """
+    Mixin class indicating that the plugin represents a data source containing
+    multiple datasets.
+    """
     @abc.abstractmethod
     def get_datasets(self,
                      query_params: typing.Optional[typing.Mapping[str, str]] = None):
+        """
+        Get the list of all dataset identifiers contained within this source
+        using the appropriate API.
+
+        :param query_params: Optional query parameter filters
+        :return: All dataset identifiers
+        """
         raise NotImplementedError
 
 
 class DataConnectorHasMetadata:
+    """
+    Mixin class indicating the the plugin represents a data source with metadata.
+    """
     @abc.abstractmethod
     def get_metadata(self,
                      dataset: typing.Optional[str] = None,

@@ -53,6 +53,7 @@ class DataSourceMetadataView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        # Using data connector context manager saves API queries
         with self.object.data_connector as dc:
             context['metadata'] = dc.get_metadata()
             context['datasets'] = {

@@ -6,8 +6,6 @@ from datasources.connectors.base import BaseDataConnector, DataConnectorContains
 
 
 class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseDataConnector):
-    name = 'HyperCat'
-
     def get_data(self,
                  dataset: typing.Optional[str] = None,
                  query_params: typing.Optional[typing.Mapping[str, str]] = None):
@@ -22,14 +20,6 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
                      query_params: typing.Optional[typing.Mapping[str, str]] = None):
         if dataset is None:
             metadata = self.response['catalogue-metadata']
-            metadata_dict = {}
-            for item in metadata:
-                relation = item['rel']
-                value = item['val']
-
-                if relation not in metadata_dict:
-                    metadata_dict[relation] = []
-                metadata_dict[relation].append(value)
 
         else:
             dataset_item = self._get_item_by_key_value(
@@ -38,31 +28,29 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
                 dataset
             )
             metadata = dataset_item['item-metadata']
-            metadata_dict = {}
-            for item in metadata:
-                relation = item['rel']
-                value = item['val']
 
-                if relation not in metadata_dict:
-                    metadata_dict[relation] = []
-                metadata_dict[relation].append(value)
+        metadata_dict = {}
+        for item in metadata:
+            relation = item['rel']
+            value = item['val']
+
+            if relation not in metadata_dict:
+                metadata_dict[relation] = []
+            metadata_dict[relation].append(value)
 
         return metadata_dict
 
     @staticmethod
-    def _get_item_by_key_value(collection: typing.Iterable[typing.Mapping[str, str]],
-                               key: str, value: str) -> typing.List[typing.Mapping[str, str]]:
-        vals = []
-        for item in collection:
-            if item[key] == value:
-                vals.append(item)
+    def _get_item_by_key_value(collection: typing.Iterable[typing.Mapping],
+                                key: str, value) -> typing.Mapping:
+        matches = [item for item in collection if item[key] == value]
 
-        if not vals:
+        if not matches:
             raise KeyError
-        if len(vals) == 1:
-            vals = vals[0]
+        elif len(matches) > 1:
+            raise ValueError('Multiple items were found')
 
-        return vals
+        return matches[0]
 
     def __enter__(self):
         r = requests.get(self.location)

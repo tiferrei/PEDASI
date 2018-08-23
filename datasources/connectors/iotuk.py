@@ -6,8 +6,6 @@ from .base import BaseDataConnector
 
 
 class IoTUK(BaseDataConnector):
-    name = 'IoTUK'
-
     def get_data(self,
                  dataset: typing.Optional[str] = None,
                  query_params: typing.Optional[typing.Mapping[str, str]] = None):
