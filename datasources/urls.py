@@ -20,4 +20,8 @@ urlpatterns = [
     path('<int:pk>/query',
          views.DataSourceQueryView.as_view(),
          name='datasource.query'),
+
+    path('<int:pk>/metadata',
+         views.DataSourceMetadataView.as_view(),
+         name='datasource.metadata'),
 ]

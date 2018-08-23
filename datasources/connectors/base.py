@@ -98,6 +98,13 @@ class BaseDataConnector(metaclass=Plugin):
         raise NotImplementedError
 
 
+class DataConnectorContainsDatasets:
+    @abc.abstractmethod
+    def get_datasets(self,
+                     query_params: typing.Optional[typing.Mapping[str, str]] = None):
+        raise NotImplementedError
+
+
 class DataConnectorHasMetadata:
     @abc.abstractmethod
     def get_metadata(self,

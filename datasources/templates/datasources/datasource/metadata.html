@@ -11,7 +11,7 @@
                 <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}">{{ datasource.name }}</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
-                Query
+                Metadata
             </li>
         </ol>
     </nav>
@@ -31,16 +31,42 @@
     <table class="table">
         <thead class="thead">
             <tr>
-                <th>Name</th>
+                <th>Relation</th>
+                <th>Values</th>
             </tr>
         </thead>
 
         <tbody>
-            {% for data_row in results.data.values %}
+            {% for relation, values in metadata.items %}
                 <tr>
-                    <td>{{ data_row.organisation_name }}</td>
+                    <td>{{ relation }}</td>
+                    <td>
+                        {% for value in values %}
+                            <p>{{ value }}</p>
+                        {% endfor %}
+                    </td>
                 </tr>
             {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <table class="table">
+        <thead class="thead">
+        <tr>
+            <th>URL</th>
+            <th>Metadata</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for dataset, dataset_metadata in datasets.items %}
+            <tr>
+                <td>{{ dataset }}</td>
+                <td>{{ dataset_metadata }}</td>
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
 

@@ -43,3 +43,21 @@ class DataSourceQueryView(DetailView):
         )
 
         return context
+
+
+class DataSourceMetadataView(DetailView):
+    model = models.DataSource
+    template_name = 'datasources/datasource/metadata.html'
+    context_object_name = 'datasource'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        with self.object.data_connector as dc:
+            context['metadata'] = dc.get_metadata()
+            context['datasets'] = {
+                dataset: dc.get_metadata(dataset)
+                for dataset in dc.get_datasets()
+            }
+
+        return context

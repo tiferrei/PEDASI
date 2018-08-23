@@ -25,6 +25,8 @@
 
     <a href="{% url 'datasources:datasource.query' pk=datasource.id %}"
        class="btn btn-success" role="link">Query</a>
+    <a href="{% url 'datasources:datasource.metadata' pk=datasource.id %}"
+       class="btn btn-success" role="link">Metadata</a>
 
     <a href="{% url 'admin:datasources_datasource_change' datasource.id %}"
        class="btn btn-success" role="button">Edit</a>
