@@ -4,13 +4,10 @@ from django.db import models
 from django.urls import reverse
 
 from datasources.connectors.base import BaseDataConnector
+from pedasi.common.base_models import BaseAppDataModel, MAX_LENGTH_NAME
 
 
-#: Length of CharFields used to hold the names of objects
-MAX_LENGTH_NAME = 63
-
-
-class DataSource(models.Model):
+class DataSource(BaseAppDataModel):
     """
     Manage access to a data source API.
 
@@ -21,16 +18,6 @@ class DataSource(models.Model):
     * Track provenance of the data source itself
     * Track provenance of data accesses
     """
-    #: Friendly name of this data source
-    name = models.CharField(max_length=MAX_LENGTH_NAME,
-                            blank=False, null=False)
-
-    #: A brief description
-    description = models.TextField(blank=True, null=False)
-
-    #: Address at which the API may be accessed
-    url = models.URLField(blank=False, null=False)
-
     # TODO replace this with an admin group
     #: User who has responsibility for this data source
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
@@ -105,6 +92,3 @@ class DataSource(models.Model):
     def get_absolute_url(self):
         return reverse('datasources:datasource.detail',
                        kwargs={'pk': self.pk})
-
-    def __str__(self):
-        return self.name
