@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from . import models
+from datasources import models
 
 
 class DataSourceModelTest(TestCase):
