@@ -32,36 +32,47 @@
         # Required for Ansible to setup DB
         - python3-mysqldb
 
-    - name: Copy deploy key
-      copy:
-        src: 'deploy/.deployment-key'
-        dest: '~/.deployment-key'
-        mode: 0600
+    - name: Setup dev deployment
+      block:
+      - name: Clone / update from local repo
+        git:
+          repo: '/vagrant'
+          dest: '{{ project_dir }}'
 
-    - name: Clone / update master branch
-      git:
-        repo: 'ssh://git@github.com/Southampton-RSG/PEDASI-IoT.git'
-        dest: '{{ project_dir }}'
-        accept_hostkey: yes
-        key_file: '~/.deployment-key'
-        version: master
+      - name: Copy dev settings
+        copy:
+          src: 'deploy/.env.dev'
+          dest: '{{ project_dir }}/.env'
+          owner: www-data
+          group: www-data
+          mode: 0600
 
-    - name: Copy dev settings
-      copy:
-        src: 'deploy/.env.dev'
-        dest: '{{ project_dir }}/.env'
-        owner: www-data
-        group: www-data
-        mode: 0600
       when: production is not defined
 
-    - name: Copy production settings
-      copy:
-        src: 'deploy/.env.prod'
-        dest: '{{ project_dir }}/.env'
-        owner: www-data
-        group: www-data
-        mode: 0600
+    - name: Setup production deployment
+      block:
+      - name: Copy deploy key
+        copy:
+          src: 'deploy/.deployment-key'
+          dest: '~/.deployment-key'
+          mode: 0600
+
+      - name: Clone / update master branch
+        git:
+          repo: 'ssh://git@github.com/Southampton-RSG/PEDASI-IoT.git'
+          dest: '{{ project_dir }}'
+          accept_hostkey: yes
+          key_file: '~/.deployment-key'
+          version: master
+
+      - name: Copy production settings
+        copy:
+          src: 'deploy/.env.prod'
+          dest: '{{ project_dir }}/.env'
+          owner: www-data
+          group: www-data
+          mode: 0600
+
       when: production is defined
 
     - name: Set permissions on manage.py
@@ -102,6 +113,18 @@
         path: '{{ project_dir }}'
         mode: 0775
 
+    - name: Compile documentation
+      make:
+        chdir: '{{ project_dir }}/docs'
+        target: '{{ item }}'
+        params:
+          SPHINXBUILD: '{{ venv_dir }}/bin/sphinx-build'
+          SPHINXAPIDOC: '{{ venv_dir }}/bin/sphinx-apidoc'
+      loop:
+      - clean
+      - apidoc
+      - html
+
     - name: Create static directory
       file:
         path: '{{ project_dir }}/static'
@@ -114,6 +137,7 @@
       django_manage: command={{ item }} app_path={{ project_dir }} virtualenv={{ venv_dir }}
       with_items:
         - migrate
+        - collectstatic
 
     - name: Install uWSGI
       pip:
