@@ -4,10 +4,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PEDASI-IoT</title>
+    <title>PEDASI</title>
 
     {% bootstrap_css %}
-    {% bootstrap_javascript %}
+    {% bootstrap_javascript jquery=True %}
 
     <!-- Font Awesome - https://fontawesome.com -->
     <link rel="stylesheet"
@@ -18,12 +18,15 @@
           href="https://use.fontawesome.com/releases/v5.2.0/css/fontawesome.css"
           integrity="sha384-HbmWTHay9psM8qyzEKPc8odH4DsOuzdejtnr+OFtDmOcIVnhgReQ4GZBH7uwcjf6"
           crossorigin="anonymous">
+
+    {% block extra_head %}
+    {% endblock %}
 </head>
 
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="/">PEDASI-IoT</a>
+        <a class="navbar-brand" href="/">PEDASI</a>
         <button class="navbar-toggler" type="button"
                 data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,6 +56,9 @@
             </ul>
         </div>
     </nav>
+
+    {% block pre_content %}
+    {% endblock %}
 
     <div class="container">
         <div class="mt-3"></div>
