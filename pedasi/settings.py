@@ -52,6 +52,7 @@ CUSTOM_APPS = [
     'profiles',
     'applications',
     'datasources',
+    'prov',
 ]
 
 # Custom apps have to be listed before Django apps so they override default templates
@@ -96,8 +97,20 @@ DATABASES = {
         'DATABASE_URL',
         default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
         cast=dj_database_url.parse
-    )
+    ),
+    'prov': {
+        'ENGINE': 'djongo',
+        'NAME': config(
+            'PROV_DATABASE_NAME',
+            default='prov'
+        )
+    }
 }
+
+DATABASE_ROUTERS = [
+    'prov.routers.ProvRouter',
+    'pedasi.routers.DefaultRouter',
+]
 
 
 # Password validation
