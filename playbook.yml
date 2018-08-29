@@ -13,13 +13,26 @@
     - name: Test connection
       ping:
 
+    # Setup MongoDB repo
+    # sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
+    - name: Import MongoDB repo key
+      apt_key:
+        keyserver: hkp://keyserver.ubuntu.com:80
+        id: 9DA31620334BD75D9DCB49F368818C72E52529D4
+
+    # echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
+    - name: Add MongoDB repo to apt list
+      apt_repository:
+        repo: deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse
+        filename: mongodb-org-4.0
+
     - name: Update apt
       apt:
         update_cache: yes
         upgrade: yes
 
     - name: Install apt prerequisites
-      apt: name={{ item }} state=latest
+      apt: name={{ item }} state=latest update_cache=yes
       with_items:
         - nginx
         - python3
@@ -29,6 +42,7 @@
         - git
         - mysql-server
         - libmysqlclient-dev
+        - mongodb-org
         # Required for Ansible to setup DB
         - python3-mysqldb
 
@@ -172,6 +186,7 @@
       with_items:
         - nginx
         - uwsgi
+        - mongod
 
     - name: Open firewall
       ufw:
