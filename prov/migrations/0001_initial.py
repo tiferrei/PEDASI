@@ -17,10 +17,10 @@ class Migration(migrations.Migration):
             name='ProvCollection',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('app_name', models.CharField(max_length=100)),
+                ('app_label', models.CharField(max_length=100)),
                 ('model_name', models.CharField(max_length=100)),
                 ('related_pk', models.PositiveIntegerField()),
-                ('entries', djongo.models.fields.ArrayModelField(model_container=prov.models.ProvEntry)),
+                ('entries', djongo.models.fields.ArrayModelField(blank=True, default=[], model_container=prov.models.ProvEntry, null=False)),
             ],
         ),
     ]
