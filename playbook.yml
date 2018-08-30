@@ -109,7 +109,7 @@
         enabled: yes
         daemon-reload: yes
 
-    - name: Create portal_tng database
+    - name: Create default database
       mysql_db:
         name: 'pedasi'
         state: present
