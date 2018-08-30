@@ -98,6 +98,7 @@ DATABASES = {
         default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
         cast=dj_database_url.parse
     ),
+    # Separate PROV models into their own MongoDB database
     'prov': {
         'ENGINE': 'djongo',
         'NAME': config(
@@ -107,6 +108,7 @@ DATABASES = {
     }
 }
 
+# Database routers direct models into the correct database
 DATABASE_ROUTERS = [
     'prov.routers.ProvRouter',
     'pedasi.routers.DefaultRouter',

@@ -1,4 +1,12 @@
 class ProvRouter:
+    """
+    Django database router to direct models within the PROV app to the correct database.
+
+    This is required to separate the PROV models into MongoDB.
+
+    This router should be listed before the default router in the Django settings file.
+    """
+
     db_name = 'prov'
     app_label = 'prov'
 

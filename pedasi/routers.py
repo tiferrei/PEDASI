@@ -1,4 +1,8 @@
 class DefaultRouter:
+    """
+    Django database router to route all models to the default database.
+    """
+
     db_name = 'default'
 
     def db_for_read(self, model, **hints):
