@@ -1,4 +1,3 @@
-import copy
 import typing
 
 import requests
@@ -31,22 +30,23 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
     def get_metadata(self,
                      dataset: typing.Optional[str] = None,
                      query_params: typing.Optional[typing.Mapping[str, str]] = None):
+        if query_params is None:
+            query_params = {}
+
+        if dataset is not None:
+            # Copy so we can update without side effect
+            query_params = dict(query_params)
+            query_params['href'] = dataset
+
+        # Use cached response if we have one
         response = self._response
+        if response is None:
+            response = self._get_response(query_params)
 
         if dataset is None:
-            if response is None:
-                response = self._get_response(query_params)
-
             metadata = response['catalogue-metadata']
 
         else:
-            query_params = copy.copy(query_params).update({
-                'href': dataset
-            })
-
-            if response is None:
-                response = self._get_response(query_params)
-
             dataset_item = self._get_item_by_key_value(
                 response['items'],
                 'href',

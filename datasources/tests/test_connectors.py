@@ -93,14 +93,9 @@ class ConnectorHyperCatTest(TestCase):
         connection = self.plugin(self.url)
         self.assertEqual(connection.location, self.url)
 
-    def test_plugin_get_metadata_query(self):
+    def test_plugin_get_dataset_metadata(self):
         connection = self.plugin(self.url)
-        result = connection.get_metadata(
-            dataset=self.dataset,
-            query_params={
-                'href': self.dataset
-            }
-        )
+        result = connection.get_metadata(dataset=self.dataset)
 
         for property in [
             'urn:X-bt:rels:feedTitle',
