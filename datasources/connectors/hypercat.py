@@ -1,3 +1,4 @@
+import copy
 import typing
 
 import requests
@@ -6,6 +7,12 @@ from datasources.connectors.base import BaseDataConnector, DataConnectorContains
 
 
 class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseDataConnector):
+    def __init__(self, location: str,
+                 api_key: typing.Optional[str] = None):
+        super().__init__(location, api_key=api_key)
+
+        self._response = None
+
     def get_data(self,
                  dataset: typing.Optional[str] = None,
                  query_params: typing.Optional[typing.Mapping[str, str]] = None):
@@ -13,17 +20,35 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
 
     def get_datasets(self,
                      query_params: typing.Optional[typing.Mapping[str, str]] = None):
-        return [item['href'] for item in self.response['items']]
+        response = self._response
+        if response is None:
+            response = self._get_response(query_params)
 
+        return [item['href'] for item in response['items']]
+
+    # TODO should this be able to return metadata for multiple datasets at once?
+    # TODO should there be a different method for getting catalogue metadata?
     def get_metadata(self,
                      dataset: typing.Optional[str] = None,
                      query_params: typing.Optional[typing.Mapping[str, str]] = None):
+        response = self._response
+
         if dataset is None:
-            metadata = self.response['catalogue-metadata']
+            if response is None:
+                response = self._get_response(query_params)
+
+            metadata = response['catalogue-metadata']
 
         else:
+            query_params = copy.copy(query_params).update({
+                'href': dataset
+            })
+
+            if response is None:
+                response = self._get_response(query_params)
+
             dataset_item = self._get_item_by_key_value(
-                self.response['items'],
+                response['items'],
                 'href',
                 dataset
             )
@@ -52,10 +77,12 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
 
         return matches[0]
 
-    def __enter__(self):
-        r = requests.get(self.location)
-        self.response = r.json()
+    def _get_response(self, query_params: typing.Optional[typing.Mapping[str, str]] = None):
+        r = requests.get(self.location, params=query_params)
+        return r.json()
 
+    def __enter__(self):
+        self._response = self._get_response()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
