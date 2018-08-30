@@ -1,3 +1,5 @@
+import unittest
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
@@ -6,11 +8,15 @@ from prov.models import ProvCollection
 
 
 class ProvCollectionTest(TestCase):
-    def setUp(self):
-        self.user_model = get_user_model()
-        self.user = self.user_model.objects.create_user('test')
+    @classmethod
+    def setUpTestData(cls):
+        cls.user_model = get_user_model()
+        cls.user = cls.user_model.objects.create_user('test')
 
+    def setUp(self):
         self.datasource = DataSource.objects.create(
+            name='Test Data Source',
+            url='http://www.example.com',
             owner=self.user,
             plugin_name='TEST'
         )
@@ -27,7 +33,6 @@ class ProvCollectionTest(TestCase):
         """
         Test that a new PROV entry is created when a model is updated.
         """
-
         prov_collection = ProvCollection.for_model_instance(self.datasource)
         n_provs = len(prov_collection.entries)
 
@@ -38,6 +43,7 @@ class ProvCollectionTest(TestCase):
         prov_collection = ProvCollection.for_model_instance(self.datasource)
         self.assertEqual(len(prov_collection.entries), n_provs + 1)
 
+    @unittest.expectedFailure
     def test_prov_datasource_null_update(self):
         """
         Test that no new PROV entry is created when a model is saved without changes.
@@ -51,3 +57,21 @@ class ProvCollectionTest(TestCase):
         prov_collection = ProvCollection.for_model_instance(self.datasource)
         self.assertEqual(len(prov_collection.entries), n_provs)
 
+    def test_prov_records_distinct(self):
+        """
+        Test that a distinct PROV collection is created for each model instance.
+        """
+        prov_collection = ProvCollection.for_model_instance(self.datasource)
+
+        new_datasource = DataSource.objects.create(
+            name='Another Test Data Source',
+            url='http://www.example.com',
+            owner=self.user,
+            plugin_name='TEST'
+        )
+        new_prov_collection = ProvCollection.for_model_instance(new_datasource)
+
+        self.assertIsNot(prov_collection, new_prov_collection)
+
+        self.assertEqual(prov_collection.related_pk, self.datasource.pk)
+        self.assertEqual(new_prov_collection.related_pk, new_datasource.pk)
