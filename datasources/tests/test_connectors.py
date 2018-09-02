@@ -119,3 +119,20 @@ class ConnectorHyperCatTest(TestCase):
 
         self.assertIn('application/json',
                       result['urn:X-hypercat:rels:isContentType'])
+
+    def test_plugin_get_dataset_data(self):
+        """
+        Test that we can get data from a single dataset within the catalogue.
+        """
+        from decouple import config
+
+        api_key = config('HYPERCAT_BT_API_KEY')
+
+        dataset = self.dataset + '/datastreams/0'
+
+        connection = self.plugin(self.url,
+                                 api_key=api_key)
+        result = connection.get_data(dataset=dataset)
+
+        self.assertIsInstance(result, str)
+        self.assertGreaterEqual(len(result), 1)

@@ -1,6 +1,7 @@
 import typing
 
 import requests
+import requests.auth
 
 from datasources.connectors.base import BaseDataConnector, DataConnectorContainsDatasets, DataConnectorHasMetadata
 
@@ -15,7 +16,14 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
     def get_data(self,
                  dataset: typing.Optional[str] = None,
                  query_params: typing.Optional[typing.Mapping[str, str]] = None):
-        super().get_data(dataset, query_params)
+        if dataset is None:
+            raise ValueError('When requesting data from a HyperCat catalogue you must provide a dataset href.')
+
+        location = dataset
+        r = requests.get(location,
+                         params=query_params,
+                         auth=requests.auth.HTTPBasicAuth(self.api_key, ''))
+        return r.text
 
     def get_datasets(self,
                      query_params: typing.Optional[typing.Mapping[str, str]] = None):
