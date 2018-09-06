@@ -86,8 +86,15 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
         return matches[0]
 
     def _get_response(self, query_params: typing.Optional[typing.Mapping[str, str]] = None):
-        r = requests.get(self.location, params=query_params)
+        # r = requests.get(self.location, params=query_params)
+        r = self._get_auth_request(self.location,
+                                   query_params=query_params)
         return r.json()
+
+    def _get_auth_request(self, url, **kwargs):
+        return requests.get(url,
+                            auth=requests.auth.HTTPBasicAuth(self.api_key, ''),
+                            **kwargs)
 
     def __enter__(self):
         self._response = self._get_response()
@@ -95,3 +102,22 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
+
+
+class HyperCatCisco(HyperCat):
+    def __init__(self, location: str,
+                 api_key: typing.Optional[str] = None,
+                 entity_url: str = None):
+        super().__init__(location, api_key=api_key)
+
+        self.entity_url = entity_url
+
+    def get_entities(self):
+        r = self._get_auth_request(self.entity_url)
+        return r.json()
+
+    def _get_auth_request(self, url, **kwargs):
+        return requests.get(url,
+                            # Doesn't accept HttpBasicAuth
+                            headers={'Authorization': self.api_key},
+                            **kwargs)

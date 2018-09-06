@@ -136,3 +136,75 @@ class ConnectorHyperCatTest(TestCase):
 
         self.assertIsInstance(result, str)
         self.assertGreaterEqual(len(result), 1)
+
+
+class ConnectorHyperCatCiscoTest(TestCase):
+    url = 'https://api.cityverve.org.uk/v1/cat'
+    entity_url = 'https://api.cityverve.org.uk/v1/entity'
+
+    dataset = 'weather-observations-wind'
+
+    def setUp(self):
+        from decouple import config
+
+        BaseDataConnector.load_plugins('datasources/connectors')
+        self.plugin = BaseDataConnector.get_plugin('HyperCatCisco')
+
+        self.api_key = config('HYPERCAT_CISCO_API_KEY')
+
+    def test_get_plugin(self):
+        self.assertIsNotNone(self.plugin)
+
+    def test_plugin_init(self):
+        connection = self.plugin(self.url)
+        self.assertEqual(connection.location, self.url)
+
+    def test_plugin_get_entities(self):
+        connection = self.plugin(self.url,
+                                 api_key=self.api_key,
+                                 entity_url=self.entity_url)
+        result = connection.get_entities()
+
+        self.assertGreaterEqual(len(result), 1)
+
+        for entity in result:
+            self.assertIn('id', entity)
+            self.assertIn('uri', entity)
+
+    def test_plugin_get_catalogue_metadata(self):
+        connection = self.plugin(self.url)
+        result = connection.get_metadata()
+
+        self.assertIn('application/vnd.hypercat.catalogue+json',
+                      result['urn:X-hypercat:rels:isContentType'])
+
+        self.assertIn('CityVerve',
+                      result['urn:X-hypercat:rels:hasDescription:en'][0])
+
+        self.assertEqual('https://developer.cityverve.org.uk',
+                         result['urn:X-hypercat:rels:hasHomepage'])
+
+    def test_plugin_get_dataset_metadata(self):
+        connection = self.plugin(self.url)
+        result = connection.get_metadata(dataset=self.dataset)
+
+        for property in [
+            'urn:X-bt:rels:feedTitle',
+            'urn:X-hypercat:rels:hasDescription:en',
+            'urn:X-bt:rels:feedTag',
+            'urn:X-bt:rels:hasSensorStream',
+            'urn:X-hypercat:rels:isContentType',
+        ]:
+            self.assertIn(property, result)
+
+        self.assertIn('Met Office',
+                      result['urn:X-bt:rels:feedTitle'][0])
+
+        self.assertIn('Met Office',
+                      result['urn:X-hypercat:rels:hasDescription:en'][0])
+
+        self.assertEqual(len(result['urn:X-bt:rels:feedTag']), 1)
+        self.assertEqual(result['urn:X-bt:rels:feedTag'][0], 'weather')
+
+        self.assertGreaterEqual(len(result['urn:X-bt:rels:hasSensorStream']), 1)
+

@@ -25,5 +25,9 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /docs/build/
 /docs/source/apidoc/
 
+# Notes
+/data/
+/notes/
+
 # Experimental
 /applications/connectors/
