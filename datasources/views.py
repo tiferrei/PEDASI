@@ -1,8 +1,11 @@
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
+from rest_framework import viewsets
+
 from profiles.permissions import OwnerPermissionRequiredMixin
 from datasources import models
+from datasources import serializers
 
 
 class DataSourceListView(ListView):
@@ -62,3 +65,8 @@ class DataSourceMetadataView(DetailView):
             }
 
         return context
+
+
+class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
+    model = models.DataSource
+    serializer_class = serializers.DataSourceSerializer
