@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load bootstrap4 %}
 
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.0/src/js.cookie.min.js"></script>
+{% endblock %}
+
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -21,8 +25,30 @@
     <div class="alert alert-warning">
         You do not have permission to access this resource.
 
-        <a href="#"
-           class="btn btn-primary" role="button">Request Access</a>
+        {% if datasource.users_group_requested in request.user.groups.all %}
+            <button id="btn-request-access" disabled
+                    class="btn btn-primary" role="button">Access Requested</button>
+        {% else %}
+            <button id="btn-request-access" onclick="requestAccess()"
+                    class="btn btn-primary" role="button">Request Access</button>
+        {% endif %}
+
+        <script type="application/javascript">
+            function requestAccess(){
+                $.ajax({
+                    url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',
+                    headers: {
+                        'X-CSRFToken': Cookies.get('csrftoken')
+                    },
+                    method: 'PUT',
+                    success: function(result, status, xhr){
+                        const btn = document.getElementById('btn-request-access');
+                        btn.textContent = 'Access Requested';
+                        btn.disabled = true;
+                    }
+                })
+            }
+        </script>
     </div>
 
     {% if datasource.description %}

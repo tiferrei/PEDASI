@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load bootstrap4 %}
 
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.0/src/js.cookie.min.js"></script>
+{% endblock %}
+
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -29,7 +33,7 @@
 
     <h2>Requests for Access</h2>
 
-    <table class="table">
+    <table id="requested-user-table" class="table">
         <thead class="thead">
             <tr>
                 <th>Username</th>
@@ -39,14 +43,24 @@
         </thead>
 
         <tbody>
-            {% for user in datasource.users_group_requested.users.all %}
-                <tr>
-                    <td>user.username</td>
+            {% for user in datasource.users_group_requested.user_set.all %}
+                <tr id="requested-user-{{ user.pk }}">
+                    <td>{{ user.username }}</td>
                     <td>
-                        <a href="#" class="btn btn-success" role="button">Approve</a>
+                        <button onclick="userGrantAccess(
+                                            '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
+                                            {{ user.pk }}
+                                )"
+                                class="btn btn-success"
+                                role="button">Approve</button>
                     </td>
                     <td>
-                        <a href="#" class="btn btn-danger" role="button">Reject</a>
+                        <button onclick="userRemoveAccess(
+                                    '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
+                                    {{ user.pk }}
+                                )"
+                                class="btn btn-danger"
+                                role="button">Reject</button>
                     </td>
                 </tr>
             {% empty %}
@@ -59,7 +73,7 @@
 
     <h2>Approved Users</h2>
 
-    <table class="table">
+    <table id="approved-user-table" class="table">
         <thead class="thead">
         <tr>
             <th>Username</th>
@@ -69,14 +83,17 @@
         </thead>
 
         <tbody>
-        {% for user in datasource.users_group.users.all %}
-            <tr>
-                <td>user.username</td>
+        {% for user in datasource.users_group.user_set.all %}
+            <tr id="approved-user-{{ user.pk }}">
+                <td>{{ user.username }}</td>
+                <td></td>
                 <td>
-                    <a href="#" class="btn btn-success" role="button">Approve</a>
-                </td>
-                <td>
-                    <a href="#" class="btn btn-danger" role="button">Reject</a>
+                    <button onclick="userRemoveAccess(
+                                '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
+                                {{ user.pk }}
+                            )"
+                            class="btn btn-danger"
+                            role="button">Remove</button>
                 </td>
             </tr>
         {% empty %}
@@ -84,5 +101,45 @@
         {% endfor %}
         </tbody>
     </table>
+
+    <script type="application/javascript">
+        function userGrantAccess(url, userPk){
+            $.ajax({
+                {#url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',#}
+                url: url,
+                headers: {
+                    'X-CSRFToken': Cookies.get('csrftoken')
+                },
+                method: 'PUT',
+                success: function(result, status, xhr){
+                    document.getElementById('requested-user-' + userPk.toString()).remove();
+
+                    // TODO if table is empty add 'table is empty' row
+                }
+            })
+        }
+
+        function userRemoveAccess(url, userPk){
+            $.ajax({
+                {#url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',#}
+                url: url,
+                headers: {
+                    'X-CSRFToken': Cookies.get('csrftoken')
+                },
+                method: 'DELETE',
+                success: function(result, status, xhr){
+                    try {
+                        document.getElementById('approved-user-' + userPk.toString()).remove();
+                    } catch (err) {}
+
+                    try {
+                        document.getElementById('requested-user-' + userPk.toString()).remove();
+                    } catch (err) {}
+                }
+
+                // TODO if table is empty add 'table is empty' row
+            })
+        }
+    </script>
 
 {% endblock %}

@@ -1,4 +1,4 @@
-from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.mixins import UserPassesTestMixin, PermissionRequiredMixin
 
 
 class OwnerPermissionRequiredMixin(PermissionRequiredMixin):
@@ -16,3 +16,11 @@ class OwnerPermissionRequiredMixin(PermissionRequiredMixin):
         :return: Does the user have permission to perform this action?
         """
         return super().has_permission() and self.request.user == getattr(self.get_object(), self.owner_attribute)
+
+
+class HasViewPermissionMixin(UserPassesTestMixin):
+    """
+    Mixin to reject users who do not have permission to view this DataSource.
+    """
+    def test_func(self) -> bool:
+        return self.get_object().has_view_permission(self.request.user)
