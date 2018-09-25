@@ -18,7 +18,6 @@ class DataSource(BaseAppDataModel):
     * Track provenance of the data source itself
     * Track provenance of data accesses
     """
-    # TODO replace this with an admin group
     #: User who has responsibility for this data source
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               limit_choices_to={
@@ -27,24 +26,6 @@ class DataSource(BaseAppDataModel):
                               on_delete=models.PROTECT,
                               related_name='datasources',
                               blank=False, null=False)
-
-    #: Group of users who have explicit permission to use (query) this data source
-    users_group = models.ForeignKey(Group,
-                                    on_delete=models.SET_NULL,
-                                    related_name='datasource',
-                                    editable=False,
-                                    blank=True, null=True)
-
-    #: Groups of users who have requested explicit permission to use this data source
-    users_group_requested = models.ForeignKey(Group,
-                                              on_delete=models.SET_NULL,
-                                              related_name='datasource_requested',
-                                              editable=False,
-                                              blank=True, null=True)
-
-    #: Do users require explicit permission to use this data source?
-    access_control = models.BooleanField(default=False,
-                                         blank=False, null=False)
 
     #: Name of plugin which allows interaction with this data source
     plugin_name = models.CharField(max_length=MAX_LENGTH_NAME,
@@ -62,32 +43,6 @@ class DataSource(BaseAppDataModel):
             self._data_connector = plugin(self.url)
 
         return self._data_connector
-
-    def has_view_permission(self, user: settings.AUTH_USER_MODEL) -> bool:
-        """
-        Does a user have permission to use this data source?
-
-        :param user: User to check
-        :return: User has permission?
-        """
-        if not self.access_control:
-            return True
-        if self.owner == user:
-            return True
-
-        return self.users_group.user_set.filter(pk=user.pk).exists()
-
-    def save(self, **kwargs):
-        if self.access_control:
-            # Create access control groups if they do not exist
-            self.users_group, created = Group.objects.get_or_create(
-                name=self.name + ' Users'
-            )
-            self.users_group_requested, created = Group.objects.get_or_create(
-                name=self.name + ' Users Requested'
-            )
-
-        super().save(**kwargs)
 
     def get_absolute_url(self):
         return reverse('datasources:datasource.detail',
