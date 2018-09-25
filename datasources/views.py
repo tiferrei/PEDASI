@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse, HttpResponseForbidden, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.views.generic import View
 from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.list import ListView
@@ -54,7 +54,7 @@ class DataSourceRequestAccessView(SingleObjectMixin, View):
         Add a user to the access group for a DataSource.
 
         If the request is performed by the DataSource owner or by staff: add them directly to the access group,
-        If the request is performed by the user themselves: add them to the 'access reqested' group,
+        If the request is performed by the user themselves: add them to the 'access requested' group,
         Else reject the request.
 
         :param request:
@@ -79,7 +79,7 @@ class DataSourceRequestAccessView(SingleObjectMixin, View):
                 return HttpResponseBadRequest(
                     JsonResponse({
                         'status': 'fail',
-                        'message': 'You already have access to this data source',
+                        'message': 'You already have access to this resource',
                     })
                 )
 

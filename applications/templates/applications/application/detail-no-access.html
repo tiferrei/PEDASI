@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.0/src/js.cookie.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'applications:application.list' %}">Applications</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ application.name }}
+            </li>
+        </ol>
+    </nav>
+
+    <h2>View Application - {{ application.name }}</h2>
+
+    <p>
+        Owner: <a href="#" role="link">{{ application.owner }}</a>
+    </p>
+
+    <div class="alert alert-warning">
+        You do not have permission to access this resource.
+
+        {% if application.users_group_requested in request.user.groups.all %}
+            <button id="btn-request-access" disabled
+                    class="btn btn-primary" role="button">Access Requested</button>
+        {% else %}
+            <button id="btn-request-access" onclick="requestAccess()"
+                    class="btn btn-primary" role="button">Request Access</button>
+        {% endif %}
+
+        <script type="application/javascript">
+            function requestAccess(){
+                $.ajax({
+                    url: '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=request.user.pk %}',
+                    headers: {
+                        'X-CSRFToken': Cookies.get('csrftoken')
+                    },
+                    method: 'PUT',
+                    success: function(result, status, xhr){
+                        const btn = document.getElementById('btn-request-access');
+                        btn.textContent = 'Access Requested';
+                        btn.disabled = true;
+                    }
+                })
+            }
+        </script>
+    </div>
+
+    {% if application.description %}
+        <p>{{ application.description }}</p>
+    {% endif %}
+
+    <a href="{% url 'admin:applications_application_change' application.id %}"
+       class="btn btn-success" role="button">Edit</a>
+    <a href="{% url 'admin:applications_application_delete' application.id %}"
+       class="btn btn-danger" role="button">Delete</a>
+
+{% endblock %}
