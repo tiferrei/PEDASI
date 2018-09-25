@@ -4,7 +4,7 @@ from django.db import models
 from django.urls import reverse
 
 from datasources.connectors.base import BaseDataConnector
-from pedasi.common.base_models import BaseAppDataModel, MAX_LENGTH_NAME
+from core.models import BaseAppDataModel, MAX_LENGTH_NAME
 
 
 class DataSource(BaseAppDataModel):

@@ -2,7 +2,7 @@ import abc
 import typing
 
 
-from pedasi.common import plugin
+from core import plugin
 
 
 class BaseDataConnector(metaclass=plugin.Plugin):

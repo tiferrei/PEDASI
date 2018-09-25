@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 
-from pedasi.common.base_models import BaseAppDataModel
+from core.models import BaseAppDataModel
 
 
 class Application(BaseAppDataModel):
