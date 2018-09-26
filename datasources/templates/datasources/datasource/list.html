@@ -24,6 +24,7 @@
         <thead class="thead">
             <tr>
                 <th>Name</th>
+                <th>Public?</th>
                 <th></th>
             </tr>
         </thead>
@@ -32,6 +33,7 @@
             {% for datasource in datasources %}
             <tr>
                 <td>{{ datasource.name }}</td>
+                <td>{{ datasource.access_control|yesno:'No,Yes' }}</td>
                 <td>
                     <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}"
                        class="btn btn-primary" role="button">Detail</a>

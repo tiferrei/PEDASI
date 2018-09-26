@@ -12,4 +12,12 @@ urlpatterns = [
     path('<int:pk>/',
          views.ApplicationDetailView.as_view(),
          name='application.detail'),
+
+    path('<int:pk>/manage-access',
+         views.ApplicationManageAccessView.as_view(),
+         name='application.manage-access'),
+
+    path('<int:pk>/manage-access/users/<int:user_pk>',
+         views.ApplicationManageAccessView.as_view(),
+         name='application.manage-access.user'),
 ]
