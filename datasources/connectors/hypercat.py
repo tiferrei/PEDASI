@@ -86,9 +86,9 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
         return matches[0]
 
     def _get_response(self, params: typing.Optional[typing.Mapping[str, str]] = None):
-        # r = requests.get(self.location, params=params)
         r = self._get_auth_request(self.location,
                                    params=params)
+        r.raise_for_status()
         return r.json()
 
     def _get_auth_request(self, url, **kwargs):
