@@ -64,7 +64,7 @@ class ConnectorIoTUKTest(TestCase):
 
     def test_plugin_get_data_query(self):
         connection = self.plugin(self.url)
-        result = connection.get_data(query_params={'year': 2018})
+        result = connection.get_data(params={'year': 2018})
 
         self.assertIn('status', result)
         self.assertEqual(result['status'], 200)

@@ -143,7 +143,7 @@ class DataSourceQueryView(HasViewPermissionMixin, DetailView):
         context = super().get_context_data(**kwargs)
 
         context['results'] = self.object.data_connector.get_data(
-            query_params={'year': 2018}
+            params={'year': 2018}
         )
 
         return context
