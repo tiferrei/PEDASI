@@ -43,6 +43,7 @@ from django.urls import reverse_lazy
 
 from decouple import config
 import dj_database_url
+import mongoengine
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -121,21 +122,15 @@ DATABASES = {
         default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
         cast=dj_database_url.parse
     ),
-    # Separate PROV models into their own MongoDB database
-    'prov': {
-        'ENGINE': 'djongo',
-        'NAME': config(
-            'PROV_DATABASE_NAME',
-            default='prov'
-        )
-    }
 }
 
-# Database routers direct models into the correct database
-DATABASE_ROUTERS = [
-    'prov.routers.ProvRouter',
-    'pedasi.routers.DefaultRouter',
-]
+mongoengine.register_connection(
+    host=config(
+        'PROV_DATABASE_URL',
+        default='mongodb://localhost/prov',
+    ),
+    alias='default'
+)
 
 
 # Password validation
