@@ -12,10 +12,10 @@
                 <a href="{% url 'index' %}">Home</a>
             </li>
             <li class="breadcrumb-item" aria-current="page">
-                <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+                <a href="{% url 'applications:application.list' %}">Data Sources</a>
             </li>
             <li class="breadcrumb-item" aria-current="page">
-                <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}">{{ datasource.name }}</a>
+                <a href="{% url 'applications:application.detail' pk=application.pk %}">{{ application.name }}</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
                 Manage Access
@@ -23,10 +23,10 @@
         </ol>
     </nav>
 
-    <h2>View Data Source - {{ datasource.name }}</h2>
+    <h2>View Data Source - {{ application.name }}</h2>
 
-    {% if datasource.description %}
-        <p>{{ datasource.description }}</p>
+    {% if application.description %}
+        <p>{{ application.description }}</p>
     {% endif %}
 
     <hr/>
@@ -43,12 +43,12 @@
         </thead>
 
         <tbody>
-            {% for user in datasource.users_group_requested.user_set.all %}
+            {% for user in application.users_group_requested.user_set.all %}
                 <tr id="requested-user-{{ user.pk }}">
                     <td>{{ user.username }}</td>
                     <td>
                         <button onclick="userGrantAccess(
-                                            '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
+                                            '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=user.pk %}',
                                             {{ user.pk }}
                                 )"
                                 class="btn btn-success"
@@ -56,7 +56,7 @@
                     </td>
                     <td>
                         <button onclick="userRemoveAccess(
-                                    '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
+                                    '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=user.pk %}',
                                     {{ user.pk }}
                                 )"
                                 class="btn btn-danger"
@@ -83,13 +83,13 @@
         </thead>
 
         <tbody>
-        {% for user in datasource.users_group.user_set.all %}
+        {% for user in application.users_group.user_set.all %}
             <tr id="approved-user-{{ user.pk }}">
                 <td>{{ user.username }}</td>
                 <td></td>
                 <td>
                     <button onclick="userRemoveAccess(
-                                '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
+                                '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=user.pk %}',
                                 {{ user.pk }}
                             )"
                             class="btn btn-danger"
@@ -105,7 +105,7 @@
     <script type="application/javascript">
         function userGrantAccess(url, userPk){
             $.ajax({
-                {#url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',#}
+                {#url: '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=request.user.pk %}',#}
                 url: url,
                 headers: {
                     'X-CSRFToken': Cookies.get('csrftoken')
@@ -121,7 +121,7 @@
 
         function userRemoveAccess(url, userPk){
             $.ajax({
-                {#url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',#}
+                {#url: '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=request.user.pk %}',#}
                 url: url,
                 headers: {
                     'X-CSRFToken': Cookies.get('csrftoken')

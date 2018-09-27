@@ -3,8 +3,14 @@ import unittest
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
+import mongoengine
+
 from datasources.models import DataSource
 from prov.models import ProvCollection
+
+
+# Create connection to test DB
+mongoengine.connect('test_prov')
 
 
 class ProvCollectionTest(TestCase):
@@ -20,6 +26,10 @@ class ProvCollectionTest(TestCase):
             owner=self.user,
             plugin_name='TEST'
         )
+
+    def tearDown(self):
+        # Have to delete instance manually since we're not using Django's database manager
+        ProvCollection.for_model_instance(self.datasource).delete()
 
     def test_prov_datasource_create(self):
         """

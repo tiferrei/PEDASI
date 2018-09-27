@@ -64,7 +64,7 @@ class ConnectorIoTUKTest(TestCase):
 
     def test_plugin_get_data_query(self):
         connection = self.plugin(self.url)
-        result = connection.get_data(query_params={'year': 2018})
+        result = connection.get_data(params={'year': 2018})
 
         self.assertIn('status', result)
         self.assertEqual(result['status'], 200)
@@ -172,7 +172,8 @@ class ConnectorHyperCatCiscoTest(TestCase):
             self.assertIn('uri', entity)
 
     def test_plugin_get_catalogue_metadata(self):
-        connection = self.plugin(self.url)
+        connection = self.plugin(self.url,
+                                 api_key=self.api_key)
         result = connection.get_metadata()
 
         self.assertIn('application/vnd.hypercat.catalogue+json',
@@ -181,8 +182,8 @@ class ConnectorHyperCatCiscoTest(TestCase):
         self.assertIn('CityVerve',
                       result['urn:X-hypercat:rels:hasDescription:en'][0])
 
-        self.assertEqual('https://developer.cityverve.org.uk',
-                         result['urn:X-hypercat:rels:hasHomepage'])
+        self.assertIn('https://developer.cityverve.org.uk',
+                      result['urn:X-hypercat:rels:hasHomepage'])
 
     def test_plugin_get_dataset_metadata(self):
         connection = self.plugin(self.url)

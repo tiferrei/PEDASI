@@ -15,21 +15,21 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
 
     def get_data(self,
                  dataset: typing.Optional[str] = None,
-                 query_params: typing.Optional[typing.Mapping[str, str]] = None):
+                 params: typing.Optional[typing.Mapping[str, str]] = None):
         if dataset is None:
             raise ValueError('When requesting data from a HyperCat catalogue you must provide a dataset href.')
 
         location = dataset
         r = requests.get(location,
-                         params=query_params,
+                         params=params,
                          auth=requests.auth.HTTPBasicAuth(self.api_key, ''))
         return r.text
 
     def get_datasets(self,
-                     query_params: typing.Optional[typing.Mapping[str, str]] = None):
+                     params: typing.Optional[typing.Mapping[str, str]] = None):
         response = self._response
         if response is None:
-            response = self._get_response(query_params)
+            response = self._get_response(params=params)
 
         return [item['href'] for item in response['items']]
 
@@ -37,19 +37,19 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
     # TODO should there be a different method for getting catalogue metadata?
     def get_metadata(self,
                      dataset: typing.Optional[str] = None,
-                     query_params: typing.Optional[typing.Mapping[str, str]] = None):
-        if query_params is None:
-            query_params = {}
+                     params: typing.Optional[typing.Mapping[str, str]] = None):
+        if params is None:
+            params = {}
 
         if dataset is not None:
             # Copy so we can update without side effect
-            query_params = dict(query_params)
-            query_params['href'] = dataset
+            params = dict(params)
+            params['href'] = dataset
 
         # Use cached response if we have one
         response = self._response
         if response is None:
-            response = self._get_response(query_params)
+            response = self._get_response(params)
 
         if dataset is None:
             metadata = response['catalogue-metadata']
@@ -85,10 +85,10 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
 
         return matches[0]
 
-    def _get_response(self, query_params: typing.Optional[typing.Mapping[str, str]] = None):
-        # r = requests.get(self.location, params=query_params)
+    def _get_response(self, params: typing.Optional[typing.Mapping[str, str]] = None):
         r = self._get_auth_request(self.location,
-                                   query_params=query_params)
+                                   params=params)
+        r.raise_for_status()
         return r.json()
 
     def _get_auth_request(self, url, **kwargs):

@@ -2,7 +2,7 @@ import abc
 import typing
 
 
-from pedasi.common import plugin
+from core import plugin
 
 
 class BaseDataConnector(metaclass=plugin.Plugin):
@@ -28,12 +28,12 @@ class BaseDataConnector(metaclass=plugin.Plugin):
     @abc.abstractmethod
     def get_data(self,
                  dataset: typing.Optional[str] = None,
-                 query_params: typing.Optional[typing.Mapping[str, str]] = None):
+                 params: typing.Optional[typing.Mapping[str, str]] = None):
         """
         Get data from this source using the appropriate API.
 
         :param dataset: Optional dataset for which to get data
-        :param query_params: Optional query parameter filters
+        :param params: Optional query parameter filters
         :return: Requested data
         """
         raise NotImplementedError
@@ -46,12 +46,12 @@ class DataConnectorContainsDatasets:
     """
     @abc.abstractmethod
     def get_datasets(self,
-                     query_params: typing.Optional[typing.Mapping[str, str]] = None):
+                     params: typing.Optional[typing.Mapping[str, str]] = None):
         """
         Get the list of all dataset identifiers contained within this source
         using the appropriate API.
 
-        :param query_params: Optional query parameter filters
+        :param params: Optional query parameter filters
         :return: All dataset identifiers
         """
         raise NotImplementedError
@@ -64,12 +64,12 @@ class DataConnectorHasMetadata:
     @abc.abstractmethod
     def get_metadata(self,
                      dataset: typing.Optional[str] = None,
-                     query_params: typing.Optional[typing.Mapping[str, str]] = None):
+                     params: typing.Optional[typing.Mapping[str, str]] = None):
         """
         Get metadata from this source using the appropriate API.
 
         :param dataset: Optional dataset for which to get metadata
-        :param query_params: Optional query parameter filters
+        :param params: Optional query parameter filters
         :return: Requested metadata
         """
         raise NotImplementedError

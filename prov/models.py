@@ -1,7 +1,9 @@
+from django.db import models as django_models
 from django.db.models import signals
 from django.dispatch import receiver
+from django.utils import timezone
 
-from djongo import models
+import mongoengine
 
 from applications.models import Application
 from datasources.models import DataSource
@@ -9,50 +11,44 @@ from datasources.models import DataSource
 MAX_LENGTH_NAME_FIELD = 100
 
 
-class ProvEntry(models.Model):
+class ProvEntry(mongoengine.EmbeddedDocument):
     """
     Stored PROV record for a single action.
 
     e.g. Update a model's metadata, use a model.
+
+    These will be embedded with a :class:`ProvCollection` record.
     """
     #: Time at which the action occurred
-    time = models.DateTimeField(auto_now_add=True,
-                                editable=False,
-                                blank=False, null=False)
-
-    class Meta:
-        # Make this model abstract to avoid creating a table
-        # since it will only be used inside a ProvCollection model
-        abstract = True
+    time = mongoengine.fields.DateTimeField(default=timezone.now(),
+                                            required=True, null=False)
 
 
-class ProvCollection(models.Model):
+class ProvCollection(mongoengine.Document):
     """
     The complete set of PROV records storing all actions performed on a single model instance.
+
+    These are managed using MongoEngine rather than as a Django model
     """
     #: App from which the model comes
-    app_label = models.CharField(max_length=MAX_LENGTH_NAME_FIELD,
-                                 editable=False,
-                                 blank=False, null=False)
+    app_label = mongoengine.fields.StringField(max_length=MAX_LENGTH_NAME_FIELD,
+                                               required=True, null=False)
 
     #: Name of the model
-    model_name = models.CharField(max_length=MAX_LENGTH_NAME_FIELD,
-                                  editable=False,
-                                  blank=False, null=False)
+    model_name = mongoengine.fields.StringField(max_length=MAX_LENGTH_NAME_FIELD,
+                                                required=True, null=False)
 
     # TODO should this be editable=False?  Can a model PK change?
+    # TODO can we make this behave like a primary key?
     #: Primary key of the model instance
-    related_pk = models.PositiveIntegerField(blank=False, null=False)
+    related_pk = mongoengine.fields.IntField(required=True, null=False)
 
     #: List of ProvEntry actions
-    entries = models.ArrayModelField(
-        model_container=ProvEntry,
-        default=[],
-        blank=True, null=False
-    )
+    entries = mongoengine.fields.EmbeddedDocumentListField(document_type=ProvEntry,
+                                                           default=[])
 
     @classmethod
-    def for_model_instance(cls, instance: models.Model) -> 'ProvCollection':
+    def for_model_instance(cls, instance: django_models.Model) -> 'ProvCollection':
         """
         Get the :class:`ProvCollection` instance related to a particular model instance.
 
@@ -61,13 +57,22 @@ class ProvCollection(models.Model):
         :param instance: Model instance for which to get :class:`ProvCollection`
         :return: :class:`ProvCollection` instance
         """
-        obj, created = cls.objects.get_or_create(
-            app_label=instance._meta.app_label,
-            model_name=instance._meta.model_name,
-            related_pk=instance.pk
-        )
+        # mongoengine doesn't have an upsert operation like get_or_create
+        try:
+            record = cls.objects.get(
+                app_label=instance._meta.app_label,
+                model_name=instance._meta.model_name,
+                related_pk=instance.pk
+            )
+        except mongoengine.errors.DoesNotExist:
+            record = cls(
+                app_label=instance._meta.app_label,
+                model_name=instance._meta.model_name,
+                related_pk=instance.pk
+            )
+            record.save()
 
-        return obj
+        return record
 
 
 @receiver(signals.post_save, sender=Application)
@@ -78,5 +83,6 @@ def save_prov(sender, instance, **kwargs):
     """
     obj = ProvCollection.for_model_instance(instance)
 
+    # TODO create meaningful prov entry
     obj.entries.append(ProvEntry())
     obj.save()
