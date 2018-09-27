@@ -16,20 +16,19 @@ class ProvEntry(mongoengine.EmbeddedDocument):
     Stored PROV record for a single action.
 
     e.g. Update a model's metadata, use a model.
+
+    These will be embedded with a :class:`ProvCollection` record.
     """
     #: Time at which the action occurred
     time = mongoengine.fields.DateTimeField(default=timezone.now(),
                                             required=True, null=False)
 
-    class Meta:
-        # Make this model abstract to avoid creating a table
-        # since it will only be used inside a ProvCollection model
-        abstract = True
-
 
 class ProvCollection(mongoengine.Document):
     """
     The complete set of PROV records storing all actions performed on a single model instance.
+
+    These are managed using MongoEngine rather than as a Django model
     """
     #: App from which the model comes
     app_label = mongoengine.fields.StringField(max_length=MAX_LENGTH_NAME_FIELD,
