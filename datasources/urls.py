@@ -1,5 +1,6 @@
 from django.urls import path
 
+from core.urls import APIRootRouter
 from . import views
 
 app_name = 'datasources'
@@ -29,3 +30,8 @@ urlpatterns = [
          views.DataSourceMetadataView.as_view(),
          name='datasource.metadata'),
 ]
+
+
+# Register ViewSets
+router = APIRootRouter()
+router.register('datasources', views.DataSourceApiViewset)

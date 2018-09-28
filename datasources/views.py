@@ -172,5 +172,5 @@ class DataSourceMetadataView(HasViewPermissionMixin, DetailView):
 
 
 class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
-    model = models.DataSource
+    queryset = models.DataSource.objects.all()
     serializer_class = serializers.DataSourceSerializer

@@ -16,7 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from core.urls import api_urls
 from profiles.views import IndexView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -39,4 +41,7 @@ urlpatterns = [
          include('datasources.urls',
                  namespace='datasources')
          ),
+
+    path('api/',
+         include(api_urls()))
 ]
