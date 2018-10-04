@@ -9,8 +9,9 @@ app_name = 'api'
 # Register ViewSets
 router = routers.DefaultRouter()
 router.register('datasources', datasource_views.DataSourceApiViewset)
+router.register('datasources', datasource_views.DataSourceMetadataListApiView)
 
 urlpatterns = [
     path('',
-         include(router.urls))
+         include(router.urls)),
 ]
