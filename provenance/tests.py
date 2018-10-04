@@ -6,7 +6,7 @@ from django.test import TestCase
 import mongoengine
 
 from datasources.models import DataSource
-from prov.models import ProvCollection
+from provenance.models import ProvCollection
 
 
 # Create connection to test DB

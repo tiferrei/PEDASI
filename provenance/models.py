@@ -1,17 +1,21 @@
-from django.db import models as django_models
+import json
+
+from django.conf import settings
 from django.db.models import signals
 from django.dispatch import receiver
 from django.utils import timezone
 
 import mongoengine
+import prov.model
 
 from applications.models import Application
+from core.models import BaseAppDataModel
 from datasources.models import DataSource
 
 MAX_LENGTH_NAME_FIELD = 100
 
 
-class ProvEntry(mongoengine.EmbeddedDocument):
+class ProvEntry(mongoengine.DynamicEmbeddedDocument):
     """
     Stored PROV record for a single action.
 
@@ -19,9 +23,59 @@ class ProvEntry(mongoengine.EmbeddedDocument):
 
     These will be embedded with a :class:`ProvCollection` record.
     """
-    #: Time at which the action occurred
-    time = mongoengine.fields.DateTimeField(default=timezone.now(),
-                                            required=True, null=False)
+    @classmethod
+    def create_prov(cls,
+                    instance: BaseAppDataModel,
+                    user: settings.AUTH_USER_MODEL) -> 'ProvEntry':
+        document = prov.model.ProvDocument(namespaces={
+            'piot': 'http://www.pedasi-iot.org/',
+            'foaf': 'http://xmlns.com/foaf/0.1/'
+        })
+
+        entity = document.entity(
+            'piot:e2',
+            {
+
+                'piot:url': instance.get_absolute_url(),
+            }
+        )
+
+        activity = document.activity(
+            'piot:a1',
+            timezone.now(),
+            None,
+            {
+                prov.model.PROV_TYPE: 'edit',
+            }
+        )
+
+        agent = document.agent(
+            'piot:' + user.username,
+            {
+                'prov:type': prov.model.PROV['Person'],
+                'foaf:givenName': user.first_name,
+                'foaf:mbox': '<mailto:' + user.email + '>'
+            }
+        )
+
+        # PROV library does not appear to be able to give a Python dictionary directly - have to go via string
+        return cls.deserialize(content=document.serialize())
+
+    def serialize(self):
+        raise NotImplementedError
+
+    @classmethod
+    def deserialize(cls, source=None, content=None, format='json', **kwargs):
+        if source is None and content is not None and format == 'json':
+            json_string = content
+
+        else:
+            document = prov.model.ProvDocument.deserialize(source, content, format, **kwargs)
+            json_string = document.serialize(format='json')
+
+        # PROV library does not appear to be able to give a Python dictionary directly - have to go via string
+        prov_json = json.loads(json_string)
+        return cls(**prov_json)
 
 
 class ProvCollection(mongoengine.Document):
@@ -48,7 +102,7 @@ class ProvCollection(mongoengine.Document):
                                                            default=[])
 
     @classmethod
-    def for_model_instance(cls, instance: django_models.Model) -> 'ProvCollection':
+    def for_model_instance(cls, instance: BaseAppDataModel) -> 'ProvCollection':
         """
         Get the :class:`ProvCollection` instance related to a particular model instance.
 
@@ -84,5 +138,9 @@ def save_prov(sender, instance, **kwargs):
     obj = ProvCollection.for_model_instance(instance)
 
     # TODO create meaningful prov entry
+    record = ProvEntry.create_prov(
+        instance,
+        instance.owner
+    )
     obj.entries.append(ProvEntry())
     obj.save()
