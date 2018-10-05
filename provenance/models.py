@@ -1,5 +1,6 @@
 import json
 
+from django import apps
 from django.conf import settings
 from django.db.models import signals
 from django.dispatch import receiver
@@ -52,7 +53,8 @@ class ProvEntry(mongoengine.DynamicEmbeddedDocument):
         agent = document.agent(
             'piot:' + user.username,
             {
-                'prov:type': prov.model.PROV['Person'],
+                # 'prov:type': prov.model.PROV['Person'],
+                'prov:type': 'prov:Person',
                 'foaf:givenName': user.first_name,
                 'foaf:mbox': '<mailto:' + user.email + '>'
             }
@@ -98,8 +100,15 @@ class ProvCollection(mongoengine.Document):
     related_pk = mongoengine.fields.IntField(required=True, null=False)
 
     #: List of ProvEntry actions
-    entries = mongoengine.fields.EmbeddedDocumentListField(document_type=ProvEntry,
-                                                           default=[])
+    entries = mongoengine.fields.EmbeddedDocumentListField(
+        document_type=ProvEntry,
+        default=[]
+    )
+
+    @property
+    def instance(self):
+        model = apps.apps.get_model(self.app_label, self.model_name)
+        return model.objects.get(pk=self.related_pk)
 
     @classmethod
     def for_model_instance(cls, instance: BaseAppDataModel) -> 'ProvCollection':
@@ -142,5 +151,6 @@ def save_prov(sender, instance, **kwargs):
         instance,
         instance.owner
     )
-    obj.entries.append(ProvEntry())
+
+    obj.entries.append(record)
     obj.save()
