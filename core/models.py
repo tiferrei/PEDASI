@@ -91,6 +91,10 @@ class BaseAppDataModel(models.Model):
 
         return self.users_group.user_set.filter(pk=user.pk).exists()
 
+    @abc.abstractmethod
+    def get_absolute_url(self):
+        raise NotImplementedError
+
     def __str__(self):
         return self.name
 

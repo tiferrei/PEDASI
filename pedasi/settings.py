@@ -77,7 +77,7 @@ CUSTOM_APPS = [
     'profiles',
     'applications',
     'datasources',
-    'prov',
+    'provenance',
     'core',
 ]
 
