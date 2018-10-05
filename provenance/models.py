@@ -18,6 +18,15 @@ from datasources.models import DataSource
 MAX_LENGTH_NAME_FIELD = 100
 
 
+class PedasiDummyApplication:
+    name = 'PEDASI'
+
+    @staticmethod
+    def get_absolute_url():
+        # TODO don't hardcode URL
+        return 'http://www.pedasi-iot.org/'
+
+
 class ProvEntry(mongoengine.DynamicDocument):
     """
     Stored PROV record for a single action.
@@ -29,17 +38,20 @@ class ProvEntry(mongoengine.DynamicDocument):
     @classmethod
     def create_prov(cls,
                     instance: BaseAppDataModel,
-                    user: settings.AUTH_USER_MODEL) -> 'ProvEntry':
+                    user: settings.AUTH_USER_MODEL,
+                    application: typing.Optional[Application] = None) -> 'ProvEntry':
         document = prov.model.ProvDocument(namespaces={
             'piot': 'http://www.pedasi-iot.org/',
-            'foaf': 'http://xmlns.com/foaf/0.1/'
+            'foaf': 'http://xmlns.com/foaf/0.1/',
+            'xsd': 'http://www.w3.org/2001/XMLSchema#',
         })
 
         entity = document.entity(
-            'piot:e2',
-            {
-
-                'piot:url': instance.get_absolute_url(),
+            # TODO unique identifier for instance
+            'piot:' + instance._meta.model_name[0] + str(instance.pk),
+            other_attributes={
+                prov.model.PROV_TYPE: 'piot:' + instance._meta.model_name,
+                'xsd:anyURI': instance.get_absolute_url(),
             }
         )
 
@@ -47,18 +59,36 @@ class ProvEntry(mongoengine.DynamicDocument):
             'piot:a1',
             timezone.now(),
             None,
-            {
-                prov.model.PROV_TYPE: 'edit',
+            other_attributes={
+                prov.model.PROV_TYPE: 'piot:update'
             }
         )
 
-        agent = document.agent(
-            'piot:' + user.username,
-            {
-                # 'prov:type': prov.model.PROV['Person'],
-                'prov:type': 'prov:Person',
-                'foaf:givenName': user.first_name,
-                'foaf:mbox': '<mailto:' + user.email + '>'
+        agent_user = document.agent(
+            'piot:u' + str(user.pk),
+            other_attributes={
+                prov.model.PROV_TYPE: 'prov:Person',
+                'foaf:accountName': user.username,
+            }
+        )
+
+        if application is None:
+            application = PedasiDummyApplication
+
+        agent_application = document.agent(
+            'piot:' + application.name,
+            other_attributes={
+                prov.model.PROV_TYPE: 'prov:SoftwareAgent',
+                'xsd:anyURI': application.get_absolute_url(),
+            }
+        )
+
+        document.actedOnBehalfOf(
+            agent_application,      # User who performs the action, on behalf of...
+            agent_user,             # User who is responsible
+            activity,               # NB: The prov library documentation suggests these are the other way round
+            other_attributes={
+                prov.model.PROV_TYPE: 'piot:ApplicationAction',
             }
         )
 
