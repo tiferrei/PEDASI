@@ -1,4 +1,5 @@
 import json
+import typing
 
 from django import apps
 from django.conf import settings
@@ -7,6 +8,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 import mongoengine
+from mongoengine.queryset.visitor import Q
 import prov.model
 
 from applications.models import Application
@@ -16,13 +18,13 @@ from datasources.models import DataSource
 MAX_LENGTH_NAME_FIELD = 100
 
 
-class ProvEntry(mongoengine.DynamicEmbeddedDocument):
+class ProvEntry(mongoengine.DynamicDocument):
     """
     Stored PROV record for a single action.
 
     e.g. Update a model's metadata, use a model.
 
-    These will be embedded with a :class:`ProvCollection` record.
+    These will be referred to by a :class:`ProvWrapper` document.
     """
     @classmethod
     def create_prov(cls,
@@ -80,11 +82,12 @@ class ProvEntry(mongoengine.DynamicEmbeddedDocument):
         return cls(**prov_json)
 
 
-class ProvCollection(mongoengine.Document):
+class ProvWrapper(mongoengine.Document):
     """
-    The complete set of PROV records storing all actions performed on a single model instance.
+    Wrapper around a single PROV record (:class:`ProvEntry`) which allows it to be easily linked to an instance
+    of a Django model.
 
-    These are managed using MongoEngine rather than as a Django model
+    This is managed using MongoEngine rather than as a Django model.
     """
     #: App from which the model comes
     app_label = mongoengine.fields.StringField(max_length=MAX_LENGTH_NAME_FIELD,
@@ -99,58 +102,73 @@ class ProvCollection(mongoengine.Document):
     #: Primary key of the model instance
     related_pk = mongoengine.fields.IntField(required=True, null=False)
 
-    #: List of ProvEntry actions
-    entries = mongoengine.fields.EmbeddedDocumentListField(
-        document_type=ProvEntry,
-        default=[]
+    #: The actual PROV entry
+    entry = mongoengine.fields.ReferenceField(
+        document_type=ProvEntry
     )
 
     @property
     def instance(self):
+        """
+        Return the Django model instance to which this :class:`ProvWrapper` refers.
+        """
         model = apps.apps.get_model(self.app_label, self.model_name)
         return model.objects.get(pk=self.related_pk)
 
     @classmethod
-    def for_model_instance(cls, instance: BaseAppDataModel) -> 'ProvCollection':
+    def filter_model_instance(cls, instance: BaseAppDataModel) -> typing.List[ProvEntry]:
         """
-        Get the :class:`ProvCollection` instance related to a particular model instance.
+        Get all :class:`ProvEntry` documents related to a particular Django model instance.
 
-        Create a :class:`ProvCollection` instance if there is not one already.
-
-        :param instance: Model instance for which to get :class:`ProvCollection`
-        :return: :class:`ProvCollection` instance
+        :param instance: Model instance for which to get all :class:`ProvEntry`s
+        :return: List of :class:`ProvEntry`s
         """
-        # mongoengine doesn't have an upsert operation like get_or_create
-        try:
-            record = cls.objects.get(
-                app_label=instance._meta.app_label,
-                model_name=instance._meta.model_name,
-                related_pk=instance.pk
-            )
-        except mongoengine.errors.DoesNotExist:
-            record = cls(
-                app_label=instance._meta.app_label,
-                model_name=instance._meta.model_name,
-                related_pk=instance.pk
-            )
-            record.save()
+        for wrapper in ProvWrapper.objects(
+            Q(app_label=instance._meta.app_label) &
+            Q(model_name=instance._meta.model_name) &
+            Q(related_pk=instance.pk)
+        ):
+            yield wrapper.entry
 
-        return record
+    @classmethod
+    def create_prov(cls,
+                     instance: BaseAppDataModel,
+                     user: settings.AUTH_USER_MODEL):
+        """
+        Create a PROV record for a single action.
+
+        e.g. Update a model's metadata, use a model.
+
+        These will create and return a :class:`ProvEntry` document.
+        """
+        prov_entry = ProvEntry.create_prov(instance, user)
+        prov_entry.save()
+
+        wrapper = cls(
+            app_label=instance._meta.app_label,
+            model_name=instance._meta.model_name,
+            related_pk=instance.pk,
+            entry=prov_entry
+        )
+        wrapper.save()
+
+        return prov_entry
+
+    def delete(self, signal_kwargs=None, **write_concern):
+        """
+        Delete this document and the :class:`ProvEntry` to which it refers.
+        """
+        self.entry.delete(signal_kwargs, **write_concern)
+        super().delete(signal_kwargs, **write_concern)
 
 
 @receiver(signals.post_save, sender=Application)
 @receiver(signals.post_save, sender=DataSource)
 def save_prov(sender, instance, **kwargs):
     """
-    Signal receiver to update a ProvCollection when a PROV tracked model is saved.
+    Signal receiver to create a :class:`ProvEntry` when a PROV tracked model is saved.
     """
-    obj = ProvCollection.for_model_instance(instance)
-
-    # TODO create meaningful prov entry
-    record = ProvEntry.create_prov(
+    ProvWrapper.create_prov(
         instance,
         instance.owner
     )
-
-    obj.entries.append(record)
-    obj.save()

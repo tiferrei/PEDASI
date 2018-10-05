@@ -8,6 +8,7 @@ from django.test import TestCase
 
 import jsonschema
 import mongoengine
+from mongoengine.queryset.visitor import Q
 
 from datasources.models import DataSource
 from provenance import models
@@ -31,17 +32,28 @@ class ProvEntryTest(TestCase):
             plugin_name='TEST'
         )
 
-    def test_prov_created(self):
-        entry = models.ProvEntry.create_prov(self.datasource, self.user)
+    def tearDown(self):
+        # Have to delete instance manually since we're not using Django's database manager
+        models.ProvWrapper.objects(
+            Q(app_label=self.datasource._meta.app_label) &
+            Q(model_name=self.datasource._meta.model_name) &
+            Q(related_pk=self.datasource.pk)
+        ).delete()
 
-        self.assertIsNotNone(entry)
+    def test_prov_created(self):
+        """
+        Test the creation of a :class:`ProvEntry` in isolation.
+        """
+        self.entry = models.ProvEntry.create_prov(self.datasource, self.user)
+
+        self.assertIsNotNone(self.entry)
 
     def test_prov_schema(self):
         """
         Validate :class:`ProvEntry` against PROV-JSON schema.
         """
-        entry = models.ProvEntry.create_prov(self.datasource, self.user)
-        entry_json = json.loads(entry.to_json())
+        self.entry = models.ProvEntry.create_prov(self.datasource, self.user)
+        entry_json = json.loads(self.entry.to_json())
 
         with open(pathlib.Path(settings.BASE_DIR).joinpath('provenance', 'data', 'prov-json.schema.json')) as fp:
             schema = json.loads(fp.read())
@@ -56,7 +68,7 @@ class ProvEntryTest(TestCase):
             raise
 
 
-class ProvCollectionTest(TestCase):
+class ProvWrapperTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user_model = get_user_model()
@@ -72,49 +84,53 @@ class ProvCollectionTest(TestCase):
 
     def tearDown(self):
         # Have to delete instance manually since we're not using Django's database manager
-        models.ProvCollection.for_model_instance(self.datasource).delete()
+        models.ProvWrapper.objects(
+                Q(app_label=self.datasource._meta.app_label) &
+                Q(model_name=self.datasource._meta.model_name) &
+                Q(related_pk=self.datasource.pk)
+        ).delete()
+
+    @staticmethod
+    def _count_prov(datasource: DataSource) -> int:
+        prov_entries = models.ProvWrapper.filter_model_instance(datasource)
+        return len(list(prov_entries))
 
     def test_prov_datasource_create(self):
         """
-        Test that a PROV collection / entry is created when a model is created.
+        Test that a :class:`ProvEntry` is created when a model is created.
         """
         # PROV record should be created when model is created
-        prov_collection = models.ProvCollection.for_model_instance(self.datasource)
-        self.assertEqual(len(prov_collection.entries), 1)
+        self.assertEqual(self._count_prov(self.datasource), 1)
 
     def test_prov_datasource_update(self):
         """
-        Test that a new PROV entry is created when a model is updated.
+        Test that a new :class:`ProvEntry` is created when a model is updated.
         """
-        prov_collection = models.ProvCollection.for_model_instance(self.datasource)
-        n_provs = len(prov_collection.entries)
+        n_provs = self._count_prov(self.datasource)
 
         self.datasource.plugin_name = 'CHANGED'
         self.datasource.save()
 
         # Another PROV record should be created when model is changed and saved
-        prov_collection = models.ProvCollection.for_model_instance(self.datasource)
-        self.assertEqual(len(prov_collection.entries), n_provs + 1)
+        self.assertEqual(self._count_prov(self.datasource), n_provs + 1)
 
     @unittest.expectedFailure
     def test_prov_datasource_null_update(self):
         """
-        Test that no new PROV entry is created when a model is saved without changes.
+        Test that no new :class:`ProvEntry` is created when a model is saved without changes.
         """
-        prov_collection = models.ProvCollection.for_model_instance(self.datasource)
-        n_provs = len(prov_collection.entries)
+        n_provs = self._count_prov(self.datasource)
 
         self.datasource.save()
 
         # No PROV record should be created when saving a model that has not changed
-        prov_collection = models.ProvCollection.for_model_instance(self.datasource)
-        self.assertEqual(len(prov_collection.entries), n_provs)
+        self.assertEqual(self._count_prov(self.datasource), n_provs)
 
     def test_prov_records_distinct(self):
         """
-        Test that a distinct PROV collection is created for each model instance.
+        Test that :class:`ProvEntry`s are not reused.
         """
-        prov_collection = models.ProvCollection.for_model_instance(self.datasource)
+        prov_entries = models.ProvWrapper.filter_model_instance(self.datasource)
 
         new_datasource = DataSource.objects.create(
             name='Another Test Data Source',
@@ -122,9 +138,8 @@ class ProvCollectionTest(TestCase):
             owner=self.user,
             plugin_name='TEST'
         )
-        new_prov_collection = models.ProvCollection.for_model_instance(new_datasource)
+        new_prov_entries = models.ProvWrapper.filter_model_instance(new_datasource)
 
-        self.assertIsNot(prov_collection, new_prov_collection)
+        intersection = set(prov_entries).intersection(new_prov_entries)
 
-        self.assertEqual(prov_collection.related_pk, self.datasource.pk)
-        self.assertEqual(new_prov_collection.related_pk, new_datasource.pk)
+        self.assertEqual(len(intersection), 0)
