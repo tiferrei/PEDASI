@@ -10,6 +10,7 @@ app_name = 'api'
 router = routers.DefaultRouter()
 router.register('datasources', datasource_views.DataSourceApiViewset)
 router.register('datasources', datasource_views.DataSourceMetadataListApiView)
+router.register('datasources', datasource_views.DataSourceDataListApiView)
 
 urlpatterns = [
     path('',
