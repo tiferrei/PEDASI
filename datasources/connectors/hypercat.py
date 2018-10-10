@@ -31,7 +31,23 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
         if response is None:
             response = self._get_response(params=params)
 
-        return [item['href'] for item in response['items']]
+        datasets = {}
+        for item in response['items']:
+            href = item['href']
+
+            try:
+                name = self._get_item_by_key_value(
+                    item['item-metadata'],
+                    'rel',
+                    'urn:X-bt:rels:feedTitle'
+                )['val']
+
+            except KeyError:
+                name = None
+
+            datasets[href] = name
+
+        return datasets
 
     # TODO should this be able to return metadata for multiple datasets at once?
     # TODO should there be a different method for getting catalogue metadata?
@@ -41,7 +57,14 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
         if params is None:
             params = {}
 
-        if dataset is not None:
+        if dataset is None:
+            # Query parameter href refers to a single dataset
+            try:
+                dataset = params['href']
+            except KeyError:
+                pass
+
+        else:
             # Copy so we can update without side effect
             params = dict(params)
             params['href'] = dataset

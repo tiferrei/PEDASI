@@ -57,3 +57,54 @@ class DataSourceDataSerializer(serializers.ModelSerializer):
             params = None
 
         return data_connector.get_data(params=params)
+
+
+class DataSourceDataSetsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DataSource
+        fields = []
+
+    def to_representation(self, instance: models.DataSource):
+        """
+        Retrieve list of data sets via query to data source's API.
+
+        Query parameters will be passed on.
+
+        :param instance: DataSource object
+        :return: List of data sets returned via data source's API
+        """
+        data_connector = instance.data_connector
+
+        # Are there any query params to pass on?
+        try:
+            params = self.context['params']
+        except KeyError:
+            params = None
+
+        return data_connector.get_datasets(params=params)
+
+
+class DataSourceDatasetMetadataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DataSource
+        fields = []
+
+    def to_representation(self, instance: models.DataSource):
+        """
+        Retrieve metadata via query to data source's API.
+
+        Query parameters will be passed on.
+
+        :param instance: DataSource object
+        :return: Metadata returned via data source's API
+        """
+        data_connector = instance.data_connector
+
+        # Are there any query params to pass on?
+        try:
+            params = self.context['params']
+        except KeyError:
+            params = None
+
+        return data_connector.get_metadata(dataset=self.context['href'],
+                                           params=params)
