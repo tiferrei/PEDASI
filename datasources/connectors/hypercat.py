@@ -16,6 +16,13 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
     def get_data(self,
                  dataset: typing.Optional[str] = None,
                  params: typing.Optional[typing.Mapping[str, str]] = None):
+        r = self.get_data_passthrough(dataset=dataset,
+                                      params=params)
+        return r.text
+
+    def get_data_passthrough(self,
+                 dataset: typing.Optional[str] = None,
+                 params: typing.Optional[typing.Mapping[str, str]] = None):
         if dataset is None:
             raise ValueError('When requesting data from a HyperCat catalogue you must provide a dataset href.')
 
@@ -23,7 +30,8 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
         r = requests.get(location,
                          params=params,
                          auth=requests.auth.HTTPBasicAuth(self.api_key, ''))
-        return r.text
+        r.raise_for_status()
+        return r
 
     def get_datasets(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):

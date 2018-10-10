@@ -1,4 +1,4 @@
-from rest_framework import decorators, generics, response, viewsets
+from rest_framework import decorators, generics, renderers, response, viewsets
 
 from datasources import models, serializers
 
@@ -127,3 +127,46 @@ class DataSourceDatasetMetadataApiView(generics.mixins.RetrieveModelMixin, views
         context['params'] = self.request.query_params
 
         return context
+
+
+class PassthroughRenderer(renderers.BaseRenderer):
+    """
+    Django-rest-api renderer which passes data without transformation.
+    """
+    # This media type seems to most strongly imply that the true type depends on the proxied request
+    media_type = 'multipart/related'
+    format = 'passthrough'
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        try:
+            return data.encode(self.charset)
+        except AttributeError:
+            # OPTIONS request must be handled using JSONRenderer
+            renderer = renderers.JSONRenderer()
+            return renderer.render(data, 'application/json', renderer_context)
+
+
+# Has to be a viewset so we can add it to a router
+class DataSourceDatasetDataApiView(generics.mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """
+    View for /api/datasources/<int>/datasets/<href>/metadata/
+
+    Retrieves :class:`DataSource` data for a single dataset via API call to data source URL.
+    """
+    queryset = models.DataSource.objects.all()
+    serializer_class = serializers.DataSourceDatasetDataSerializer
+    renderer_classes = [renderers.BrowsableAPIRenderer, PassthroughRenderer]
+
+    # TODO consider moving this into DataSourceApiViewset
+    # Decorator adds this as a 'data/' URL on the end of the existing URL path
+    @decorators.action(detail=True)
+    def data(self, request, pk=None, **kwargs):
+        instance = self.get_object()
+
+        data_connector = instance.data_connector
+        self._response = data_connector.get_data_passthrough(
+            dataset=self.kwargs['href'],
+            params=self.request.query_params
+        )
+
+        return response.Response(self._response.text)

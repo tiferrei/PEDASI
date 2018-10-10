@@ -21,5 +21,11 @@ urlpatterns = [
          datasource_views.DataSourceDatasetMetadataApiView.as_view({
              'get': 'metadata',
          }),
-         name='datasources-datasets-metadata')
+         name='datasources-datasets-metadata'),
+
+    path('datasources/<int:pk>/datasets/<path:href>/data/',
+         datasource_views.DataSourceDatasetDataApiView.as_view({
+             'get': 'data',
+         }),
+         name='datasources-datasets-data')
 ]
