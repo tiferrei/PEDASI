@@ -17,7 +17,7 @@ urlpatterns = [
     path('',
          include(router.urls)),
 
-    path('datasources/<int:pk>/datasets/<str:href>/metadata/',
+    path('datasources/<int:pk>/datasets/<path:href>/metadata/',
          datasource_views.DataSourceDatasetMetadataApiView.as_view({
              'get': 'metadata',
          }),

@@ -114,7 +114,7 @@ class DataSourceDatasetMetadataApiView(generics.mixins.RetrieveModelMixin, views
     # TODO consider moving this into DataSourceApiViewset
     # Decorator adds this as a 'metadata/' URL on the end of the existing URL path
     @decorators.action(detail=True)
-    def metadata(self, request, pk=None):
+    def metadata(self, request, pk=None, **kwargs):
         return self.retrieve(request, pk)
 
     def get_serializer_context(self):
