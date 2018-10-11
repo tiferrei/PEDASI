@@ -2,17 +2,19 @@ import typing
 
 import requests
 
-from .base import BaseDataConnector
+from .base import DataSetConnector
 
 
-class IoTUK(BaseDataConnector):
+class IoTUK(DataSetConnector):
+    def get_metadata(self,
+                     params: typing.Optional[typing.Mapping[str, str]] = None):
+        raise NotImplementedError('IoTUK does not provide metadata')
+
     def get_data(self,
-                 dataset: typing.Optional[str] = None,
                  params: typing.Optional[typing.Mapping[str, str]] = None):
         """
         Get data from a source using the IoTUK Nation API.
 
-        :param dataset: Optional dataset for which to get data
         :param params: Optional query parameter filters
         :return: Requested data
         """

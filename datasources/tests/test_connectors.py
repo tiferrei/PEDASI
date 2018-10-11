@@ -1,6 +1,27 @@
+import typing
+
 from django.test import TestCase
 
 from datasources.connectors.base import BaseDataConnector
+
+
+def _get_item_by_key_value(collection: typing.Iterable[typing.Mapping],
+                           key: str, value) -> typing.Mapping:
+    matches = [item for item in collection if item[key] == value]
+
+    if not matches:
+        raise KeyError
+    elif len(matches) > 1:
+        raise ValueError('Multiple items were found')
+
+    return matches[0]
+
+
+def _count_items_by_key_value(collection: typing.Iterable[typing.Mapping],
+                              key: str, value) -> int:
+    matches = [item for item in collection if item[key] == value]
+
+    return len(matches)
 
 
 class ConnectorPluginTest(TestCase):
@@ -93,10 +114,28 @@ class ConnectorHyperCatTest(TestCase):
         connection = self.plugin(self.url)
         self.assertEqual(connection.location, self.url)
 
+    def test_plugin_get_metadata(self):
+        connection = self.plugin(self.url)
+        result = connection.get_metadata()
+
+        relations = [relation['rel'] for relation in result]
+        for property in [
+            'urn:X-hypercat:rels:hasDescription:en',
+            'urn:X-hypercat:rels:isContentType',
+        ]:
+            self.assertIn(property, relations)
+
+        self.assertEqual('BT Hypercat DataHub Catalog',
+                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasDescription:en')['val'])
+
+        self.assertEqual('application/vnd.hypercat.catalogue+json',
+                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:isContentType')['val'])
+
     def test_plugin_get_dataset_metadata(self):
         connection = self.plugin(self.url)
-        result = connection.get_metadata(dataset=self.dataset)
+        result = connection[self.dataset].get_metadata()
 
+        relations = [relation['rel'] for relation in result]
         for property in [
             'urn:X-bt:rels:feedTitle',
             'urn:X-hypercat:rels:hasDescription:en',
@@ -104,21 +143,23 @@ class ConnectorHyperCatTest(TestCase):
             'urn:X-bt:rels:hasSensorStream',
             'urn:X-hypercat:rels:isContentType',
         ]:
-            self.assertIn(property, result)
+            self.assertIn(property, relations)
 
         self.assertIn('Met Office',
-                      result['urn:X-bt:rels:feedTitle'][0])
+                      _get_item_by_key_value(result, 'rel', 'urn:X-bt:rels:feedTitle')['val'])
 
         self.assertIn('Met Office',
-                      result['urn:X-hypercat:rels:hasDescription:en'][0])
+                      _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasDescription:en')['val'])
 
-        self.assertEqual(len(result['urn:X-bt:rels:feedTag']), 1)
-        self.assertEqual(result['urn:X-bt:rels:feedTag'][0], 'weather')
+        self.assertEqual(1,
+                         _count_items_by_key_value(result, 'rel', 'urn:X-bt:rels:feedTag'))
+        # self.assertEqual(result['urn:X-bt:rels:feedTag'][0], 'weather')
 
-        self.assertGreaterEqual(len(result['urn:X-bt:rels:hasSensorStream']), 1)
+        self.assertGreaterEqual(_count_items_by_key_value(result, 'rel', 'urn:X-bt:rels:hasSensorStream'),
+                                1)
 
-        self.assertIn('application/json',
-                      result['urn:X-hypercat:rels:isContentType'])
+        # self.assertIn('application/json',
+        #               result['urn:X-hypercat:rels:isContentType'])
 
     def test_plugin_get_dataset_data(self):
         """
@@ -128,14 +169,15 @@ class ConnectorHyperCatTest(TestCase):
 
         api_key = config('HYPERCAT_BT_API_KEY')
 
-        dataset = self.dataset + '/datastreams/0'
-
         connection = self.plugin(self.url,
                                  api_key=api_key)
-        result = connection.get_data(dataset=dataset)
+        # result = connection[self.dataset + '/datastreams/0'].get_data()
+        result = connection[self.dataset].get_data()
 
         self.assertIsInstance(result, str)
         self.assertGreaterEqual(len(result), 1)
+        self.assertIn('c7f361c6-7cb7-4ef5-aed9-397a0c0c4088',
+                      result)
 
 
 class ConnectorHyperCatCiscoTest(TestCase):
@@ -176,19 +218,49 @@ class ConnectorHyperCatCiscoTest(TestCase):
                                  api_key=self.api_key)
         result = connection.get_metadata()
 
-        self.assertIn('application/vnd.hypercat.catalogue+json',
-                      result['urn:X-hypercat:rels:isContentType'])
+        relations = [relation['rel'] for relation in result]
+        for property in [
+            'urn:X-hypercat:rels:hasDescription:en',
+            'urn:X-hypercat:rels:isContentType',
+            'urn:X-hypercat:rels:hasHomepage',
+        ]:
+            self.assertIn(property, relations)
 
-        self.assertIn('CityVerve',
-                      result['urn:X-hypercat:rels:hasDescription:en'][0])
+        self.assertEqual('CityVerve Public API - master catalogue',
+                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasDescription:en')['val'])
 
-        self.assertIn('https://developer.cityverve.org.uk',
-                      result['urn:X-hypercat:rels:hasHomepage'])
+        self.assertEqual('application/vnd.hypercat.catalogue+json',
+                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:isContentType')['val'])
+
+        self.assertEqual('https://developer.cityverve.org.uk',
+                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasHomepage')['val'])
+
+    def test_plugin_get_subcatalogue_metadata(self):
+        connection = self.plugin(self.url)
+        result = connection[self.dataset].get_metadata()
+
+        relations = [relation['rel'] for relation in result]
+        for property in [
+            'urn:X-hypercat:rels:hasDescription:en',
+            'urn:X-hypercat:rels:isContentType',
+            'urn:X-hypercat:rels:hasHomepage',
+        ]:
+            self.assertIn(property, relations)
+
+        self.assertEqual('CityVerve Public API - master catalogue',
+                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasDescription:en')['val'])
+
+        self.assertEqual('application/vnd.hypercat.catalogue+json',
+                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:isContentType')['val'])
+
+        self.assertEqual('https://developer.cityverve.org.uk',
+                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasHomepage')['val'])
 
     def test_plugin_get_dataset_metadata(self):
         connection = self.plugin(self.url)
-        result = connection.get_metadata(dataset=self.dataset)
+        result = connection[self.dataset].get_metadata()
 
+        relations = [relation['rel'] for relation in result]
         for property in [
             'urn:X-bt:rels:feedTitle',
             'urn:X-hypercat:rels:hasDescription:en',
@@ -196,16 +268,21 @@ class ConnectorHyperCatCiscoTest(TestCase):
             'urn:X-bt:rels:hasSensorStream',
             'urn:X-hypercat:rels:isContentType',
         ]:
-            self.assertIn(property, result)
+            self.assertIn(property, relations)
 
         self.assertIn('Met Office',
-                      result['urn:X-bt:rels:feedTitle'][0])
+                      _get_item_by_key_value(result, 'rel', 'urn:X-bt:rels:feedTitle')['val'])
 
         self.assertIn('Met Office',
-                      result['urn:X-hypercat:rels:hasDescription:en'][0])
+                      _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasDescription:en')['val'])
 
-        self.assertEqual(len(result['urn:X-bt:rels:feedTag']), 1)
-        self.assertEqual(result['urn:X-bt:rels:feedTag'][0], 'weather')
+        self.assertEqual(1,
+                         _count_items_by_key_value(result, 'rel', 'urn:X-bt:rels:feedTag'))
+        # self.assertEqual(result['urn:X-bt:rels:feedTag'][0], 'weather')
 
-        self.assertGreaterEqual(len(result['urn:X-bt:rels:hasSensorStream']), 1)
+        self.assertGreaterEqual(_count_items_by_key_value(result, 'rel', 'urn:X-bt:rels:hasSensorStream'),
+                                1)
+
+        # self.assertIn('application/json',
+        #               result['urn:X-hypercat:rels:isContentType'])
 

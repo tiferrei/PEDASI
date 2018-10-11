@@ -1,6 +1,6 @@
 import abc
+from collections import abc as collections_abc
 import typing
-
 
 from core import plugin
 
@@ -21,18 +21,34 @@ class BaseDataConnector(metaclass=plugin.Plugin):
     * What other operations do we need?
     """
     def __init__(self, location: str,
-                 api_key: typing.Optional[str] = None):
+                 api_key: typing.Optional[str] = None,
+                 **kwargs):
         self.location = location
         self.api_key = api_key
 
     @abc.abstractmethod
+    def get_metadata(self,
+                     params: typing.Optional[typing.Mapping[str, str]] = None):
+        """
+        Get metadata from this source using the appropriate API.
+
+        :param params: Optional query parameter filters
+        :return: Requested metadata
+        """
+        raise NotImplementedError
+
+
+class DataCatalogueConnector(BaseDataConnector, collections_abc.Mapping):
+    pass
+
+
+class DataSetConnector(BaseDataConnector):
+    @abc.abstractmethod
     def get_data(self,
-                 dataset: typing.Optional[str] = None,
                  params: typing.Optional[typing.Mapping[str, str]] = None):
         """
         Get data from this source using the appropriate API.
 
-        :param dataset: Optional dataset for which to get data
         :param params: Optional query parameter filters
         :return: Requested data
         """
