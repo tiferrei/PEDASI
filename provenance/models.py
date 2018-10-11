@@ -95,9 +95,6 @@ class ProvEntry(mongoengine.DynamicDocument):
         # PROV library does not appear to be able to give a Python dictionary directly - have to go via string
         return cls.deserialize(content=document.serialize())
 
-    def serialize(self):
-        raise NotImplementedError
-
     @classmethod
     def deserialize(cls, source=None, content=None, format='json', **kwargs):
         if source is None and content is not None and format == 'json':
@@ -146,13 +143,14 @@ class ProvWrapper(mongoengine.Document):
         return model.objects.get(pk=self.related_pk)
 
     @classmethod
-    def filter_model_instance(cls, instance: BaseAppDataModel) -> typing.List[ProvEntry]:
+    def filter_model_instance(cls, instance: BaseAppDataModel) -> typing.Generator[ProvEntry, None, None]:
         """
         Get all :class:`ProvEntry` documents related to a particular Django model instance.
 
         :param instance: Model instance for which to get all :class:`ProvEntry`s
         :return: List of :class:`ProvEntry`s
         """
+        # TODO return a queryset rather than a generator
         for wrapper in ProvWrapper.objects(
             Q(app_label=instance._meta.app_label) &
             Q(model_name=instance._meta.model_name) &

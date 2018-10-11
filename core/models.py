@@ -8,6 +8,8 @@ from django.db import models
 #: Length of CharFields used to hold the names of objects
 MAX_LENGTH_NAME = 63
 
+MAX_LENGTH_API_KEY = 127
+
 
 class BaseAppDataModel(models.Model):
     #: Friendly name of this application

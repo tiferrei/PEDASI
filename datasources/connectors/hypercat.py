@@ -16,6 +16,13 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
     def get_data(self,
                  dataset: typing.Optional[str] = None,
                  params: typing.Optional[typing.Mapping[str, str]] = None):
+        r = self.get_data_passthrough(dataset=dataset,
+                                      params=params)
+        return r.text
+
+    def get_data_passthrough(self,
+                 dataset: typing.Optional[str] = None,
+                 params: typing.Optional[typing.Mapping[str, str]] = None):
         if dataset is None:
             raise ValueError('When requesting data from a HyperCat catalogue you must provide a dataset href.')
 
@@ -23,7 +30,8 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
         r = requests.get(location,
                          params=params,
                          auth=requests.auth.HTTPBasicAuth(self.api_key, ''))
-        return r.text
+        r.raise_for_status()
+        return r
 
     def get_datasets(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
@@ -31,7 +39,23 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
         if response is None:
             response = self._get_response(params=params)
 
-        return [item['href'] for item in response['items']]
+        datasets = {}
+        for item in response['items']:
+            href = item['href']
+
+            try:
+                name = self._get_item_by_key_value(
+                    item['item-metadata'],
+                    'rel',
+                    'urn:X-bt:rels:feedTitle'
+                )['val']
+
+            except KeyError:
+                name = None
+
+            datasets[href] = name
+
+        return datasets
 
     # TODO should this be able to return metadata for multiple datasets at once?
     # TODO should there be a different method for getting catalogue metadata?
@@ -41,7 +65,14 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
         if params is None:
             params = {}
 
-        if dataset is not None:
+        if dataset is None:
+            # Query parameter href refers to a single dataset
+            try:
+                dataset = params['href']
+            except KeyError:
+                pass
+
+        else:
             # Copy so we can update without side effect
             params = dict(params)
             params['href'] = dataset

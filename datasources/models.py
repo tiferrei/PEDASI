@@ -4,7 +4,7 @@ from django.db import models
 from django.urls import reverse
 
 from datasources.connectors.base import BaseDataConnector
-from core.models import BaseAppDataModel, MAX_LENGTH_NAME
+from core.models import BaseAppDataModel, MAX_LENGTH_API_KEY, MAX_LENGTH_NAME
 
 
 class DataSource(BaseAppDataModel):
@@ -31,6 +31,10 @@ class DataSource(BaseAppDataModel):
     plugin_name = models.CharField(max_length=MAX_LENGTH_NAME,
                                    blank=False, null=False)
 
+    #: If the data source API requires an API key use this one
+    api_key = models.CharField(max_length=MAX_LENGTH_API_KEY,
+                               blank=True, null=False)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data_connector = None
@@ -40,7 +44,11 @@ class DataSource(BaseAppDataModel):
         if self._data_connector is None:
             BaseDataConnector.load_plugins('datasources/connectors')
             plugin = BaseDataConnector.get_plugin(self.plugin_name)
-            self._data_connector = plugin(self.url)
+
+            if self.api_key:
+                self._data_connector = plugin(self.url, self.api_key)
+            else:
+                self._data_connector = plugin(self.url)
 
         return self._data_connector
 
