@@ -1,12 +1,33 @@
+import json
+
 from rest_framework import serializers
 
 from . import models
+from provenance import models as prov_models
 
 
 class DataSourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DataSource
         fields = ['name', 'description', 'url']
+
+
+class DataSourceProvSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DataSource
+        fields = []
+
+    def to_representation(self, instance: models.DataSource):
+        """
+        Retrieve PROV records related to a data source.
+
+        :param instance: DataSource object
+        :return: PROV records related to the data source
+        """
+        return {
+            # Get all ProvEntry's related to this instance and encode them as JSON
+            'prov': [json.loads(record.to_json()) for record in prov_models.ProvWrapper.filter_model_instance(instance)]
+        }
 
 
 class DataSourceMetadataSerializer(serializers.ModelSerializer):

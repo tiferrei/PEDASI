@@ -18,6 +18,23 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
 
 # Has to be a viewset so we can add it to a router
+class DataSourceProvApiView(generics.mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """
+    View for /api/datasources/<int>/prov/
+
+    Retrieves PROV records related to a :class:`DataSource`.
+    """
+    queryset = models.DataSource.objects.all()
+    serializer_class = serializers.DataSourceProvSerializer
+
+    # TODO consider moving this into DataSourceApiViewset
+    # Decorator adds this as a 'prov/' URL on the end of the existing URL path
+    @decorators.action(detail=True)
+    def prov(self, request, pk=None):
+        return self.retrieve(request, pk)
+
+
+# Has to be a viewset so we can add it to a router
 class DataSourceMetadataApiView(generics.mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     """
     View for /api/datasources/<int>/metadata/

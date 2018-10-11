@@ -9,6 +9,7 @@ app_name = 'api'
 # Register ViewSets
 router = routers.DefaultRouter()
 router.register('datasources', datasource_views.DataSourceApiViewset)
+router.register('datasources', datasource_views.DataSourceProvApiView)
 router.register('datasources', datasource_views.DataSourceMetadataApiView)
 router.register('datasources', datasource_views.DataSourceDataApiView)
 router.register('datasources', datasource_views.DataSourceDataSetsListApiView)
