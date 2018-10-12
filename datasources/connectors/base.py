@@ -64,6 +64,12 @@ class DataCatalogueConnector(BaseDataConnector, collections_abc.Mapping):
         :return: List of datasets provided by this catalogue
         """
 
+    def __iter__(self):
+        return iter(self.get_datasets())
+
+    def __len__(self):
+        return len(self.get_datasets())
+
 
 class DataSetConnector(BaseDataConnector):
     """
@@ -77,41 +83,5 @@ class DataSetConnector(BaseDataConnector):
 
         :param params: Optional query parameter filters
         :return: Requested data
-        """
-        raise NotImplementedError
-
-
-class DataConnectorContainsDatasets:
-    """
-    Mixin class indicating that the plugin represents a data source containing
-    multiple datasets.
-    """
-    @abc.abstractmethod
-    def get_datasets(self,
-                     params: typing.Optional[typing.Mapping[str, str]] = None):
-        """
-        Get the list of all dataset identifiers contained within this source
-        using the appropriate API.
-
-        :param params: Optional query parameter filters
-        :return: All dataset identifiers
-        """
-        raise NotImplementedError
-
-
-class DataConnectorHasMetadata:
-    """
-    Mixin class indicating the the plugin represents a data source with metadata.
-    """
-    @abc.abstractmethod
-    def get_metadata(self,
-                     dataset: typing.Optional[str] = None,
-                     params: typing.Optional[typing.Mapping[str, str]] = None):
-        """
-        Get metadata from this source using the appropriate API.
-
-        :param dataset: Optional dataset for which to get metadata
-        :param params: Optional query parameter filters
-        :return: Requested metadata
         """
         raise NotImplementedError

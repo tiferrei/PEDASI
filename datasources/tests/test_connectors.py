@@ -136,6 +136,32 @@ class ConnectorHyperCatTest(TestCase):
         self.assertEqual('application/vnd.hypercat.catalogue+json',
                          _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:isContentType')['val'])
 
+    def test_plugin_get_datasets(self):
+        connection = self.plugin(self.url)
+        datasets = connection.get_datasets()
+
+        self.assertEqual(list,
+                         type(datasets))
+
+        self.assertLessEqual(1,
+                             len(datasets))
+
+        self.assertIn(self.dataset,
+                      datasets)
+
+    def test_plugin_iter_datasets(self):
+        connection = self.plugin(self.url)
+
+        for dataset in connection:
+            self.assertEqual(str,
+                             type(dataset))
+
+    def test_plugin_len_datasets(self):
+        connection = self.plugin(self.url)
+
+        self.assertLessEqual(1,
+                             len(connection))
+
     def test_plugin_get_dataset_metadata(self):
         connection = self.plugin(self.url)
         result = connection[self.dataset].get_metadata()
@@ -221,6 +247,28 @@ class ConnectorHyperCatCiscoTest(TestCase):
         self.assertEqual('https://developer.cityverve.org.uk',
                          _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasHomepage')['val'])
 
+    def test_plugin_get_datasets(self):
+        connection = self.plugin(self.url,
+                                 api_key=self.api_key)
+        datasets = connection.get_datasets()
+
+        self.assertEqual(list,
+                         type(datasets))
+
+        self.assertLessEqual(1,
+                             len(datasets))
+
+        # Only check a couple of expected results are present - there's too many to list here
+        expected = {
+            'https://api.cityverve.org.uk/v1/cat/accident',
+            'https://api.cityverve.org.uk/v1/cat/advertising-board',
+            'https://api.cityverve.org.uk/v1/cat/advertising-post',
+            # And because later tests rely on it...
+            'https://api.cityverve.org.uk/v1/cat/weather-observations-wind',
+        }
+        for exp in expected:
+            self.assertIn(exp, datasets)
+
     def test_plugin_get_subcatalogue_metadata(self):
         connection = self.plugin(self.url,
                                  api_key=self.api_key)
@@ -247,13 +295,20 @@ class ConnectorHyperCatCiscoTest(TestCase):
         connection = self.plugin(self.url,
                                  api_key=self.api_key)
         entity = connection[self.subcatalogue]
+        datasets = entity.get_datasets()
 
+        self.assertEqual(list,
+                         type(datasets))
+
+        self.assertLessEqual(1,
+                             len(datasets))
+
+        # Only check a couple of expected results are present - there's too many to list here
         expected = {
             'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/73',
             'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/79',
             'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/95',
         }
-        datasets = entity.get_datasets()
         for exp in expected:
             self.assertIn(exp, datasets)
 
@@ -294,11 +349,18 @@ class ConnectorHyperCatCiscoTest(TestCase):
         connection = self.plugin(self.url,
                                  api_key=self.api_key)
         entity = connection[self.subcatalogue][self.dataset]
+        datasets = entity.get_datasets()
+
+        self.assertEqual(list,
+                         type(datasets))
+
+        self.assertLessEqual(1,
+                             len(datasets))
 
         expected = [
             'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/132/timeseries/1',
             'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/132/timeseries/2',
             'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/132/timeseries/3',
         ]
-        for exp, timeseries in itertools.zip_longest(expected, entity):
-            self.assertEqual(exp, timeseries)
+        for exp in expected:
+            self.assertIn(exp, datasets)

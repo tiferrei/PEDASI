@@ -101,12 +101,6 @@ class HyperCat(DataCatalogueConnector):
 
         self._response = None
 
-    def __iter__(self):
-        raise NotImplementedError
-
-    def __len__(self):
-        raise NotImplementedError
-
     def __getitem__(self, item: str) -> BaseDataConnector:
         params = {
             'href': item
@@ -143,8 +137,7 @@ class HyperCat(DataCatalogueConnector):
         return HyperCatDataSetConnector(item, self.api_key,
                                         metadata=metadata)
 
-    # TODO should this be able to return metadata for multiple datasets at once?
-    # TODO should there be a different method for getting catalogue metadata?
+    # TODO this gets the entire HyperCat contents so is slow on the BT HyperCat API - ~1s
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
         # Use cached response if we have one
@@ -160,21 +153,9 @@ class HyperCat(DataCatalogueConnector):
         if response is None:
             response = self._get_response(params=params)
 
-        datasets = {}
+        datasets = []
         for item in response['items']:
-            href = item['href']
-
-            try:
-                name = self._get_item_by_key_value(
-                    item['item-metadata'],
-                    'rel',
-                    'urn:X-bt:rels:feedTitle'
-                )['val']
-
-            except KeyError:
-                name = None
-
-            datasets[href] = name
+            datasets.append(item['href'])
 
         return datasets
 
@@ -215,12 +196,6 @@ class CiscoEntityConnector(DataCatalogueConnector):
 
         self._response = None
         self._metadata = metadata
-
-    def __iter__(self):
-        return iter(self.get_datasets())
-
-    def __len__(self):
-        raise NotImplementedError
 
     def __getitem__(self, item: str) -> BaseDataConnector:
         params = {
