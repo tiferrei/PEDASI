@@ -1,12 +1,21 @@
+"""
+This module contains data connector classes for retrieving data from HyperCat catalogues.
+"""
+
 import typing
 
 import requests
 import requests.auth
 
-from datasources.connectors.base import DataCatalogueConnector, DataSetConnector
+from datasources.connectors.base import BaseDataConnector, DataCatalogueConnector, DataSetConnector
 
 
 class HyperCatDataSetConnector(DataSetConnector):
+    """
+    Data connector for retrieving data from a source contained within a HyperCat catalogue.
+
+    Metadata is assumed to be given by the parent catalogue.
+    """
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
                  metadata: typing.Optional[typing.Mapping] = None):
@@ -16,30 +25,66 @@ class HyperCatDataSetConnector(DataSetConnector):
 
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
+        """
+        Retrieve the metadata for this source.
+
+        The metadata must have been given when this data source was looked up in the
+        parent catalogue.
+
+        :param params: Ignored
+        :return: Data source metadata
+        """
         if self._metadata is None:
             raise NotImplementedError
 
         return self._metadata
 
     def get_data(self,
-                 params: typing.Optional[typing.Mapping[str, str]] = None):
-        r = self.get_data_passthrough(params)
+                 params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.Union[str, dict]:
+        """
+        Retrieve the data from this source.
 
-        if 'json' in r.headers['Content-Type']:
-            return r.json()
+        If the data is JSON formatted it will be parsed into a dictionary - otherwise it will
+        be passed as plain text.
 
-        return r.text
+        :param params: Query parameters to be passed through to the data source API
+        :return: Data source data
+        """
+        response = self.get_data_passthrough(params)
+
+        if 'json' in response.headers['Content-Type']:
+            return response.json()
+
+        return response.text
 
     def get_data_passthrough(self,
-                 params: typing.Optional[typing.Mapping[str, str]] = None):
-        r = self._get_auth_request(self.location,
-                                   params=params)
-        r.raise_for_status()
-        return r
+                             params: typing.Optional[typing.Mapping[str, str]] = None) -> requests.Response:
+        """
+        Retrieve the data from this source.
+
+        The response from the data source API will be returned directly.
+
+        :param params: Query parameters to be passed through to the data source API
+        :return: Data source data
+        """
+        response = self._get_auth_request(self.location,
+                                          params=params)
+        response.raise_for_status()
+        return response
 
 
 class CiscoHyperCatDataSetConnector(HyperCatDataSetConnector):
-    def _get_auth_request(self, url, **kwargs):
+    """
+    Data connector behaving the same as :class:`HyperCatDataSetConnector` with authentication
+    for Cisco HyperCat API.
+    """
+    def _get_auth_request(self, url: str, **kwargs) -> requests.Response:
+        """
+        Perform an API request with authentication by API key.
+
+        :param url: URL to query
+        :return: Request response
+        """
         return requests.get(url,
                             # Doesn't accept HttpBasicAuth
                             headers={'Authorization': self.api_key},
@@ -47,6 +92,9 @@ class CiscoHyperCatDataSetConnector(HyperCatDataSetConnector):
 
 
 class HyperCat(DataCatalogueConnector):
+    """
+    Data connector for retrieving data or metadata from a HyperCat catalogue.
+    """
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None):
         super().__init__(location, api_key=api_key)
@@ -59,12 +107,13 @@ class HyperCat(DataCatalogueConnector):
     def __len__(self):
         raise NotImplementedError
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> BaseDataConnector:
         params = {
             'href': item
         }
 
         # Use cached response if we have one
+        # TODO should we use cached responses?
         response = self._response
         if response is None:
             response = self._get_response(params)
@@ -77,7 +126,12 @@ class HyperCat(DataCatalogueConnector):
         metadata = dataset_item['item-metadata']
 
         try:
-            content_type = self._get_item_by_key_value(metadata, 'rel', 'urn:X-hypercat:rels:isContentType')['val']
+            content_type = self._get_item_by_key_value(
+                metadata,
+                'rel',
+                'urn:X-hypercat:rels:isContentType'
+            )['val']
+
             if content_type == 'application/vnd.hypercat.catalogue+json':
                 return type(self)(location=item,
                                   api_key=self.api_key)
@@ -101,7 +155,7 @@ class HyperCat(DataCatalogueConnector):
         return response['catalogue-metadata']
 
     def get_datasets(self,
-                     params: typing.Optional[typing.Mapping[str, str]] = None):
+                     params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.List[str]:
         response = self._response
         if response is None:
             response = self._get_response(params=params)
@@ -126,7 +180,7 @@ class HyperCat(DataCatalogueConnector):
 
     @staticmethod
     def _get_item_by_key_value(collection: typing.Iterable[typing.Mapping],
-                                key: str, value) -> typing.Mapping:
+                               key: str, value: typing.Any) -> typing.Mapping:
         matches = [item for item in collection if item[key] == value]
 
         if not matches:
@@ -136,11 +190,11 @@ class HyperCat(DataCatalogueConnector):
 
         return matches[0]
 
-    def _get_response(self, params: typing.Optional[typing.Mapping[str, str]] = None):
-        r = self._get_auth_request(self.location,
-                                   params=params)
-        r.raise_for_status()
-        return r.json()
+    def _get_response(self, params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.Mapping:
+        response = self._get_auth_request(self.location,
+                                          params=params)
+        response.raise_for_status()
+        return response.json()
 
     def __enter__(self):
         self._response = self._get_response()
@@ -151,6 +205,9 @@ class HyperCat(DataCatalogueConnector):
 
 
 class CiscoEntityConnector(DataCatalogueConnector):
+    """
+    Data connector for retrieving data or metadata from Cisco's Entity API.
+    """
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
                  metadata: typing.Optional[typing.Mapping] = None):
@@ -165,7 +222,7 @@ class CiscoEntityConnector(DataCatalogueConnector):
     def __len__(self):
         raise NotImplementedError
 
-    def __getitem__(self, item: str):
+    def __getitem__(self, item: str) -> BaseDataConnector:
         params = {
             'href': item
         }
@@ -185,9 +242,8 @@ class CiscoEntityConnector(DataCatalogueConnector):
             return CiscoHyperCatDataSetConnector(item, self.api_key,
                                                  metadata=dataset_item)
 
-        else:
-            return CiscoEntityConnector(item, self.api_key,
-                                        metadata=dataset_item)
+        return CiscoEntityConnector(item, self.api_key,
+                                    metadata=dataset_item)
 
     # TODO should this be able to return metadata for multiple datasets at once?
     # TODO should there be a different method for getting catalogue metadata?
@@ -199,7 +255,7 @@ class CiscoEntityConnector(DataCatalogueConnector):
         return self._metadata
 
     def get_datasets(self,
-                     params: typing.Optional[typing.Mapping[str, str]] = None):
+                     params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.List[str]:
         # Use cached response if we have one
         response = self._response
         if response is None:
@@ -231,10 +287,10 @@ class CiscoEntityConnector(DataCatalogueConnector):
         return matches[0]
 
     def _get_response(self, params: typing.Optional[typing.Mapping[str, str]] = None):
-        r = self._get_auth_request(self.location,
-                                   params=params)
-        r.raise_for_status()
-        return r.json()
+        response = self._get_auth_request(self.location,
+                                          params=params)
+        response.raise_for_status()
+        return response.json()
 
     def _get_auth_request(self, url, **kwargs):
         return requests.get(url,
@@ -251,6 +307,11 @@ class CiscoEntityConnector(DataCatalogueConnector):
 
 
 class HyperCatCisco(HyperCat):
+    """
+    Data connector for retrieving data or metadata from a HyperCat catalogue.
+
+    This connector is designed to handle the structure of Cisco's HyperCat and Entity APIs.
+    """
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
                  entity_url: str = None):
@@ -276,11 +337,17 @@ class HyperCatCisco(HyperCat):
         metadata = dataset_item['item-metadata']
 
         try:
-            content_type = self._get_item_by_key_value(metadata, 'rel', 'urn:X-hypercat:rels:isContentType')['val']
+            content_type = self._get_item_by_key_value(metadata,
+                                                       'rel',
+                                                       'urn:X-hypercat:rels:isContentType')['val']
 
         except KeyError:
             try:
-                content_type = self._get_item_by_key_value(metadata, 'rel', 'urn:X-hypercat:rels:containsContentType')['val']
+                content_type = self._get_item_by_key_value(
+                    metadata,
+                    'rel',
+                    'urn:X-hypercat:rels:containsContentType'
+                )['val']
 
             except KeyError:
                 content_type = None
@@ -290,18 +357,15 @@ class HyperCatCisco(HyperCat):
             content_type = None
 
         if content_type == 'application/vnd.hypercat.catalogue+json':
-            return CiscoEntityConnector(location=self._get_item_by_key_value(metadata,
-                                                                             'rel',
-                                                                             'urn:X-hypercat:rels:hasHomepage')['val'],
-                                        api_key=self.api_key,
-                                        metadata=metadata)
-        else:
-            return HyperCatDataSetConnector(item, self.api_key,
-                                            metadata=metadata)
+            return CiscoEntityConnector(
+                location=self._get_item_by_key_value(metadata,
+                                                     'rel',
+                                                     'urn:X-hypercat:rels:hasHomepage')['val'],
+                api_key=self.api_key,
+                metadata=metadata)
 
-    def get_entities(self):
-        r = self._get_auth_request(self.entity_url)
-        return r.json()
+        return HyperCatDataSetConnector(item, self.api_key,
+                                        metadata=metadata)
 
     def _get_auth_request(self, url, **kwargs):
         return requests.get(url,

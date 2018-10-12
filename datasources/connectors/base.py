@@ -1,3 +1,9 @@
+"""
+This module contains base classes for data connectors.
+
+Data connectors are the component of PEDASI which interacts directly with data provider APIs.
+"""
+
 import abc
 from collections import abc as collections_abc
 import typing
@@ -16,12 +22,6 @@ class BaseDataConnector(metaclass=plugin.Plugin):
 
     * A single dataset
     * A data catalogue - a collection of datasets
-
-    TODO:
-
-    * Should this connector interface be able to handle data catalogues and datasets
-      or should we create a new connector for datasets within a catalogue?
-    * What other operations do we need?
     """
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
@@ -47,12 +47,28 @@ class BaseDataConnector(metaclass=plugin.Plugin):
 
 
 class DataCatalogueConnector(BaseDataConnector, collections_abc.Mapping):
+    """
+    Base class of data connectors which provide access to a data catalogue.
+    """
     def get_data(self,
                  params: typing.Optional[typing.Mapping[str, str]] = None):
         raise TypeError('Data catalogues contain only metadata.  You must select a dataset.')
 
+    @abc.abstractmethod
+    def get_datasets(self,
+                     params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.List[str]:
+        """
+        Get the list of datasets provided by this catalogue.
+
+        :param params: Query parameters to pass to data source API
+        :return: List of datasets provided by this catalogue
+        """
+
 
 class DataSetConnector(BaseDataConnector):
+    """
+    Base class of data connectors which provide access to a single dataset.
+    """
     @abc.abstractmethod
     def get_data(self,
                  params: typing.Optional[typing.Mapping[str, str]] = None):

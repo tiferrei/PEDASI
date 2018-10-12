@@ -199,18 +199,6 @@ class ConnectorHyperCatCiscoTest(TestCase):
         connection = self.plugin(self.url)
         self.assertEqual(connection.location, self.url)
 
-    def test_plugin_get_entities(self):
-        connection = self.plugin(self.url,
-                                 api_key=self.api_key,
-                                 entity_url=self.entity_url)
-        result = connection.get_entities()
-
-        self.assertGreaterEqual(len(result), 1)
-
-        for entity in result:
-            self.assertIn('id', entity)
-            self.assertIn('uri', entity)
-
     def test_plugin_get_catalogue_metadata(self):
         connection = self.plugin(self.url,
                                  api_key=self.api_key)
