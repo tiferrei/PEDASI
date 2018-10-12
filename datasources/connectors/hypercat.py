@@ -130,8 +130,8 @@ class HyperCat(DataCatalogueConnector):
                 return type(self)(location=item,
                                   api_key=self.api_key)
 
-        except ValueError:
-            # Has multiple values for content type - is not a catalogue
+        except (KeyError, ValueError):
+            # Has no or multiple values for content type - is not a catalogue
             pass
 
         return HyperCatDataSetConnector(item, self.api_key,

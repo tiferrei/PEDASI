@@ -162,6 +162,25 @@ class ConnectorHyperCatTest(TestCase):
         self.assertLessEqual(1,
                              len(connection))
 
+    def test_plugin_iter_items(self):
+        """
+        Test naive iteration over key-value pairs of datasets within this catalogue.
+
+        This process is SLOW so we only do a couple of iterations.
+        """
+        connection = self.plugin(self.url,
+                                 api_key=self.api_key)
+
+        for k, v in itertools.islice(connection.items(), 3):
+            self.assertEqual(str,
+                             type(k))
+
+            self.assertIsInstance(v,
+                                  BaseDataConnector)
+
+            self.assertEqual(k,
+                             v.location)
+
     def test_plugin_get_dataset_metadata(self):
         connection = self.plugin(self.url)
         result = connection[self.dataset].get_metadata()
