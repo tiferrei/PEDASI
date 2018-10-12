@@ -1,3 +1,4 @@
+import itertools
 import typing
 
 from django.test import TestCase
@@ -104,8 +105,12 @@ class ConnectorHyperCatTest(TestCase):
     dataset = 'http://api.bt-hypercat.com/sensors/feeds/c7f361c6-7cb7-4ef5-aed9-397a0c0c4088'
 
     def setUp(self):
+        from decouple import config
+
         BaseDataConnector.load_plugins('datasources/connectors')
         self.plugin = BaseDataConnector.get_plugin('HyperCat')
+
+        self.api_key = config('HYPERCAT_BT_API_KEY')
 
     def test_get_plugin(self):
         self.assertIsNotNone(self.plugin)
@@ -153,25 +158,17 @@ class ConnectorHyperCatTest(TestCase):
 
         self.assertEqual(1,
                          _count_items_by_key_value(result, 'rel', 'urn:X-bt:rels:feedTag'))
-        # self.assertEqual(result['urn:X-bt:rels:feedTag'][0], 'weather')
 
         self.assertGreaterEqual(_count_items_by_key_value(result, 'rel', 'urn:X-bt:rels:hasSensorStream'),
                                 1)
-
-        # self.assertIn('application/json',
-        #               result['urn:X-hypercat:rels:isContentType'])
 
     def test_plugin_get_dataset_data(self):
         """
         Test that we can get data from a single dataset within the catalogue.
         """
-        from decouple import config
-
-        api_key = config('HYPERCAT_BT_API_KEY')
 
         connection = self.plugin(self.url,
-                                 api_key=api_key)
-        # result = connection[self.dataset + '/datastreams/0'].get_data()
+                                 api_key=self.api_key)
         result = connection[self.dataset].get_data()
 
         self.assertIsInstance(result, str)
@@ -182,9 +179,10 @@ class ConnectorHyperCatTest(TestCase):
 
 class ConnectorHyperCatCiscoTest(TestCase):
     url = 'https://api.cityverve.org.uk/v1/cat'
-    entity_url = 'https://api.cityverve.org.uk/v1/entity'
+    subcatalogue = 'https://api.cityverve.org.uk/v1/cat/weather-observations-wind'
+    dataset = 'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/132'
 
-    dataset = 'weather-observations-wind'
+    entity_url = 'https://api.cityverve.org.uk/v1/entity'
 
     def setUp(self):
         from decouple import config
@@ -236,53 +234,83 @@ class ConnectorHyperCatCiscoTest(TestCase):
                          _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasHomepage')['val'])
 
     def test_plugin_get_subcatalogue_metadata(self):
-        connection = self.plugin(self.url)
-        result = connection[self.dataset].get_metadata()
+        connection = self.plugin(self.url,
+                                 api_key=self.api_key)
+        result = connection[self.subcatalogue].get_metadata()
 
         relations = [relation['rel'] for relation in result]
         for property in [
             'urn:X-hypercat:rels:hasDescription:en',
-            'urn:X-hypercat:rels:isContentType',
+            'urn:X-hypercat:rels:containsContentType',
             'urn:X-hypercat:rels:hasHomepage',
         ]:
             self.assertIn(property, relations)
 
-        self.assertEqual('CityVerve Public API - master catalogue',
+        self.assertEqual('CityVerve Public API - weather-observations-wind catalogue',
                          _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasDescription:en')['val'])
 
         self.assertEqual('application/vnd.hypercat.catalogue+json',
-                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:isContentType')['val'])
+                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:containsContentType')['val'])
 
-        self.assertEqual('https://developer.cityverve.org.uk',
+        self.assertEqual('https://api.cityverve.org.uk/v1/entity/weather-observations-wind',
                          _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasHomepage')['val'])
 
-    def test_plugin_get_dataset_metadata(self):
-        connection = self.plugin(self.url)
-        result = connection[self.dataset].get_metadata()
+    def test_plugin_get_subcatalogue_datasets(self):
+        connection = self.plugin(self.url,
+                                 api_key=self.api_key)
+        entity = connection[self.subcatalogue]
 
-        relations = [relation['rel'] for relation in result]
+        expected = {
+            'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/73',
+            'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/79',
+            'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/95',
+        }
+        datasets = entity.get_datasets()
+        for exp in expected:
+            self.assertIn(exp, datasets)
+
+    def test_plugin_get_subcatalogue_entity_metadata(self):
+        connection = self.plugin(self.url,
+                                 api_key=self.api_key)
+        result = connection[self.subcatalogue][self.dataset].get_metadata()
+
         for property in [
-            'urn:X-bt:rels:feedTitle',
-            'urn:X-hypercat:rels:hasDescription:en',
-            'urn:X-bt:rels:feedTag',
-            'urn:X-bt:rels:hasSensorStream',
-            'urn:X-hypercat:rels:isContentType',
+            'id',
+            'uri',
+            'type',
+            'name',
+            'loc',
+            'legal',
         ]:
-            self.assertIn(property, relations)
+            self.assertIn(property, result)
 
-        self.assertIn('Met Office',
-                      _get_item_by_key_value(result, 'rel', 'urn:X-bt:rels:feedTitle')['val'])
+        self.assertEqual('132',
+                         result['id'])
 
-        self.assertIn('Met Office',
-                      _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasDescription:en')['val'])
+        self.assertEqual('https://api.cityverve.org.uk/v1/entity/weather-observations-wind/132',
+                         result['uri'])
 
-        self.assertEqual(1,
-                         _count_items_by_key_value(result, 'rel', 'urn:X-bt:rels:feedTag'))
-        # self.assertEqual(result['urn:X-bt:rels:feedTag'][0], 'weather')
+        self.assertEqual('weather-observations-wind',
+                         result['type'])
 
-        self.assertGreaterEqual(_count_items_by_key_value(result, 'rel', 'urn:X-bt:rels:hasSensorStream'),
-                                1)
+        self.assertEqual('Met Office Datapoint Observations - 3031 (Loch Glascarnoch Saws)',
+                         result['name'])
 
-        # self.assertIn('application/json',
-        #               result['urn:X-hypercat:rels:isContentType'])
+        self.assertEqual(dict,
+                         type(result['loc']))
 
+        self.assertEqual(list,
+                         type(result['legal']))
+
+    def test_plugin_get_subcatalogue_entity_datasets(self):
+        connection = self.plugin(self.url,
+                                 api_key=self.api_key)
+        entity = connection[self.subcatalogue][self.dataset]
+
+        expected = [
+            'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/132/timeseries/1',
+            'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/132/timeseries/2',
+            'https://api.cityverve.org.uk/v1/entity/weather-observations-wind/132/timeseries/3',
+        ]
+        for exp, timeseries in itertools.zip_longest(expected, entity):
+            self.assertEqual(exp, timeseries)

@@ -2,6 +2,9 @@ import abc
 from collections import abc as collections_abc
 import typing
 
+import requests
+import requests.auth
+
 from core import plugin
 
 
@@ -37,9 +40,16 @@ class BaseDataConnector(metaclass=plugin.Plugin):
         """
         raise NotImplementedError
 
+    def _get_auth_request(self, url, **kwargs):
+        return requests.get(url,
+                            auth=requests.auth.HTTPBasicAuth(self.api_key, ''),
+                            **kwargs)
+
 
 class DataCatalogueConnector(BaseDataConnector, collections_abc.Mapping):
-    pass
+    def get_data(self,
+                 params: typing.Optional[typing.Mapping[str, str]] = None):
+        raise TypeError('Data catalogues contain only metadata.  You must select a dataset.')
 
 
 class DataSetConnector(BaseDataConnector):
