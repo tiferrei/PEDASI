@@ -171,7 +171,7 @@ class ConnectorHyperCatTest(TestCase):
         connection = self.plugin(self.url,
                                  api_key=self.api_key)
 
-        for k, v in itertools.islice(connection.items(), 3):
+        for k, v in itertools.islice(connection.items(), 5):
             self.assertEqual(str,
                              type(k))
 
@@ -180,6 +180,23 @@ class ConnectorHyperCatTest(TestCase):
 
             self.assertEqual(k,
                              v.location)
+
+    def test_plugin_iter_items_context_manager(self):
+        """
+        Test context-managed iteration over key-value pairs of datasets within this catalogue.
+
+        This process is relatively slow so we only do a couple of iterations.
+        """
+        with self.plugin(self.url, api_key=self.api_key) as connection:
+            for k, v in itertools.islice(connection.items(), 5):
+                self.assertEqual(str,
+                                 type(k))
+
+                self.assertIsInstance(v,
+                                      BaseDataConnector)
+
+                self.assertEqual(k,
+                                 v.location)
 
     def test_plugin_get_dataset_metadata(self):
         connection = self.plugin(self.url)

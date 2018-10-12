@@ -106,11 +106,7 @@ class HyperCat(DataCatalogueConnector):
             'href': item
         }
 
-        # Use cached response if we have one
-        # TODO should we use cached responses?
-        response = self._response
-        if response is None:
-            response = self._get_response(params)
+        response = self._get_response(params)
 
         dataset_item = self._get_item_by_key_value(
             response['items'],
@@ -140,18 +136,13 @@ class HyperCat(DataCatalogueConnector):
     # TODO this gets the entire HyperCat contents so is slow on the BT HyperCat API - ~1s
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
-        # Use cached response if we have one
-        response = self._response
-        if response is None:
-            response = self._get_response(params)
+        response = self._get_response(params)
 
         return response['catalogue-metadata']
 
     def get_datasets(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.List[str]:
-        response = self._response
-        if response is None:
-            response = self._get_response(params=params)
+        response = self._get_response(params=params)
 
         datasets = []
         for item in response['items']:
@@ -172,13 +163,19 @@ class HyperCat(DataCatalogueConnector):
         return matches[0]
 
     def _get_response(self, params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.Mapping:
-        response = self._get_auth_request(self.location,
-                                          params=params)
+        # Use cached response if we have one
+        # TODO should we use cached responses?
+        if self._response is not None:
+            # Ignore params - they only filter - we already have everything
+            response = self._response
+        else:
+            response = self._get_auth_request(self.location,
+                                              params=params)
         response.raise_for_status()
         return response.json()
 
     def __enter__(self):
-        self._response = self._get_response()
+        self._response = self._get_auth_request(self.location)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -300,9 +297,7 @@ class HyperCatCisco(HyperCat):
         }
 
         # Use cached response if we have one
-        response = self._response
-        if response is None:
-            response = self._get_response(params)
+        response = self._get_response(params)
 
         dataset_item = self._get_item_by_key_value(
             response['items'],
