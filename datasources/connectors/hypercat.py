@@ -217,8 +217,6 @@ class CiscoEntityConnector(DataCatalogueConnector):
         return CiscoEntityConnector(item, self.api_key,
                                     metadata=dataset_item)
 
-    # TODO should this be able to return metadata for multiple datasets at once?
-    # TODO should there be a different method for getting catalogue metadata?
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
         if self._metadata is None:
