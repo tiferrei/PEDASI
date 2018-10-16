@@ -28,27 +28,31 @@
         {% if datasource.users_group_requested in request.user.groups.all %}
             <button id="btn-request-access" disabled
                     class="btn btn-primary" role="button">Access Requested</button>
+
+        {% elif not request.user.is_authenticated %}
+            You must be logged in to request access.
+
         {% else %}
             <button id="btn-request-access" onclick="requestAccess()"
                     class="btn btn-primary" role="button">Request Access</button>
-        {% endif %}
 
-        <script type="application/javascript">
-            function requestAccess(){
-                $.ajax({
-                    url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',
-                    headers: {
-                        'X-CSRFToken': Cookies.get('csrftoken')
-                    },
-                    method: 'PUT',
-                    success: function(result, status, xhr){
-                        const btn = document.getElementById('btn-request-access');
-                        btn.textContent = 'Access Requested';
-                        btn.disabled = true;
-                    }
-                })
-            }
-        </script>
+            <script type="application/javascript">
+                function requestAccess(){
+                    $.ajax({
+                        url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',
+                        headers: {
+                            'X-CSRFToken': Cookies.get('csrftoken')
+                        },
+                        method: 'PUT',
+                        success: function(result, status, xhr){
+                            const btn = document.getElementById('btn-request-access');
+                            btn.textContent = 'Access Requested';
+                            btn.disabled = true;
+                        }
+                    })
+                }
+            </script>
+        {% endif %}
     </div>
 
     {% if datasource.description %}
