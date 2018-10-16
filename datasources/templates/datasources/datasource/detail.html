@@ -16,15 +16,31 @@
         </ol>
     </nav>
 
-    <h2>View Data Source - {{ datasource.name }}</h2>
-
-    <p>
-        Owner: <a href="#" role="link">{{ datasource.owner }}</a>
-    </p>
+    <h2>{{ datasource.name }}</h2>
 
     {% if datasource.description %}
         <p>{{ datasource.description }}</p>
     {% endif %}
+
+    <table class="table">
+        <thead>
+            <th scope="col" class="col-md-2 border-0"></th>
+            <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td>Owner</td>
+                <td>
+                    {{ datasource.owner }}
+                </td>
+            </tr>
+            <tr>
+                <td>URL</td>
+                <td>{{ datasource.url }}</td>
+            </tr>
+        </tbody>
+    </table>
 
     <a href="{% url 'datasources:datasource.query' pk=datasource.id %}"
        class="btn btn-success" role="link">Query</a>
