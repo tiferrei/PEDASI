@@ -31,17 +31,27 @@
 
                 {% for application in applications %}
                     <div class="col-md-6 col-lg-4 px-2">
+                        <a href="{% url 'applications:application.detail' pk=application.pk %}"
+                           class="no-hover" role="button">
 
-                        <div class="card rounded-0 h-100">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">{{ application.name }}</h5>
-                                <p class="card-text">{{ application.description }}</p>
+                            <div class="card rounded-0 h-100">
+                                <img src="https://via.placeholder.com/100x50"
+                                     class="card-img-top">
 
-                                <a href="{% url 'applications:application.detail' pk=application.pk %}"
-                                   class="btn btn-primary btn-block mt-auto" role="button">Detail</a>
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">{{ application.name }}</h5>
+                                    <p class="card-text">{{ application.description }}</p>
+
+                                    <p class="card-text text-right mt-auto">
+                                        <small class="text-muted">
+                                            Last updated X ago
+                                        </small>
+                                    </p>
+
+                                </div>
                             </div>
-                        </div>
 
+                        </a>
                     </div>
                 {% endfor %}
 
@@ -58,17 +68,27 @@
 
                 {% for datasource in datasources %}
                     <div class="col-md-6 col-lg-4 px-2">
+                        <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}"
+                           class="no-hover" role="button">
 
-                        <div class="card rounded-0 h-100">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">{{ datasource.name }}</h5>
-                                <p class="card-text">{{ datasource.description }}</p>
+                            <div class="card rounded-0 h-100">
+                                <img src="https://via.placeholder.com/100x50"
+                                     class="card-img-top">
 
-                                <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}"
-                                   class="btn btn-primary btn-block mt-auto" role="button">Detail</a>
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">{{ datasource.name }}</h5>
+                                    <p class="card-text">{{ datasource.description }}</p>
+
+                                    <p class="card-text text-right mt-auto">
+                                        <small class="text-muted">
+                                            Last updated X ago
+                                        </small>
+                                    </p>
+
+                                </div>
                             </div>
-                        </div>
 
+                        </a>
                     </div>
                 {% endfor %}
 
