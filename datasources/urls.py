@@ -28,4 +28,8 @@ urlpatterns = [
     path('<int:pk>/metadata',
          views.DataSourceMetadataView.as_view(),
          name='datasource.metadata'),
+
+    path('<int:pk>/explore',
+         views.DataSourceExploreView.as_view(),
+         name='datasource.explore'),
 ]

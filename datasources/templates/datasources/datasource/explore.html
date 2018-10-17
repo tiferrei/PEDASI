@@ -42,21 +42,4 @@
         </tbody>
     </table>
 
-    <a href="{% url 'datasources:datasource.explore' pk=datasource.id %}"
-       class="btn btn-primary" role="link">Explore</a>
-
-    <a href="{% url 'datasources:datasource.query' pk=datasource.id %}"
-       class="btn btn-success" role="link">Query</a>
-    <a href="{% url 'datasources:datasource.metadata' pk=datasource.id %}"
-       class="btn btn-success" role="link">Metadata</a>
-
-    <a href="{% url 'admin:datasources_datasource_change' datasource.id %}"
-       class="btn btn-success" role="button">Edit</a>
-    <a href="{% url 'admin:datasources_datasource_delete' datasource.id %}"
-       class="btn btn-danger" role="button">Delete</a>
-    {% if datasource.access_control %}
-        <a href="{% url 'datasources:datasource.manage-access' pk=datasource.pk %}"
-           class="btn btn-primary" role="button">Manage Access</a>
-    {% endif %}
-
 {% endblock %}
