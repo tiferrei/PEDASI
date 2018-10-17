@@ -70,6 +70,7 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'bootstrap4',
+    'haystack',
     'rest_framework',
 ]
 
@@ -133,6 +134,15 @@ mongoengine.register_connection(
     ),
     alias='default'
 )
+
+
+# Search backends
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
+    }
+}
 
 
 # Password validation
