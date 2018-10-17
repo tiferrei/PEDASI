@@ -19,51 +19,56 @@
           integrity="sha384-HbmWTHay9psM8qyzEKPc8odH4DsOuzdejtnr+OFtDmOcIVnhgReQ4GZBH7uwcjf6"
           crossorigin="anonymous">
 
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/pedasi.css' %}">
+
     {% block extra_head %}
     {% endblock %}
 </head>
 
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="/">PEDASI</a>
-        <button class="navbar-toggler" type="button"
-                data-toggle="collapse" data-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <a class="navbar-brand" href="/">PEDASI</a>
+            <button class="navbar-toggler" type="button"
+                    data-toggle="collapse" data-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'applications:application.list' %}">Applications</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'datasources:datasource.list' %}">Data Sources</a>
-                </li>
-            </ul>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'applications:application.list' %}">Applications</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+                    </li>
+                </ul>
 
-            <ul class="navbar-nav">
-                {% if request.user.is_authenticated %}
-                    <li class="nav-item">
-                        <p class="navbar-text">
-                            Welcome {{ request.user.username }}
-                        </p>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'profiles:profile' %}">My Profile</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'profiles:logout' %}">Logout</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'profiles:login' %}">Login</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
+                <ul class="navbar-nav">
+                    {% if request.user.is_authenticated %}
+                        <li class="nav-item">
+                            <p class="navbar-text">
+                                Welcome {{ request.user.username }}
+                            </p>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'profiles:profile' %}">My Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'profiles:logout' %}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'profiles:login' %}">Login</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+    </div>
 
     {% block pre_content %}
     {% endblock %}

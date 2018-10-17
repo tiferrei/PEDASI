@@ -169,3 +169,9 @@ class DataSourceMetadataView(HasViewPermissionMixin, DetailView):
             }
 
         return context
+
+
+class DataSourceExploreView(HasViewPermissionMixin, DetailView):
+    model = models.DataSource
+    template_name = 'datasources/datasource/explore.html'
+    context_object_name = 'datasource'
