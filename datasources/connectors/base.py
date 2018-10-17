@@ -6,12 +6,18 @@ Data connectors are the component of PEDASI which interacts directly with data p
 
 import abc
 from collections import abc as collections_abc
+import enum
 import typing
 
 import requests
 import requests.auth
 
 from core import plugin
+
+
+class ConnectorType(enum.IntEnum):
+    CATALOGUE = 1
+    DATASET = 2
 
 
 class BaseDataConnector(metaclass=plugin.Plugin):
@@ -23,6 +29,8 @@ class BaseDataConnector(metaclass=plugin.Plugin):
     * A single dataset
     * A data catalogue - a collection of datasets
     """
+    TYPE = None
+
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
                  **kwargs):
@@ -50,6 +58,8 @@ class DataCatalogueConnector(BaseDataConnector, collections_abc.Mapping):
     """
     Base class of data connectors which provide access to a data catalogue.
     """
+    TYPE = ConnectorType.CATALOGUE
+
     def get_data(self,
                  params: typing.Optional[typing.Mapping[str, str]] = None):
         raise TypeError('Data catalogues contain only metadata.  You must select a dataset.')
@@ -75,6 +85,8 @@ class DataSetConnector(BaseDataConnector):
     """
     Base class of data connectors which provide access to a single dataset.
     """
+    TYPE = ConnectorType.DATASET
+
     @abc.abstractmethod
     def get_data(self,
                  params: typing.Optional[typing.Mapping[str, str]] = None):
