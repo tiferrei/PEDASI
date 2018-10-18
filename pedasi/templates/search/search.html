@@ -23,6 +23,10 @@
                 <p>
                     <a href="{{ result.object.get_absolute_url }}">{{ result.object.name }}</a>
                 </p>
+                <p>
+                    {% load highlight %}
+                    {% highlight result.text with query html_tag "mark" %}
+                </p>
             {% empty %}
                 <p>No results found.</p>
             {% endfor %}
