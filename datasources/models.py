@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db import models
@@ -51,6 +53,26 @@ class DataSource(BaseAppDataModel):
                 self._data_connector = plugin(self.url)
 
         return self._data_connector
+
+    @property
+    def search_representation(self):
+        lines = []
+
+        lines.append(self.name)
+        lines.append(self.owner.get_full_name())
+        lines.append(self.description)
+
+        try:
+            lines.append(json.dumps(
+                self.data_connector.get_metadata(),
+                indent=4
+            ))
+        except NotImplementedError:
+            pass
+
+        result = '\n'.join(lines)
+        print(result)
+        return result
 
     def get_absolute_url(self):
         return reverse('datasources:datasource.detail',

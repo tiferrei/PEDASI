@@ -1,14 +1,13 @@
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.views.generic import View
 from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.list import ListView
 
-from rest_framework import viewsets
+import requests.exceptions
 
 from profiles.permissions import HasViewPermissionMixin, OwnerPermissionRequiredMixin
 from datasources import models
-from datasources import serializers
 
 
 class DataSourceListView(ListView):
@@ -26,6 +25,45 @@ class DataSourceDetailView(DetailView):
         if not self.object.has_view_permission(self.request.user):
             return ['datasources/datasource/detail-no-access.html']
         return super().get_template_names()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['has_edit_permission'] = self.request.user.is_staff or self.request.user == self.object.owner
+
+        return context
+
+
+class DataSourceDataSetSearchView(DetailView):
+    model = models.DataSource
+    template_name = 'datasources/datasource/dataset_search.html'
+    context_object_name = 'datasource'
+
+    def get(self, request, *args, **kwargs):
+        try:
+            return super().get(request, *args, **kwargs)
+        except requests.exceptions.HTTPError:
+            return HttpResponse(
+                'API call failed',
+                status=424
+            )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        connector = self.object.data_connector
+        try:
+            context['datasets'] = connector.items(
+                params={
+                    'prefix-val': self.request.GET.get('q')
+                }
+            )
+
+        except AttributeError:
+            # DataSource is not a catalogue
+            pass
+
+        return context
 
 
 class DataSourceManageAccessView(OwnerPermissionRequiredMixin, DetailView):
