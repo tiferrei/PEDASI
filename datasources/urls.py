@@ -32,4 +32,8 @@ urlpatterns = [
     path('<int:pk>/explore',
          views.DataSourceExploreView.as_view(),
          name='datasource.explore'),
+
+    path('<int:pk>/search',
+         views.DataSourceDataSetSearchView.as_view(),
+         name='datasource.dataset.search'),
 ]
