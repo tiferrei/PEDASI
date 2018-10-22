@@ -42,22 +42,28 @@
         </tbody>
     </table>
 
-    <a href="{% url 'datasources:datasource.explore' pk=datasource.id %}"
-       class="btn btn-primary" role="link">Explore</a>
+    <div class="row">
+        {% if datasource.access_control %}
+            <div class="col">
+                <a href="{% url 'datasources:datasource.manage-access' pk=datasource.pk %}"
+                   class="btn btn-block col btn-primary" role="button">Manage Access</a>
+            </div>
+        {% endif %}
 
-    <a href="{% url 'datasources:datasource.query' pk=datasource.id %}"
-       class="btn btn-success" role="link">Query</a>
-    <a href="{% url 'datasources:datasource.metadata' pk=datasource.id %}"
-       class="btn btn-success" role="link">Metadata</a>
+        {% if has_edit_permission %}
+            <div class="col">
+                <a href="{% url 'admin:datasources_datasource_change' datasource.id %}"
+                   class="btn btn-block btn-success" role="button">Edit</a>
+            </div>
 
-    <a href="{% url 'admin:datasources_datasource_change' datasource.id %}"
-       class="btn btn-success" role="button">Edit</a>
-    <a href="{% url 'admin:datasources_datasource_delete' datasource.id %}"
-       class="btn btn-danger" role="button">Delete</a>
-    {% if datasource.access_control %}
-        <a href="{% url 'datasources:datasource.manage-access' pk=datasource.pk %}"
-           class="btn btn-primary" role="button">Manage Access</a>
-    {% endif %}
+            <div class="col">
+                <a href="{% url 'admin:datasources_datasource_delete' datasource.id %}"
+                   class="btn btn-block col btn-danger" role="button">Delete</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <hr>
 
     <h2 class="mt-3">Data Sets</h2>
 
@@ -68,8 +74,8 @@
             $('#btn-search-active').show();
 
             const endpoint = "search?q=" + $("#id_query").val();
-            console.log(endpoint);
 
+            // Load HTML response into element
             $('#dataset-results').load(endpoint, function(response, status, xhr) {
                 if (status === "error") {
                     const msg = "There was an error: ";
