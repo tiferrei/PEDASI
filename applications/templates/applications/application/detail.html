@@ -16,19 +16,51 @@
         </ol>
     </nav>
 
-    <h2>View Application - {{ application.name }}</h2>
-
-    <p>
-        Owner: <a href="#" role="link">{{ application.owner }}</a>
-    </p>
+    <h2>{{ application.name }}</h2>
 
     {% if application.description %}
-        <p>{{ application.description }}</p>
+        {{ application.description|linebreaks }}
     {% endif %}
 
-    <a href="{% url 'admin:applications_application_change' application.id %}"
-       class="btn btn-success" role="button">Edit</a>
-    <a href="{% url 'admin:applications_application_delete' application.id %}"
-       class="btn btn-danger" role="button">Delete</a>
+    <table class="table">
+        <thead>
+            <th scope="col" class="col-md-2 border-0"></th>
+            <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td>Owner</td>
+                <td>
+                    {{ application.owner }}
+                </td>
+            </tr>
+            <tr>
+                <td>URL</td>
+                <td>{{ application.url }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="row">
+        {% if application.access_control %}
+            <div class="col">
+                <a href="{% url 'applications:application.manage-access' pk=application.pk %}"
+                   class="btn btn-block col btn-primary" role="button">Manage Access</a>
+            </div>
+        {% endif %}
+
+        {% if has_edit_permission %}
+            <div class="col">
+                <a href="{% url 'admin:applications_application_change' application.id %}"
+                   class="btn btn-block btn-success" role="button">Edit</a>
+            </div>
+
+            <div class="col">
+                <a href="{% url 'admin:applications_application_delete' application.id %}"
+                   class="btn btn-block col btn-danger" role="button">Delete</a>
+            </div>
+        {% endif %}
+    </div>
 
 {% endblock %}

@@ -19,7 +19,7 @@
     <h2>{{ datasource.name }}</h2>
 
     {% if datasource.description %}
-        <p>{{ datasource.description }}</p>
+        {{ datasource.description|linebreaks }}
     {% endif %}
 
     <table class="table">
