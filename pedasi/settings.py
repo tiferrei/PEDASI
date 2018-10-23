@@ -70,6 +70,7 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'bootstrap4',
+    'haystack',
     'rest_framework',
 ]
 
@@ -135,6 +136,18 @@ mongoengine.register_connection(
 )
 
 
+# Search backend
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+    }
+}
+
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
+
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
@@ -190,5 +203,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'docs', 'build')
+    os.path.join(BASE_DIR, 'pedasi', 'static'),
+    os.path.join(BASE_DIR, 'docs', 'build'),
 ]

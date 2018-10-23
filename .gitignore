@@ -2,6 +2,8 @@
 .env
 /deploy/.env*
 /deploy/.deployment-key*
+/Makefile
+/inventory.yml
 
 # Database
 db.sqlite3
@@ -20,6 +22,7 @@ __pycache__/
 playbook.retry
 ubuntu-bionic-18.04-cloudimg-console.log
 /static/
+/whoosh_index/
 
 # Documentation
 /docs/build/

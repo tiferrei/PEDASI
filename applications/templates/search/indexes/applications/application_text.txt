@@ -1,0 +1,3 @@
+{{ object.name }}
+{{ object.owner.get_full_name }}
+{{ object.description }}
