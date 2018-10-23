@@ -7,30 +7,28 @@
 {% endblock %}
 
 {% block pre_content %}
-    <div class="container">
-        <header class="masthead text-white text-left">
-            <div class="overlay"></div>
+    <header class="masthead text-white text-left">
+        <div class="overlay"></div>
 
-            <div class="row">
-                <div class="ml-3 px-4 pt-3 textbox-container">
-                    <h2 class="display-1">PEDASI</h2>
-                    <p class="lead">IoT Observatory Demonstrator</p>
-                </div>
+        <div class="row">
+            <div class="ml-5 px-4 mt-3 pt-3 textbox-container">
+                <h2 class="display-1">PEDASI</h2>
+                <p class="lead">IoT Observatory Demonstrator</p>
             </div>
-        </header>
-    </div>
+        </div>
+    </header>
 {% endblock %}
 
 {% block content %}
 
-    <div class="jumbotron jumbotron-fluid py-3 mb-3">
+    <div class="jumbotron jumbotron-fluid pt-3 pb-2 mb-3">
         <div class="container">
             <h2>Featured Applications</h2>
 
             <div class="row px-2">
 
                 {% for application in applications %}
-                    <div class="col-md-6 col-lg-4 px-2">
+                    <div class="col-md-6 col-lg-4 p-2">
                         <a href="{% url 'applications:application.detail' pk=application.pk %}"
                            class="no-hover" role="button">
 
@@ -60,14 +58,14 @@
         </div>
     </div>
 
-    <div class="jumbotron jumbotron-fluid py-3">
+    <div class="jumbotron jumbotron-fluid pt-3 pb-2">
         <div class="container">
             <h2>Featured Data Sources</h2>
 
             <div class="row px-2">
 
                 {% for datasource in datasources %}
-                    <div class="col-md-6 col-lg-4 px-2">
+                    <div class="col-md-6 col-lg-4 p-2">
                         <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}"
                            class="no-hover" role="button">
 

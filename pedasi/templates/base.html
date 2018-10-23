@@ -20,6 +20,13 @@
           integrity="sha384-HbmWTHay9psM8qyzEKPc8odH4DsOuzdejtnr+OFtDmOcIVnhgReQ4GZBH7uwcjf6"
           crossorigin="anonymous">
 
+    <!-- BootSwatch Journal theme -->
+    <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.1.3/journal/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-5C8TGNupopdjruopVTTrVJacBbWqxHK9eis5DB+DYE6RfqIJapdLBRUdaZBTq7mE"
+          crossorigin="anonymous">
+
+
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/pedasi.css' %}">
 
@@ -29,47 +36,45 @@
 
 <body>
 
-    <div class="container">
-        <nav class="navbar navbar-expand-lg navbar-light">
-            <a class="navbar-brand" href="/">PEDASI</a>
-            <button class="navbar-toggler" type="button"
-                    data-toggle="collapse" data-target="#navbarSupportedContent"
-                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" href="/">PEDASI</a>
+        <button class="navbar-toggler" type="button"
+                data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'applications:application.list' %}">Applications</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav">
+                {% if request.user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'applications:application.list' %}">Applications</a>
+                        <p class="navbar-text">
+                            Welcome {{ request.user.username }}
+                        </p>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+                        <a class="nav-link" href="{% url 'profiles:profile' %}">My Profile</a>
                     </li>
-                </ul>
-
-                <ul class="navbar-nav">
-                    {% if request.user.is_authenticated %}
-                        <li class="nav-item">
-                            <p class="navbar-text">
-                                Welcome {{ request.user.username }}
-                            </p>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profiles:profile' %}">My Profile</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profiles:logout' %}">Logout</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profiles:login' %}">Login</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </nav>
-    </div>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'profiles:logout' %}">Logout</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'profiles:login' %}">Login</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
 
     {% block pre_content %}
     {% endblock %}

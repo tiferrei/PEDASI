@@ -39,13 +39,20 @@
         <tbody>
             {% for application in applications %}
             <tr>
-                <td>{{ application.name }}</td>
                 <td>
+                    <p>
+                        <b>{{ application.name }}</b>
+                    </p>
+                    <p class="pl-5">
+                        {{ application.description|truncatechars:120 }}
+                    </p>
+                </td>
+                <td class="align-middle">
                     {% if application.owner == request.user %}
                         <i class="fas fa-user" aria-hidden="true"></i>
                     {% endif %}
                 </td>
-                <td>
+                <td class="align-middle">
                     {% if application.access_control %}
                         <i class="fas fa-lock fa-lg"></i>
                     {% endif %}
