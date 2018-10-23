@@ -2,6 +2,8 @@
 .env
 /deploy/.env*
 /deploy/.deployment-key*
+/Makefile
+/inventory.yml
 
 # Database
 db.sqlite3
