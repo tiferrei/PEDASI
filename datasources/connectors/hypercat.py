@@ -57,21 +57,6 @@ class HyperCatDataSetConnector(DataSetConnector):
 
         return response.text
 
-    def get_data_passthrough(self,
-                             params: typing.Optional[typing.Mapping[str, str]] = None) -> requests.Response:
-        """
-        Retrieve the data from this source.
-
-        The response from the data source API will be returned directly.
-
-        :param params: Query parameters to be passed through to the data source API
-        :return: Data source data
-        """
-        response = self._get_auth_request(self.location,
-                                          params=params)
-        response.raise_for_status()
-        return response
-
 
 class CiscoHyperCatDataSetConnector(HyperCatDataSetConnector):
     """

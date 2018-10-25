@@ -1,3 +1,5 @@
+import typing
+
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 
@@ -46,7 +48,7 @@ class DataSourceApiTest(TestCase):
 
         self.assertIn('datasources', response.json().keys())
 
-    def _assert_datasource_correct(self, datasource):
+    def _assert_datasource_correct(self, datasource: typing.Dict):
         """
         Helper function: assert that a :class:`DataSource` received via the API is correct.
 
@@ -97,6 +99,58 @@ class DataSourceApiTest(TestCase):
         )
 
         response = self.client.get('/api/datasources/1/')
+        self.assertEqual(response.status_code, 200)
+
+        datasource = response.json()
+        self._assert_datasource_correct(datasource)
+
+
+class DataSourceApiIoTUKTest(DataSourceApiTest):
+    def setUp(self):
+        self.client = Client()
+
+        self.test_name = 'IoTUK'
+        self.test_url = 'https://api.iotuk.org.uk/iotOrganisation'
+
+    def test_api_datasource_get(self):
+        """
+        Test the :class:`DataSource` API get one functionality.
+        """
+        response = self.client.get('/api/datasources/1/')
+        self.assertEqual(response.status_code, 404)
+
+        self.model = models.DataSource.objects.create(
+            name=self.test_name,
+            owner=self.user,
+            url=self.test_url,
+            plugin_name='IoTUK'
+        )
+
+        response = self.client.get('/api/datasources/1/')
+        self.assertEqual(response.status_code, 200)
+
+        datasource = response.json()
+        self._assert_datasource_correct(datasource)
+
+    def test_api_datasource_get_data(self):
+        """
+        Test the :class:`DataSource` API functionality to retrieve data.
+        """
+        response = self.client.get('/api/datasources/1/data/')
+        self.assertEqual(response.status_code, 404)
+
+        self.model = models.DataSource.objects.create(
+            name=self.test_name,
+            owner=self.user,
+            url=self.test_url,
+            plugin_name='IoTUK'
+        )
+
+        response = self.client.get('/api/datasources/1/data/')
+        # Query should fail since IoTUK requires query filters
+        self.assertEqual(response.status_code, 400)
+
+        response = self.client.get('/api/datasources/1/data/?year=2017')
         self.assertEqual(response.status_code, 200)
 
         datasource = response.json()
