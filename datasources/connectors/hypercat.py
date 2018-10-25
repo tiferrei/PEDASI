@@ -50,7 +50,7 @@ class HyperCatDataSetConnector(DataSetConnector):
         :param params: Query parameters to be passed through to the data source API
         :return: Data source data
         """
-        response = self.get_data_passthrough(params)
+        response = self.get_response(params)
 
         if 'json' in response.headers['Content-Type']:
             return response.json()

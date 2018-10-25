@@ -80,14 +80,20 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
             params = None
 
         try:
-            r = data_connector.get_data_passthrough(params=params)
+            r = data_connector.get_response(params=params)
 
-            if 'json' in r.headers.get('content-type'):
-                data = {
-                    'status': 'success',
-                    'data': r.json()
-                }
-                return response.Response(data, status=200)
+            try:
+                r.raise_for_status()
+
+                if 'json' in r.headers.get('content-type'):
+                    data = {
+                        'status': 'success',
+                        'data': r.json()
+                    }
+                    return response.Response(data, status=200)
+
+            except:
+                pass
 
             return HttpResponse(r.text, status=r.status_code,
                                 content_type=r.headers.get('content-type'))
@@ -181,14 +187,20 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         data_connector = data_connector[kwargs['href']]
 
         try:
-            r = data_connector.get_data_passthrough(params=params)
+            r = data_connector.get_response(params=params)
 
-            if 'json' in r.headers.get('content-type'):
-                data = {
-                    'status': 'success',
-                    'data': r.json()
-                }
-                return response.Response(data, status=200)
+            try:
+                r.raise_for_status()
+
+                if 'json' in r.headers.get('content-type'):
+                    data = {
+                        'status': 'success',
+                        'data': r.json()
+                    }
+                    return response.Response(data, status=200)
+
+            except:
+                pass
 
             return HttpResponse(r.text, status=r.status_code,
                                 content_type=r.headers.get('content-type'))
