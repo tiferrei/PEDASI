@@ -1,4 +1,5 @@
 import json
+import typing
 
 from django.http import HttpResponse
 from rest_framework import decorators, response, viewsets
@@ -16,16 +17,59 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
     /api/datasource/<int>/
       Retrieve a single :class:`DataSource`
+
+    /api/datasources/<int>/prov/
+      Retrieve PROV records related to a :class:`DataSource`
+
+    /api/datasources/<int>/metadata/
+      Retrieve :class:`DataSource` metadata via API call to data source URL
+
+    /api/datasources/<int>/data/
+      Retrieve :class:`DataSource` data via API call to data source URL
+
+    /api/datasources/<int>/datasets/
+      Retrieve :class:`DataSource` list of data sets via API call to data source URL
+
+    /api/datasources/<int>/datasets/<href>/metadata/
+      Retrieve :class:`DataSource` metadata for a single dataset via API call to data source URL
+
+    /api/datasources/<int>/datasets/<href>/metadata/
+      Retrieve :class:`DataSource` data for a single dataset via API call to data source URL
     """
     queryset = models.DataSource.objects.all()
     serializer_class = serializers.DataSourceSerializer
+
+    def try_passthrough_response(self,
+                                 map_response: typing.Callable[..., HttpResponse],
+                                 error_message: str,
+                                 dataset: str = None):
+        instance = self.get_object()
+        data_connector = instance.data_connector
+
+        # Are there any query params to pass on?
+        params = self.request.query_params
+        if not params:
+            params = None
+
+        if dataset is not None:
+            data_connector = data_connector[dataset]
+
+        try:
+            return map_response(data_connector, params)
+
+        except NotImplementedError:
+            data = {
+                'status': 'error',
+                'message': error_message,
+            }
+            return response.Response(data, status=400)
 
     @decorators.action(detail=True)
     def prov(self, request, pk=None):
         """
         View for /api/datasources/<int>/prov/
 
-        Retrieves PROV records related to a :class:`DataSource`.
+        Retrieve PROV records related to a :class:`DataSource`.
         """
         instance = self.get_object()
 
@@ -40,99 +84,49 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         """
         View for /api/datasources/<int>/metadata/
 
-        Retrieves :class:`DataSource` metadata via API call to data source URL.
+        Retrieve :class:`DataSource` metadata via API call to data source URL.
         """
-        instance = self.get_object()
-        data_connector = instance.data_connector
-
-        # Are there any query params to pass on?
-        params = self.request.query_params
-        if not params:
-            params = None
-
-        try:
+        def map_response(data_connector, params):
             data = {
                 'status': 'success',
                 'data': data_connector.get_metadata(params=params)
             }
             return response.Response(data, status=200)
 
-        except NotImplementedError:
-            data = {
-                'status': 'error',
-                'message': 'Data source does not provide metadata',
-            }
-            return response.Response(data, status=400)
+        return self.try_passthrough_response(map_response,
+                                             'Data source does not provide metadata')
 
     @decorators.action(detail=True)
     def data(self, request, pk=None):
         """
         View for /api/datasources/<int>/data/
 
-        Retrieves :class:`DataSource` data via API call to data source URL.
+        Retrieve :class:`DataSource` data via API call to data source URL.
         """
-        instance = self.get_object()
-        data_connector = instance.data_connector
-
-        # Are there any query params to pass on?
-        params = self.request.query_params
-        if not params:
-            params = None
-
-        try:
+        def map_response(data_connector, params):
             r = data_connector.get_response(params=params)
-
-            try:
-                r.raise_for_status()
-
-                if 'json' in r.headers.get('content-type'):
-                    data = {
-                        'status': 'success',
-                        'data': r.json()
-                    }
-                    return response.Response(data, status=200)
-
-            except:
-                pass
-
             return HttpResponse(r.text, status=r.status_code,
                                 content_type=r.headers.get('content-type'))
 
-        except NotImplementedError:
-            data = {
-                'status': 'error',
-                'message': 'Data source does not provide data',
-            }
-            return response.Response(data, status=400)
+        return self.try_passthrough_response(map_response,
+                                             'Data source does not provide data')
 
     @decorators.action(detail=True)
     def datasets(self, request, pk=None):
         """
         View for /api/datasources/<int>/datasets/
 
-        Retrieves :class:`DataSource` list of data sets via API call to data source URL.
+        Retrieve :class:`DataSource` list of data sets via API call to data source URL.
         """
-        instance = self.get_object()
-        data_connector = instance.data_connector
-
-        # Are there any query params to pass on?
-        params = self.request.query_params
-        if not params:
-            params = None
-
-        try:
+        def map_response(data_connector, params):
             data = {
                 'status': 'success',
                 'data': data_connector.get_datasets(params=params)
             }
             return response.Response(data, status=200)
 
-        except NotImplementedError:
-            data = {
-                'status': 'error',
-                'message': 'Data source does not contain datasets',
-            }
-            return response.Response(data, status=400)
+        return self.try_passthrough_response(map_response,
+                                             'Data source does not contain datasets')
 
     # TODO URL pattern here uses pre Django 2 format
     @decorators.action(detail=True,
@@ -141,31 +135,18 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         """
         View for /api/datasources/<int>/datasets/<href>/metadata/
 
-        Retrieves :class:`DataSource` metadata for a single dataset via API call to data source URL.
+        Retrieve :class:`DataSource` metadata for a single dataset via API call to data source URL.
         """
-        instance = self.get_object()
-        data_connector = instance.data_connector
-
-        # Are there any query params to pass on?
-        params = self.request.query_params
-        if not params:
-            params = None
-
-        data_connector = data_connector[kwargs['href']]
-
-        try:
+        def map_response(data_connector, params):
             data = {
                 'status': 'success',
                 'data': data_connector.get_metadata(params=params)
             }
             return response.Response(data, status=200)
 
-        except NotImplementedError:
-            data = {
-                'status': 'error',
-                'message': 'Data source does not provide metadata',
-            }
-            return response.Response(data, status=400)
+        return self.try_passthrough_response(map_response,
+                                             'Data source does not provide metadata',
+                                             dataset=self.kwargs['href'])
 
     # TODO URL pattern here uses pre Django 2 format
     @decorators.action(detail=True,
@@ -174,40 +155,13 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         """
         View for /api/datasources/<int>/datasets/<href>/metadata/
 
-        Retrieves :class:`DataSource` data for a single dataset via API call to data source URL.
+        Retrieve :class:`DataSource` data for a single dataset via API call to data source URL.
         """
-        instance = self.get_object()
-        data_connector = instance.data_connector
-
-        # Are there any query params to pass on?
-        params = self.request.query_params
-        if not params:
-            params = None
-
-        data_connector = data_connector[kwargs['href']]
-
-        try:
+        def map_response(data_connector, params):
             r = data_connector.get_response(params=params)
-
-            try:
-                r.raise_for_status()
-
-                if 'json' in r.headers.get('content-type'):
-                    data = {
-                        'status': 'success',
-                        'data': r.json()
-                    }
-                    return response.Response(data, status=200)
-
-            except:
-                pass
-
             return HttpResponse(r.text, status=r.status_code,
                                 content_type=r.headers.get('content-type'))
 
-        except NotImplementedError:
-            data = {
-                'status': 'error',
-                'message': 'Data source does not provide data',
-            }
-            return response.Response(data, status=400)
+        return self.try_passthrough_response(map_response,
+                                             'Data source does not provide data',
+                                             dataset=self.kwargs['href'])

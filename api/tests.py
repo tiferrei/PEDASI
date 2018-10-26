@@ -126,7 +126,7 @@ class DataSourceApiIoTUKTest(DataSourceApiTest):
             plugin_name='IoTUK'
         )
 
-        response = self.client.get('/api/datasources/1/')
+        response = self.client.get('/api/datasources/{}/'.format(self.model.pk))
         self.assertEqual(response.status_code, 200)
 
         datasource = response.json()
@@ -146,17 +146,16 @@ class DataSourceApiIoTUKTest(DataSourceApiTest):
             plugin_name='IoTUK'
         )
 
-        response = self.client.get('/api/datasources/1/data/')
+        response = self.client.get('/api/datasources/{}/data/'.format(self.model.pk))
         # Query should fail since IoTUK requires query filters
         self.assertEqual(response.status_code, 400)
 
-        response = self.client.get('/api/datasources/1/data/?year=2017')
+        response = self.client.get('/api/datasources/{}/data/?year=2017'.format(self.model.pk))
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
-        self.assertIn('data', data)
 
-        self.assertIn('results', data['data'])
-        self.assertLessEqual(1, data['data']['results'])
-        self.assertIn('data', data['data'])
-        self.assertLessEqual(1, len(data['data']['data']))
+        self.assertIn('results', data)
+        self.assertLessEqual(1, data['results'])
+        self.assertIn('data', data)
+        self.assertLessEqual(1, len(data['data']))
