@@ -10,6 +10,8 @@ MAX_LENGTH_NAME = 63
 
 MAX_LENGTH_API_KEY = 127
 
+MAX_LENGTH_PATH = 255
+
 
 class BaseAppDataModel(models.Model):
     #: Friendly name of this application
@@ -20,7 +22,7 @@ class BaseAppDataModel(models.Model):
     description = models.TextField(blank=True, null=False)
 
     #: Address at which the API may be accessed
-    url = models.URLField(blank=False, null=False)
+    url = models.URLField(blank=True, null=False)
 
     #: Do users require explicit permission to use this data source / application?
     access_control = models.BooleanField(default=False,
