@@ -1,4 +1,5 @@
 import json
+import typing
 
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -42,10 +43,23 @@ class DataSource(BaseAppDataModel):
         self._data_connector = None
 
     @property
-    def data_connector(self):
+    def data_connector(self) -> BaseDataConnector:
+        """
+        Construct the data connector for this source.
+
+        :return: Data connector instance
+        """
         if self._data_connector is None:
             BaseDataConnector.load_plugins('datasources/connectors')
-            plugin = BaseDataConnector.get_plugin(self.plugin_name)
+
+            try:
+                plugin = BaseDataConnector.get_plugin(self.plugin_name)
+
+            except KeyError as e:
+                if not self.plugin_name:
+                    raise ValueError('Data source plugin is not set') from e
+
+                raise KeyError('Data source plugin not found') from e
 
             if self.api_key:
                 self._data_connector = plugin(self.url, self.api_key)
@@ -55,7 +69,7 @@ class DataSource(BaseAppDataModel):
         return self._data_connector
 
     @property
-    def search_representation(self):
+    def search_representation(self) -> typing.List[str]:
         lines = []
 
         lines.append(self.name)
@@ -67,11 +81,13 @@ class DataSource(BaseAppDataModel):
                 self.data_connector.get_metadata(),
                 indent=4
             ))
-        except NotImplementedError:
+        except (KeyError, NotImplementedError, ValueError):
+            # KeyError: Plugin was not found
+            # NotImplementedError: Plugin does not support metadata
+            # ValueError: Plugin was not set
             pass
 
         result = '\n'.join(lines)
-        print(result)
         return result
 
     def get_absolute_url(self):

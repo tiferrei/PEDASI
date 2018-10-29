@@ -48,6 +48,17 @@ class BaseDataConnector(metaclass=plugin.Plugin):
         """
         raise NotImplementedError
 
+    def get_response(self,
+                     params: typing.Optional[typing.Mapping[str, str]] = None):
+        """
+        Transparently return a response from a source API.
+
+        :param params: Optional query parameter filters
+        :return: Requested data / metadata - response is passed transparently
+        """
+        return self._get_auth_request(self.location,
+                                      params=params)
+
     def _get_auth_request(self, url, **kwargs):
         return requests.get(url,
                             auth=requests.auth.HTTPBasicAuth(self.api_key, ''),
