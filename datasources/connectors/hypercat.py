@@ -50,27 +50,12 @@ class HyperCatDataSetConnector(DataSetConnector):
         :param params: Query parameters to be passed through to the data source API
         :return: Data source data
         """
-        response = self.get_data_passthrough(params)
+        response = self.get_response(params)
 
         if 'json' in response.headers['Content-Type']:
             return response.json()
 
         return response.text
-
-    def get_data_passthrough(self,
-                             params: typing.Optional[typing.Mapping[str, str]] = None) -> requests.Response:
-        """
-        Retrieve the data from this source.
-
-        The response from the data source API will be returned directly.
-
-        :param params: Query parameters to be passed through to the data source API
-        :return: Data source data
-        """
-        response = self._get_auth_request(self.location,
-                                          params=params)
-        response.raise_for_status()
-        return response
 
 
 class CiscoHyperCatDataSetConnector(HyperCatDataSetConnector):
@@ -133,6 +118,22 @@ class HyperCat(DataCatalogueConnector):
         return HyperCatDataSetConnector(item, self.api_key,
                                         metadata=metadata)
 
+    def items(self,
+              params=None) -> typing.ItemsView:
+        """
+        Get key-value pairs of dataset ID to dataset connector for datasets contained within this catalogue.
+
+        :param params: Query parameters to be passed through to the data source API
+        :return: Dictionary ItemsView over datasets
+        """
+        response = self._get_response(params)
+
+        return {
+            item['href']: HyperCatDataSetConnector(item['href'], self.api_key,
+                                                   metadata=item['item-metadata'])
+            for item in response['items']
+        }.items()
+
     # TODO this gets the entire HyperCat contents so is slow on the BT HyperCat API - ~1s
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
@@ -165,7 +166,7 @@ class HyperCat(DataCatalogueConnector):
     def _get_response(self, params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.Mapping:
         # Use cached response if we have one
         # TODO should we use cached responses?
-        if self._response is not None:
+        if self._response is not None and params is None:
             # Ignore params - they only filter - we already have everything
             response = self._response
         else:

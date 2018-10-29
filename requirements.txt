@@ -9,6 +9,7 @@ decorator==4.3.0
 dj-database-url==0.5.0
 Django==2.0.8
 django-bootstrap4==0.0.6
+django-haystack==2.8.1
 djangorestframework==3.8.2
 docutils==0.14
 idna==2.7
@@ -43,4 +44,5 @@ Sphinx==1.7.6
 sphinxcontrib-websupport==1.1.0
 typed-ast==1.1.0
 urllib3==1.23
+whoosh==2.7.4
 wrapt==1.10.11

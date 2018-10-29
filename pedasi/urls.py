@@ -43,5 +43,8 @@ urlpatterns = [
 
     path('api/',
          include('api.urls',
-                 namespace='api'))
+                 namespace='api')),
+
+    path('search/',
+         include('haystack.urls')),
 ]

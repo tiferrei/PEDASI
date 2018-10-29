@@ -3,7 +3,7 @@ import typing
 
 from django.test import TestCase
 
-from datasources.connectors.base import BaseDataConnector
+from datasources.connectors.base import BaseDataConnector, ConnectorType
 
 
 def _get_item_by_key_value(collection: typing.Iterable[typing.Mapping],
@@ -74,6 +74,11 @@ class ConnectorIoTUKTest(TestCase):
         connection = self.plugin(self.url)
         self.assertEqual(connection.location, self.url)
 
+    def test_plugin_type(self):
+        connector = self.plugin(self.url)
+        self.assertEqual(ConnectorType.DATASET,
+                         connector.TYPE)
+
     def test_plugin_get_data_fails(self):
         connection = self.plugin(self.url)
         result = connection.get_data()
@@ -118,6 +123,11 @@ class ConnectorHyperCatTest(TestCase):
     def test_plugin_init(self):
         connection = self.plugin(self.url)
         self.assertEqual(connection.location, self.url)
+
+    def test_plugin_type(self):
+        connector = self.plugin(self.url)
+        self.assertEqual(ConnectorType.CATALOGUE,
+                         connector.TYPE)
 
     def test_plugin_get_metadata(self):
         connection = self.plugin(self.url)
@@ -260,6 +270,11 @@ class ConnectorHyperCatCiscoTest(TestCase):
     def test_plugin_init(self):
         connection = self.plugin(self.url)
         self.assertEqual(connection.location, self.url)
+
+    def test_plugin_type(self):
+        connector = self.plugin(self.url)
+        self.assertEqual(ConnectorType.CATALOGUE,
+                         connector.TYPE)
 
     def test_plugin_get_catalogue_metadata(self):
         connection = self.plugin(self.url,

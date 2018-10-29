@@ -15,7 +15,8 @@ from provenance import models
 
 
 # Create connection to test DB
-mongoengine.connect('test_prov')
+db = mongoengine.connect('test_prov')
+db.drop_database('test_prov')
 
 
 class ProvEntryTest(TestCase):

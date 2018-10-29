@@ -1,0 +1,33 @@
+{% for dataset_uri, dataset in datasets %}
+    <div class="col-md-12 p-2">
+        <a href="#"
+           class="no-hover" role="button">
+
+            <div class="card rounded-0 h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ dataset_uri }}</h5>
+
+                    <div class="card-text">
+                        <table class="table">
+                            <thead>
+                            <th scope="col" class="col-md-3 border-0"></th>
+                            <th scope="col" class="border-0"></th>
+                            </thead>
+
+                            <tbody>
+                            {% for meta in dataset.get_metadata %}
+                                <tr>
+                                    <td>{{ meta.rel }}</td>
+                                    <td>{{ meta.val }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </a>
+    </div>
+{% empty %}
+{% endfor %}
