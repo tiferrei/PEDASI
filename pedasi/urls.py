@@ -47,4 +47,8 @@ urlpatterns = [
 
     path('search/',
          include('haystack.urls')),
+
+    path('social/',
+         include('social_django.urls',
+                 namespace='social')),
 ]

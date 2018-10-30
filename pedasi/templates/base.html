@@ -61,13 +61,22 @@
                             Welcome {{ request.user.username }}
                         </p>
                     </li>
+
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'profiles:profile' %}">My Profile</a>
                     </li>
+
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'profiles:logout' %}">Logout</a>
                     </li>
+
                 {% else %}
+                    {% if 'google-oauth2' in backends.backends %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'social:begin' 'google-oauth2' %}">Google Login</a>
+                        </li>
+                    {% endif %}
+
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'profiles:login' %}">Login</a>
                     </li>
