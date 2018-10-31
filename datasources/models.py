@@ -7,7 +7,7 @@ from django.urls import reverse
 import requests
 import requests.exceptions
 
-from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_AUTH_FUNCTIONS
+from datasources.connectors.base import AuthMethod, BaseDataConnector, ConnectorType, REQUEST_AUTH_FUNCTIONS
 from core.models import BaseAppDataModel, MAX_LENGTH_API_KEY, MAX_LENGTH_NAME, MAX_LENGTH_PATH
 
 
@@ -60,10 +60,34 @@ class DataSource(BaseAppDataModel):
         return super().save(**kwargs)
 
     @property
+    def is_catalogue(self):
+        return self.data_connector_class.TYPE == ConnectorType.CATALOGUE
+
+    @property
     def connector_string(self):
         if self._connector_string:
             return self._connector_string
         return self.url
+
+    @property
+    def data_connector_class(self):
+        """
+        Get the data connector class for this source.
+
+        :return: Data connector class
+        """
+        BaseDataConnector.load_plugins('datasources/connectors')
+
+        try:
+            plugin = BaseDataConnector.get_plugin(self.plugin_name)
+
+        except KeyError as e:
+            if not self.plugin_name:
+                raise ValueError('Data source plugin is not set') from e
+
+            raise KeyError('Data source plugin not found') from e
+
+        return plugin
 
     @property
     def data_connector(self) -> BaseDataConnector:
@@ -73,16 +97,7 @@ class DataSource(BaseAppDataModel):
         :return: Data connector instance
         """
         if self._data_connector is None:
-            BaseDataConnector.load_plugins('datasources/connectors')
-
-            try:
-                plugin = BaseDataConnector.get_plugin(self.plugin_name)
-
-            except KeyError as e:
-                if not self.plugin_name:
-                    raise ValueError('Data source plugin is not set') from e
-
-                raise KeyError('Data source plugin not found') from e
+            plugin = self.data_connector_class
 
             # Is the authentication method set?
             auth_method = AuthMethod(self.auth_method)

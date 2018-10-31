@@ -65,53 +65,55 @@
 
     <hr>
 
-    <h2 class="mt-3">Data Sets</h2>
+    {% if datasource.is_catalogue %}
+        <h2 class="mt-3">Data Sets</h2>
 
-    <script type="application/javascript">
-        function search() {
-            // Give the user a visual cue that a search is happening
-            $('#btn-search-rest').hide();
-            $('#btn-search-active').show();
+        <script type="application/javascript">
+            function search() {
+                // Give the user a visual cue that a search is happening
+                $('#btn-search-rest').hide();
+                $('#btn-search-active').show();
 
-            const endpoint = "search?q=" + $("#id_query").val();
+                const endpoint = "search?q=" + $("#id_query").val();
 
-            // Load HTML response into element
-            $('#dataset-results').load(endpoint, function(response, status, xhr) {
-                if (status === "error") {
-                    const msg = "There was an error: ";
-                    console.log(msg + xhr.status + " " + xhr.statusText);
-                }
+                // Load HTML response into element
+                $('#dataset-results').load(endpoint, function(response, status, xhr) {
+                    if (status === "error") {
+                        const msg = "There was an error: ";
+                        console.log(msg + xhr.status + " " + xhr.statusText);
+                    }
 
-                // Reset the button
-                $('#btn-search-rest').show();
-                $('#btn-search-active').hide();
-            });
-        }
+                    // Reset the button
+                    $('#btn-search-rest').show();
+                    $('#btn-search-active').hide();
+                });
+            }
 
-        function clearResults() {
-            $('#dataset-results').empty();
-        }
-    </script>
+            function clearResults() {
+                $('#dataset-results').empty();
+            }
+        </script>
 
-    <form class="form-inline" action="javascript:search();">
-        <div class="input-group">
-            <input type="search" class="form-control" id="id_query"
-                   aria-label="search" placeholder="Search">
+        <form class="form-inline" action="javascript:search();">
+            <div class="input-group">
+                <input type="search" class="form-control" id="id_query"
+                       aria-label="search" placeholder="Search">
 
-            <div class="input-group-append">
-                <button type="submit" class="btn btn-outline-primary">
-                    <i id="btn-search-rest" class="fas fa-search"></i>
-                    <i id="btn-search-active" class="fas fa-spinner fa-pulse" style="display: none"></i>
-                </button>
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i id="btn-search-rest" class="fas fa-search"></i>
+                        <i id="btn-search-active" class="fas fa-spinner fa-pulse" style="display: none"></i>
+                    </button>
+                </div>
+
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-outline-primary" onclick="clearResults();"><i class="fas fa-trash"></i></button>
+                </div>
             </div>
+        </form>
 
-            <div class="input-group-append">
-                <button type="button" class="btn btn-outline-primary" onclick="clearResults();"><i class="fas fa-trash"></i></button>
-            </div>
+        <div id="dataset-results" class="row px-2">
         </div>
-    </form>
-
-    <div id="dataset-results" class="row px-2">
-    </div>
+    {% endif %}
 
 {% endblock %}
