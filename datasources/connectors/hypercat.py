@@ -4,15 +4,14 @@ This module contains data connector classes for retrieving data from HyperCat ca
 
 import typing
 
-from .base import BaseDataConnector, DataCatalogueConnector
-from .passthrough import HyperCatDataSetConnector
+from .base import BaseDataConnector, DataCatalogueConnector, DataSetConnector
 
 
 class HyperCat(DataCatalogueConnector):
     """
     Data connector for retrieving data or metadata from a HyperCat catalogue.
     """
-    dataset_connector_class = HyperCatDataSetConnector
+    dataset_connector_class = DataSetConnector
 
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,

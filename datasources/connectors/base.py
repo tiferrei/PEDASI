@@ -128,16 +128,53 @@ class DataCatalogueConnector(BaseDataConnector, collections_abc.Mapping):
 class DataSetConnector(BaseDataConnector):
     """
     Base class of data connectors which provide access to a single dataset.
+
+    Metadata may be passed to the constructor if it has been collected from a previous source
+    otherwise attempting to retrieve metadata will raise NotImplementedError.
+
+    If you wish to connect to a source that provides metadata itself, you must create a new
+    connector class which inherits from this one.
     """
     TYPE = ConnectorType.DATASET
 
-    @abc.abstractmethod
+    def __init__(self, location: str,
+                 api_key: typing.Optional[str] = None,
+                 auth: typing.Optional[typing.Callable] = None,
+                 metadata: typing.Optional[typing.Mapping] = None):
+        super().__init__(location, api_key, auth=auth)
+
+        self._metadata = metadata
+
+    def get_metadata(self,
+                     params: typing.Optional[typing.Mapping[str, str]] = None):
+        """
+        Retrieve the metadata for this source.
+
+        The metadata must have been given when this data source was looked up in the
+        parent catalogue.
+
+        :param params: Ignored
+        :return: Data source metadata
+        """
+        if self._metadata is None:
+            raise NotImplementedError('This data connector does not provide metadata')
+
+        return self._metadata
+
     def get_data(self,
                  params: typing.Optional[typing.Mapping[str, str]] = None):
         """
-        Get data from this source using the appropriate API.
+        Retrieve the data from this source.
 
-        :param params: Optional query parameter filters
-        :return: Requested data
+        If the data is JSON formatted it will be parsed into a dictionary - otherwise it will
+        be passed as plain text.
+
+        :param params: Query parameters to be passed through to the data source API
+        :return: Data source data
         """
-        raise NotImplementedError
+        response = self.get_response(params)
+
+        if 'json' in response.headers['Content-Type']:
+            return response.json()
+
+        return response.text

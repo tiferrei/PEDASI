@@ -1,14 +1,14 @@
-
 import typing
 
-from .base import BaseDataConnector, DataCatalogueConnector
-from .passthrough import HyperCatDataSetConnector
+from .base import BaseDataConnector, DataCatalogueConnector, DataSetConnector
 
 
 class CiscoEntityConnector(DataCatalogueConnector):
     """
     Data connector for retrieving data or metadata from Cisco's Entity API.
     """
+    dataset_connector_class = DataSetConnector
+
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
                  auth: typing.Optional[typing.Callable] = None,
@@ -35,9 +35,9 @@ class CiscoEntityConnector(DataCatalogueConnector):
         )
 
         if 'timeseries' in item:
-            return HyperCatDataSetConnector(item, self.api_key,
-                                            auth=self.auth,
-                                            metadata=dataset_item)
+            return self.dataset_connector_class(item, self.api_key,
+                                                auth=self.auth,
+                                                metadata=dataset_item)
 
         return type(self)(item, self.api_key,
                           auth=self.auth,
