@@ -32,19 +32,23 @@
         upgrade: yes
 
     - name: Install apt prerequisites
-      apt: name={{ item }} state=latest update_cache=yes
-      with_items:
-        - nginx
-        - python3
-        - python3-dev
-        - python3-pip
-        - python3-venv
-        - git
-        - mysql-server
-        - libmysqlclient-dev
-        - mongodb-org
-        # Required for Ansible to setup DB
-        - python3-mysqldb
+      apt:
+        name: '{{ packages }}'
+        state: latest
+        update_cache: yes
+      vars:
+        packages:
+          - nginx
+          - python3
+          - python3-dev
+          - python3-pip
+          - python3-venv
+          - git
+          - mysql-server
+          - libmysqlclient-dev
+          - mongodb-org
+          # Required for Ansible to setup DB
+          - python3-mysqldb
 
     - name: Setup dev deployment
       block:
@@ -180,15 +184,30 @@
         mode: 0755
 
     - name: Copy web config files
-      synchronize: src={{ item.src }} dest={{ item.dest }}
+      file:
+        src: '{{ item.src }}'
+        dest: '{{ item.dest }}'
+        state: link
+        force: yes
       with_items:
-        - { src: deploy/uwsgi/sites/pedasi.ini, dest: /etc/uwsgi/sites/pedasi.ini }
-        - { src: deploy/systemd/system/uwsgi.service, dest: /etc/systemd/system/uwsgi.service }
+        - { src: '{{ project_dir }}/deploy/uwsgi/sites/pedasi.ini', dest: /etc/uwsgi/sites/pedasi.ini }
+        - { src: '{{ project_dir }}/deploy/systemd/system/uwsgi.service', dest: /etc/systemd/system/uwsgi.service }
 
     - name: Copy web config files
-      synchronize:
-        src: deploy/nginx/sites-available/pedasi
+      file:
+        src: '{{ project_dir }}/deploy/nginx/sites-available/pedasi'
         dest: /etc/nginx/sites-available/pedasi
+        state: link
+        force: yes
+      when: production is defined
+
+    - name: Copy web config files
+      file:
+        src: '{{ project_dir }}/deploy/nginx/sites-available/pedasi.dev'
+        dest: /etc/nginx/sites-available/pedasi
+        state: link
+        force: yes
+      when: production is not defined
 
     - name: Activate Nginx site
       file:
