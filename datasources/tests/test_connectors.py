@@ -1,27 +1,6 @@
-import typing
-
 from django.test import TestCase
 
 from datasources.connectors.base import BaseDataConnector, ConnectorType
-
-
-def _get_item_by_key_value(collection: typing.Iterable[typing.Mapping],
-                           key: str, value) -> typing.Mapping:
-    matches = [item for item in collection if item[key] == value]
-
-    if not matches:
-        raise KeyError
-    elif len(matches) > 1:
-        raise ValueError('Multiple items were found')
-
-    return matches[0]
-
-
-def _count_items_by_key_value(collection: typing.Iterable[typing.Mapping],
-                              key: str, value) -> int:
-    matches = [item for item in collection if item[key] == value]
-
-    return len(matches)
 
 
 class ConnectorPluginTest(TestCase):
@@ -62,6 +41,9 @@ class ConnectorPluginTest(TestCase):
 class ConnectorIoTUKTest(TestCase):
     url = 'https://api.iotuk.org.uk/iotOrganisation'
 
+    def _get_connection(self):
+        return self.plugin(self.url)
+
     def setUp(self):
         BaseDataConnector.load_plugins('datasources/connectors')
         self.plugin = BaseDataConnector.get_plugin('IoTUK')
@@ -70,16 +52,19 @@ class ConnectorIoTUKTest(TestCase):
         self.assertIsNotNone(self.plugin)
 
     def test_plugin_init(self):
-        connection = self.plugin(self.url)
+        connection = self._get_connection()
+
         self.assertEqual(connection.location, self.url)
 
     def test_plugin_type(self):
-        connector = self.plugin(self.url)
+        connection = self._get_connection()
+
         self.assertEqual(ConnectorType.DATASET,
-                         connector.TYPE)
+                         connection.TYPE)
 
     def test_plugin_get_data_fails(self):
-        connection = self.plugin(self.url)
+        connection = self._get_connection()
+
         result = connection.get_data()
 
         self.assertIn('status', result)
@@ -89,7 +74,8 @@ class ConnectorIoTUKTest(TestCase):
         self.assertEqual(result['results'], -1)
 
     def test_plugin_get_data_query(self):
-        connection = self.plugin(self.url)
+        connection = self._get_connection()
+
         result = connection.get_data(params={'year': 2018})
 
         self.assertIn('status', result)
