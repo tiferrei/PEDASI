@@ -46,7 +46,7 @@ class ConnectorIoTUKTest(TestCase):
 
     def setUp(self):
         BaseDataConnector.load_plugins('datasources/connectors')
-        self.plugin = BaseDataConnector.get_plugin('IoTUK')
+        self.plugin = BaseDataConnector.get_plugin('DataSetConnector')
 
     def test_get_plugin(self):
         self.assertIsNotNone(self.plugin)
