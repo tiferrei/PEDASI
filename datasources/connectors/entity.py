@@ -1,11 +1,8 @@
 
 import typing
 
-import requests
-import requests.auth
-
 from .base import BaseDataConnector, DataCatalogueConnector
-from .passthrough import CiscoHyperCatDataSetConnector
+from .passthrough import HyperCatDataSetConnector
 
 
 class CiscoEntityConnector(DataCatalogueConnector):
@@ -14,8 +11,9 @@ class CiscoEntityConnector(DataCatalogueConnector):
     """
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
+                 auth: typing.Optional[typing.Callable] = None,
                  metadata: typing.Optional[typing.Mapping] = None):
-        super().__init__(location, api_key=api_key)
+        super().__init__(location, api_key=api_key, auth=auth)
 
         self._response = None
         self._metadata = metadata
@@ -37,10 +35,12 @@ class CiscoEntityConnector(DataCatalogueConnector):
         )
 
         if 'timeseries' in item:
-            return CiscoHyperCatDataSetConnector(item, self.api_key,
-                                                 metadata=dataset_item)
+            return HyperCatDataSetConnector(item, self.api_key,
+                                            auth=self.auth,
+                                            metadata=dataset_item)
 
         return type(self)(item, self.api_key,
+                          auth=self.auth,
                           metadata=dataset_item)
 
     def get_metadata(self,
@@ -87,12 +87,6 @@ class CiscoEntityConnector(DataCatalogueConnector):
                                           params=params)
         response.raise_for_status()
         return response.json()
-
-    def _get_auth_request(self, url, **kwargs):
-        return requests.get(url,
-                            # Doesn't accept HttpBasicAuth
-                            headers={'Authorization': self.api_key},
-                            **kwargs)
 
     def __enter__(self):
         self._response = self._get_response()

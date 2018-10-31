@@ -4,11 +4,8 @@ This module contains data connector classes for retrieving data from HyperCat ca
 
 import typing
 
-import requests
-import requests.auth
-
 from .base import BaseDataConnector, DataCatalogueConnector
-from .passthrough import HyperCatDataSetConnector, CiscoHyperCatDataSetConnector
+from .passthrough import HyperCatDataSetConnector
 
 
 class HyperCat(DataCatalogueConnector):
@@ -18,8 +15,9 @@ class HyperCat(DataCatalogueConnector):
     dataset_connector_class = HyperCatDataSetConnector
 
     def __init__(self, location: str,
-                 api_key: typing.Optional[str] = None):
-        super().__init__(location, api_key=api_key)
+                 api_key: typing.Optional[str] = None,
+                 auth: typing.Optional[typing.Callable] = None):
+        super().__init__(location, api_key=api_key, auth=auth)
 
         self._response = None
 
@@ -54,13 +52,15 @@ class HyperCat(DataCatalogueConnector):
 
             if content_type == 'application/vnd.hypercat.catalogue+json':
                 return type(self)(location=item,
-                                  api_key=self.api_key)
+                                  api_key=self.api_key,
+                                  auth=self.auth)
 
         except (KeyError, ValueError):
             # Has no or multiple values for content type - is not a catalogue
             pass
 
         return self.dataset_connector_class(item, self.api_key,
+                                            auth=self.auth,
                                             metadata=metadata)
 
     def items(self,
@@ -75,6 +75,7 @@ class HyperCat(DataCatalogueConnector):
 
         return {
             item['href']: self.dataset_connector_class(item['href'], self.api_key,
+                                                       auth=self.auth,
                                                        metadata=item['item-metadata'])
             for item in response['items']
         }.items()
@@ -126,25 +127,3 @@ class HyperCat(DataCatalogueConnector):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
-
-
-class HyperCatCisco(HyperCat):
-    """
-    Data connector for retrieving data or metadata from a HyperCat catalogue.
-
-    This connector is designed to handle the structure of Cisco's HyperCat and Entity APIs.
-    """
-    dataset_connector_class = CiscoHyperCatDataSetConnector
-
-    def __init__(self, location: str,
-                 api_key: typing.Optional[str] = None,
-                 entity_url: str = None):
-        super().__init__(location, api_key=api_key)
-
-        self.entity_url = entity_url
-
-    def _get_auth_request(self, url, **kwargs):
-        return requests.get(url,
-                            # Doesn't accept HttpBasicAuth
-                            headers={'Authorization': self.api_key},
-                            **kwargs)

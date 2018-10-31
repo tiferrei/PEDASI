@@ -6,6 +6,7 @@ Data connectors are the component of PEDASI which interacts directly with data p
 
 import abc
 from collections import abc as collections_abc
+from collections import OrderedDict
 import enum
 import typing
 
@@ -15,7 +16,34 @@ import requests.auth
 from core import plugin
 
 
-class ConnectorType(enum.IntEnum):
+@enum.unique
+class AuthMethod(enum.Enum):
+    NONE = -1
+    UNKNOWN = 0
+    BASIC = 1
+    HEADER = 2
+
+    @classmethod
+    def choices(cls):
+        return tuple((i.name, i.value) for i in cls)
+
+
+class HttpHeaderAuth(requests.auth.HTTPBasicAuth):
+    def __call__(self, r):
+        r.headers['Authorization'] = self.username
+        return r
+
+
+REQUEST_AUTH_FUNCTIONS = OrderedDict([
+    (AuthMethod.NONE, None),
+    (AuthMethod.UNKNOWN, None),
+    (AuthMethod.BASIC, requests.auth.HTTPBasicAuth),
+    (AuthMethod.HEADER, HttpHeaderAuth),
+])
+
+
+@enum.unique
+class ConnectorType(enum.Enum):
     CATALOGUE = 1
     DATASET = 2
 
@@ -33,9 +61,11 @@ class BaseDataConnector(metaclass=plugin.Plugin):
 
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
+                 auth: typing.Optional[typing.Callable] = None,
                  **kwargs):
         self.location = location
         self.api_key = api_key
+        self.auth = auth
 
     @abc.abstractmethod
     def get_metadata(self,
@@ -60,8 +90,11 @@ class BaseDataConnector(metaclass=plugin.Plugin):
                                       params=params)
 
     def _get_auth_request(self, url, **kwargs):
+        if self.auth is None:
+            return requests.get(url, **kwargs)
+
         return requests.get(url,
-                            auth=requests.auth.HTTPBasicAuth(self.api_key, ''),
+                            auth=self.auth(self.api_key, ''),
                             **kwargs)
 
 

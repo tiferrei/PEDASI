@@ -2,8 +2,9 @@ import itertools
 import typing
 
 from django.test import TestCase
+from requests.auth import HTTPBasicAuth
 
-from datasources.connectors.base import BaseDataConnector, ConnectorType
+from datasources.connectors.base import BaseDataConnector, ConnectorType, HttpHeaderAuth
 
 
 def _get_item_by_key_value(collection: typing.Iterable[typing.Mapping],
@@ -31,6 +32,11 @@ class ConnectorHyperCatTest(TestCase):
     # Met Office dataset for weather at Heathrow
     dataset = 'http://api.bt-hypercat.com/sensors/feeds/c7f361c6-7cb7-4ef5-aed9-397a0c0c4088'
 
+    def _get_connection(self):
+        return self.plugin(self.url,
+                           api_key=self.api_key,
+                           auth=HTTPBasicAuth)
+
     def setUp(self):
         from decouple import config
 
@@ -43,16 +49,20 @@ class ConnectorHyperCatTest(TestCase):
         self.assertIsNotNone(self.plugin)
 
     def test_plugin_init(self):
-        connection = self.plugin(self.url)
+        connection = self._get_connection()
+
         self.assertEqual(connection.location, self.url)
 
     def test_plugin_type(self):
-        connector = self.plugin(self.url)
+        connection = self._get_connection()
+
         self.assertEqual(ConnectorType.CATALOGUE,
-                         connector.TYPE)
+                         connection.TYPE)
 
     def test_plugin_get_metadata(self):
-        connection = self.plugin(self.url)
+        connection = self.plugin(self.url, auth=HTTPBasicAuth)
+        connection = self._get_connection()
+
         result = connection.get_metadata()
 
         relations = [relation['rel'] for relation in result]
@@ -69,7 +79,8 @@ class ConnectorHyperCatTest(TestCase):
                          _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:isContentType')['val'])
 
     def test_plugin_get_datasets(self):
-        connection = self.plugin(self.url)
+        connection = self._get_connection()
+
         datasets = connection.get_datasets()
 
         self.assertEqual(list,
@@ -82,14 +93,15 @@ class ConnectorHyperCatTest(TestCase):
                       datasets)
 
     def test_plugin_iter_datasets(self):
-        connection = self.plugin(self.url)
+        connection = self._get_connection()
+
 
         for dataset in connection:
             self.assertEqual(str,
                              type(dataset))
 
     def test_plugin_len_datasets(self):
-        connection = self.plugin(self.url)
+        connection = self._get_connection()
 
         self.assertLessEqual(1,
                              len(connection))
@@ -100,8 +112,7 @@ class ConnectorHyperCatTest(TestCase):
 
         This process is SLOW so we only do a couple of iterations.
         """
-        connection = self.plugin(self.url,
-                                 api_key=self.api_key)
+        connection = self._get_connection()
 
         for k, v in itertools.islice(connection.items(), 5):
             self.assertEqual(str,
@@ -119,7 +130,7 @@ class ConnectorHyperCatTest(TestCase):
 
         This process is relatively slow so we only do a couple of iterations.
         """
-        with self.plugin(self.url, api_key=self.api_key) as connection:
+        with self.plugin(self.url, api_key=self.api_key, auth=HTTPBasicAuth) as connection:
             for k, v in itertools.islice(connection.items(), 5):
                 self.assertEqual(str,
                                  type(k))
@@ -131,7 +142,8 @@ class ConnectorHyperCatTest(TestCase):
                                  v.location)
 
     def test_plugin_get_dataset_metadata(self):
-        connection = self.plugin(self.url)
+        connection = self._get_connection()
+
         result = connection[self.dataset].get_metadata()
 
         relations = [relation['rel'] for relation in result]
@@ -161,9 +173,10 @@ class ConnectorHyperCatTest(TestCase):
         Test that we can get data from a single dataset within the catalogue.
         """
 
-        connection = self.plugin(self.url,
-                                 api_key=self.api_key)
-        result = connection[self.dataset].get_data()
+        connection = self._get_connection()
+
+        dataset = connection[self.dataset]
+        result = dataset.get_data()
 
         self.assertIsInstance(result, str)
         self.assertGreaterEqual(len(result), 1)
@@ -176,29 +189,37 @@ class ConnectorHyperCatCiscoTest(TestCase):
     subcatalogue = 'https://api.cityverve.org.uk/v1/cat/polling-station'
     dataset = 'https://api.cityverve.org.uk/v1/entity/polling-station/5'
 
+    def _get_connection(self):
+        return self.plugin(self.url,
+                           api_key=self.api_key,
+                           auth=HttpHeaderAuth)
+
     def setUp(self):
         from decouple import config
 
         BaseDataConnector.load_plugins('datasources/connectors')
-        self.plugin = BaseDataConnector.get_plugin('HyperCatCisco')
+        self.plugin = BaseDataConnector.get_plugin('HyperCat')
 
         self.api_key = config('HYPERCAT_CISCO_API_KEY')
+        self.auth = None
 
     def test_get_plugin(self):
         self.assertIsNotNone(self.plugin)
 
     def test_plugin_init(self):
-        connection = self.plugin(self.url)
+        connection = self._get_connection()
+
         self.assertEqual(connection.location, self.url)
 
     def test_plugin_type(self):
-        connector = self.plugin(self.url)
+        connection = self._get_connection()
+
         self.assertEqual(ConnectorType.CATALOGUE,
-                         connector.TYPE)
+                         connection.TYPE)
 
     def test_plugin_get_catalogue_metadata(self):
-        connection = self.plugin(self.url,
-                                 api_key=self.api_key)
+        connection = self._get_connection()
+
         result = connection.get_metadata()
 
         relations = [relation['rel'] for relation in result]
@@ -219,8 +240,8 @@ class ConnectorHyperCatCiscoTest(TestCase):
                          _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasHomepage')['val'])
 
     def test_plugin_get_datasets(self):
-        connection = self.plugin(self.url,
-                                 api_key=self.api_key)
+        connection = self._get_connection()
+
         datasets = connection.get_datasets()
 
         self.assertEqual(list,
@@ -241,8 +262,8 @@ class ConnectorHyperCatCiscoTest(TestCase):
             self.assertIn(exp, datasets)
 
     def test_plugin_get_subcatalogue_metadata(self):
-        connection = self.plugin(self.url,
-                                 api_key=self.api_key)
+        connection = self._get_connection()
+
         result = connection[self.subcatalogue].get_metadata()
 
         relations = [relation['rel'] for relation in result]
@@ -263,8 +284,8 @@ class ConnectorHyperCatCiscoTest(TestCase):
                          _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasHomepage')['val'])
 
     def test_plugin_get_subcatalogue_datasets(self):
-        connection = self.plugin(self.url,
-                                 api_key=self.api_key)
+        connection = self._get_connection()
+
         subcatalogue = connection[self.subcatalogue]
         datasets = subcatalogue.get_datasets()
 
@@ -284,8 +305,8 @@ class ConnectorHyperCatCiscoTest(TestCase):
             self.assertIn(exp, datasets)
 
     def test_plugin_get_subcatalogue_dataset_metadata(self):
-        connection = self.plugin(self.url,
-                                 api_key=self.api_key)
+        connection = self._get_connection()
+
         subcatalogue = connection[self.subcatalogue]
         dataset = subcatalogue[self.dataset]
         result = dataset.get_metadata()
@@ -312,8 +333,8 @@ class ConnectorHyperCatCiscoTest(TestCase):
                          _get_item_by_key_value(result, 'rel', 'urn:X-cityverve:rels:type')['val'])
 
     def test_plugin_get_subcatalogue_dataset_data(self):
-        connection = self.plugin(self.url,
-                                 api_key=self.api_key)
+        connection = self._get_connection()
+
         subcatalogue = connection[self.subcatalogue]
         dataset = subcatalogue[self.dataset]
         data = dataset.get_data()

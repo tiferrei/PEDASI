@@ -1,8 +1,5 @@
 import typing
 
-import requests
-import requests.auth
-
 from datasources.connectors.base import DataSetConnector
 
 
@@ -14,8 +11,9 @@ class HyperCatDataSetConnector(DataSetConnector):
     """
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
+                 auth: typing.Optional[typing.Callable] = None,
                  metadata: typing.Optional[typing.Mapping] = None):
-        super().__init__(location, api_key)
+        super().__init__(location, api_key, auth=auth)
 
         self._metadata = metadata
 
@@ -52,23 +50,3 @@ class HyperCatDataSetConnector(DataSetConnector):
             return response.json()
 
         return response.text
-
-
-class CiscoHyperCatDataSetConnector(HyperCatDataSetConnector):
-    """
-    Data connector behaving the same as :class:`HyperCatDataSetConnector` with authentication
-    for Cisco HyperCat API.
-    """
-    def _get_auth_request(self, url: str, **kwargs) -> requests.Response:
-        """
-        Perform an API request with authentication by API key.
-
-        :param url: URL to query
-        :return: Request response
-        """
-        return requests.get(url,
-                            # Doesn't accept HttpBasicAuth
-                            headers={'Authorization': self.api_key},
-                            **kwargs)
-
-
