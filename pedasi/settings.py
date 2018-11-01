@@ -254,6 +254,20 @@ AUTH_USER_MODEL = 'profiles.User'
 LOGIN_URL = reverse_lazy('profiles:login')
 
 
+# Application API config
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # Authenticate using tokens for normal API use
+        'rest_framework.authentication.TokenAuthentication',
+        # Allow logged in users to explore the API through the PEDASI web interface
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
