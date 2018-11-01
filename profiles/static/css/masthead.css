@@ -1,6 +1,6 @@
 header.masthead {
     position: relative;
-    background: #343a40 url("https://via.placeholder.com/350x150") no-repeat top;
+    background: #343a40 no-repeat center;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;

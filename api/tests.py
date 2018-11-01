@@ -135,7 +135,7 @@ class DataSourceApiIoTUKTest(TestCase):
             name=self.test_name,
             owner=self.user,
             url=self.test_url,
-            plugin_name='IoTUK'
+            plugin_name='DataSetConnector'
         )
 
         response = self.client.get('/api/datasources/{}/'.format(self.model.pk))
@@ -163,7 +163,7 @@ class DataSourceApiIoTUKTest(TestCase):
             name=self.test_name,
             owner=self.user,
             url=self.test_url,
-            plugin_name='IoTUK'
+            plugin_name='DataSetConnector'
         )
 
         response = self.client.get('/api/datasources/{}/data/'.format(self.model.pk))
