@@ -75,6 +75,7 @@ THIRD_PARTY_APPS = [
     'bootstrap4',
     'haystack',
     'rest_framework',
+    'rest_framework.authtoken',
     'social_django',
 ]
 
