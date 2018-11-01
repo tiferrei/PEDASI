@@ -28,3 +28,7 @@ class UserProfileView(DetailView):
 
     def get_object(self, queryset=None):
         return self.request.user
+
+
+class UserInactiveView(TemplateView):
+    template_name = 'profiles/user/inactive.html'

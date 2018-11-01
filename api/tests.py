@@ -1,34 +1,78 @@
 import typing
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import TestCase
+
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 
 from datasources import models
 
 
 class RootApiTest(TestCase):
-    def setUp(self):
-        self.client = Client()
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user('Test API User', password='Test API Password')
+        cls.token, created = Token.objects.get_or_create(user=cls.user)
 
-    def test_root_api(self):
+    def test_auth_rejected(self):
         """
-        Test simply that we can access the API root.
+        Test that we get an authentication failure if not providing a token.
+        """
+        client = APIClient()
 
-        This endpoint lists the available API components.
+        response = client.get('/api/')
+
+        self.assertEqual(response.status_code, 401)  # 401 Unauthorized
+
+    def test_force_auth(self):
         """
-        response = self.client.get('/api/')
+        Test simply that we can access the API using forced authentication.
+
+        This 'authentication' method is used for the API tests.
+        """
+        client = APIClient()
+        client.force_authenticate(self.user)
+
+        response = client.get('/api/')
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_session_auth(self):
+        """
+        Test simply that we can access the API using session-based authentication.
+
+        This authentication method is used to access the API explorer within the PEDASI UI.
+        """
+        client = APIClient()
+        client.login(username='Test API User', password='Test API Password')
+
+        response = client.get('/api/')
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_token_auth(self):
+        """
+        Test simply that we can access the API using token based authentication.
+
+        This authentication method is used to access the API from an external application.
+        """
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+        response = client.get('/api/')
+
         self.assertEqual(response.status_code, 200)
 
 
 class DataSourceApiTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = get_user_model().objects.create_user(
-            'Test User', 'test@example.com', 'testpassword'
-        )
+        cls.user = get_user_model().objects.create_user('Test API User')
 
     def setUp(self):
-        self.client = Client()
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
 
         self.test_name = 'Test DataSource'
         self.test_url = 'https://example.com/test'
@@ -108,12 +152,11 @@ class DataSourceApiTest(TestCase):
 class DataSourceApiIoTUKTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = get_user_model().objects.create_user(
-            'Test User', 'test@example.com', 'testpassword'
-        )
+        cls.user = get_user_model().objects.create_user('Test API User')
 
     def setUp(self):
-        self.client = Client()
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
 
         self.test_name = 'IoTUK'
         self.test_url = 'https://api.iotuk.org.uk/iotOrganisation'
@@ -184,14 +227,13 @@ class DataSourceApiIoTUKTest(TestCase):
 class DataSourceApiBTHyperCatTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = get_user_model().objects.create_user(
-            'Test User', 'test@example.com', 'testpassword'
-        )
+        cls.user = get_user_model().objects.create_user('Test API User')
 
     def setUp(self):
         from decouple import config
 
-        self.client = Client()
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
 
         self.test_name = 'BT HyperCat'
         self.test_url = 'https://portal.bt-hypercat.com/cat'
@@ -287,3 +329,7 @@ class DataSourceApiBTHyperCatTest(TestCase):
         self.assertEqual('text/xml', response['Content-Type'])
         self.assertTrue(response.content)
         # TODO test content
+
+
+if __name__ == '__main__':
+    TestCase.run()
