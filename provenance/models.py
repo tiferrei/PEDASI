@@ -1,3 +1,4 @@
+import enum
 import json
 import typing
 
@@ -6,6 +7,7 @@ from django.conf import settings
 from django.db.models import signals
 from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.text import slugify
 
 import mongoengine
 from mongoengine.queryset.visitor import Q
@@ -20,11 +22,18 @@ MAX_LENGTH_NAME_FIELD = 100
 
 class PedasiDummyApplication:
     name = 'PEDASI'
+    pk = '-pedasi'  # We convert pk to string anyway - so this is fine here
 
     @staticmethod
     def get_absolute_url():
         # TODO don't hardcode URL
         return 'http://www.pedasi-iot.org/'
+
+
+@enum.unique
+class ProvActivity(enum.Enum):
+    UPDATE = 'piot:update'
+    ACCESS = 'piot:access'
 
 
 class ProvEntry(mongoengine.DynamicDocument):
@@ -39,7 +48,8 @@ class ProvEntry(mongoengine.DynamicDocument):
     def create_prov(cls,
                     instance: BaseAppDataModel,
                     user: settings.AUTH_USER_MODEL,
-                    application: typing.Optional[Application] = None) -> 'ProvEntry':
+                    application: typing.Optional[Application] = None,
+                    activity_type: typing.Optional[ProvActivity] = ProvActivity.UPDATE) -> 'ProvEntry':
         document = prov.model.ProvDocument(namespaces={
             'piot': 'http://www.pedasi-iot.org/',
             'foaf': 'http://xmlns.com/foaf/0.1/',
@@ -48,19 +58,20 @@ class ProvEntry(mongoengine.DynamicDocument):
 
         entity = document.entity(
             # TODO unique identifier for instance
-            'piot:' + instance._meta.model_name[0] + str(instance.pk),
+            'piot:' + slugify(instance._meta.model_name[0]) + str(instance.pk),
             other_attributes={
-                prov.model.PROV_TYPE: 'piot:' + instance._meta.model_name,
+                prov.model.PROV_TYPE: 'piot:' + slugify(instance._meta.model_name),
                 'xsd:anyURI': instance.get_absolute_url(),
             }
         )
 
         activity = document.activity(
+            # TODO use better activity identifier in PROV
             'piot:a1',
             timezone.now(),
             None,
             other_attributes={
-                prov.model.PROV_TYPE: 'piot:update'
+                prov.model.PROV_TYPE: activity_type.value
             }
         )
 
@@ -76,7 +87,7 @@ class ProvEntry(mongoengine.DynamicDocument):
             application = PedasiDummyApplication
 
         agent_application = document.agent(
-            'piot:' + application.name,
+            'piot:app' + str(application.pk),
             other_attributes={
                 prov.model.PROV_TYPE: 'prov:SoftwareAgent',
                 'xsd:anyURI': application.get_absolute_url(),
@@ -160,8 +171,10 @@ class ProvWrapper(mongoengine.Document):
 
     @classmethod
     def create_prov(cls,
-                     instance: BaseAppDataModel,
-                     user: settings.AUTH_USER_MODEL):
+                    instance: BaseAppDataModel,
+                    user: settings.AUTH_USER_MODEL,
+                    application: typing.Optional[Application] = None,
+                    activity_type: typing.Optional[ProvActivity] = ProvActivity.UPDATE) -> ProvEntry:
         """
         Create a PROV record for a single action.
 
@@ -169,7 +182,9 @@ class ProvWrapper(mongoengine.Document):
 
         These will create and return a :class:`ProvEntry` document.
         """
-        prov_entry = ProvEntry.create_prov(instance, user)
+        prov_entry = ProvEntry.create_prov(instance, user,
+                                           application=application,
+                                           activity_type=activity_type)
         prov_entry.save()
 
         wrapper = cls(
@@ -198,5 +213,6 @@ def save_prov(sender, instance, **kwargs):
     """
     ProvWrapper.create_prov(
         instance,
-        instance.owner
+        instance.owner,
+        activity_type=ProvActivity.UPDATE
     )

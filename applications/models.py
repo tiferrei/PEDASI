@@ -29,11 +29,11 @@ class Application(BaseAppDataModel):
                               blank=False, null=False)
 
     #: Proxy user which this application will act as
-    proxy_user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                                   on_delete=models.PROTECT,
-                                   related_name='application_proxy',
-                                   editable=False,
-                                   blank=True, null=True)
+    proxy_user = models.OneToOneField(settings.AUTH_USER_MODEL,
+                                      on_delete=models.PROTECT,
+                                      related_name='application_proxy',
+                                      editable=False,
+                                      blank=True, null=True)
 
     def _get_proxy_user(self) -> settings.AUTH_USER_MODEL:
         """
