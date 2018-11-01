@@ -10,12 +10,12 @@ class ConnectorPluginTest(TestCase):
         """
         BaseDataConnector.load_plugins('datasources/connectors')
 
-    def test_get_plugin_iotuk(self):
+    def test_get_plugin_simple(self):
         """
-        Test that we have the IoTUK plugin and can activate it.
+        Test that we have the plugin for trivial APIs and can activate it.
         """
         BaseDataConnector.load_plugins('datasources/connectors')
-        plugin = BaseDataConnector.get_plugin('IoTUK')
+        plugin = BaseDataConnector.get_plugin('DataSetConnector')
 
         self.assertIsNotNone(plugin)
 
