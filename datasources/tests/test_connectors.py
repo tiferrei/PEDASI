@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from datasources.connectors.base import BaseDataConnector, ConnectorType
+from datasources.connectors.base import BaseDataConnector
 
 
 class ConnectorPluginTest(TestCase):
@@ -41,7 +41,7 @@ class ConnectorPluginTest(TestCase):
 class ConnectorIoTUKTest(TestCase):
     url = 'https://api.iotuk.org.uk/iotOrganisation'
 
-    def _get_connection(self):
+    def _get_connection(self) -> BaseDataConnector:
         return self.plugin(self.url)
 
     def setUp(self):
@@ -59,8 +59,7 @@ class ConnectorIoTUKTest(TestCase):
     def test_plugin_type(self):
         connection = self._get_connection()
 
-        self.assertEqual(ConnectorType.DATASET,
-                         connection.TYPE)
+        self.assertFalse(connection.is_catalogue)
 
     def test_plugin_get_data_fails(self):
         connection = self._get_connection()

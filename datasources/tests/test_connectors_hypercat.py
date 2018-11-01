@@ -4,7 +4,7 @@ import typing
 from django.test import TestCase
 from requests.auth import HTTPBasicAuth
 
-from datasources.connectors.base import BaseDataConnector, ConnectorType, HttpHeaderAuth
+from datasources.connectors.base import BaseDataConnector, HttpHeaderAuth
 
 
 def _get_item_by_key_value(collection: typing.Iterable[typing.Mapping],
@@ -32,7 +32,7 @@ class ConnectorHyperCatTest(TestCase):
     # Met Office dataset for weather at Heathrow
     dataset = 'http://api.bt-hypercat.com/sensors/feeds/c7f361c6-7cb7-4ef5-aed9-397a0c0c4088'
 
-    def _get_connection(self):
+    def _get_connection(self) -> BaseDataConnector:
         return self.plugin(self.url,
                            api_key=self.api_key,
                            auth=HTTPBasicAuth)
@@ -56,8 +56,7 @@ class ConnectorHyperCatTest(TestCase):
     def test_plugin_type(self):
         connection = self._get_connection()
 
-        self.assertEqual(ConnectorType.CATALOGUE,
-                         connection.TYPE)
+        self.assertTrue(connection.is_catalogue)
 
     def test_plugin_get_metadata(self):
         connection = self.plugin(self.url, auth=HTTPBasicAuth)
@@ -189,7 +188,7 @@ class ConnectorHyperCatCiscoTest(TestCase):
     subcatalogue = 'https://api.cityverve.org.uk/v1/cat/polling-station'
     dataset = 'https://api.cityverve.org.uk/v1/entity/polling-station/5'
 
-    def _get_connection(self):
+    def _get_connection(self) -> BaseDataConnector:
         return self.plugin(self.url,
                            api_key=self.api_key,
                            auth=HttpHeaderAuth)
@@ -214,8 +213,7 @@ class ConnectorHyperCatCiscoTest(TestCase):
     def test_plugin_type(self):
         connection = self._get_connection()
 
-        self.assertEqual(ConnectorType.CATALOGUE,
-                         connection.TYPE)
+        self.assertTrue(connection.is_catalogue)
 
     def test_plugin_get_catalogue_metadata(self):
         connection = self._get_connection()

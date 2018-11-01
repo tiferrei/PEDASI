@@ -1,4 +1,5 @@
 import json
+import typing
 
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -7,8 +8,8 @@ from django.urls import reverse
 import requests
 import requests.exceptions
 
-from datasources.connectors.base import AuthMethod, BaseDataConnector, ConnectorType, REQUEST_AUTH_FUNCTIONS
 from core.models import BaseAppDataModel, MAX_LENGTH_API_KEY, MAX_LENGTH_NAME, MAX_LENGTH_PATH
+from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_AUTH_FUNCTIONS
 
 
 class DataSource(BaseAppDataModel):
@@ -60,8 +61,8 @@ class DataSource(BaseAppDataModel):
         return super().save(**kwargs)
 
     @property
-    def is_catalogue(self):
-        return self.data_connector_class.TYPE == ConnectorType.CATALOGUE
+    def is_catalogue(self) -> bool:
+        return self.data_connector_class.is_catalogue
 
     @property
     def connector_string(self):
@@ -70,7 +71,7 @@ class DataSource(BaseAppDataModel):
         return self.url
 
     @property
-    def data_connector_class(self):
+    def data_connector_class(self) -> typing.Type[BaseDataConnector]:
         """
         Get the data connector class for this source.
 
@@ -118,11 +119,11 @@ class DataSource(BaseAppDataModel):
 
     @property
     def search_representation(self) -> str:
-        lines = []
-
-        lines.append(self.name)
-        lines.append(self.owner.get_full_name())
-        lines.append(self.description)
+        lines = [
+            self.name,
+            self.owner.get_full_name(),
+            self.description,
+        ]
 
         try:
             lines.append(json.dumps(

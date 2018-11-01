@@ -29,6 +29,13 @@ class AuthMethod(enum.Enum):
 
 
 class HttpHeaderAuth(requests.auth.HTTPBasicAuth):
+    """
+    Requests Auth provider.
+
+    The same as HttpBasicAuth - but don't convert to base64
+
+    Used for e.g. Cisco HyperCat API
+    """
     def __call__(self, r):
         r.headers['Authorization'] = self.username
         return r
@@ -42,12 +49,6 @@ REQUEST_AUTH_FUNCTIONS = OrderedDict([
 ])
 
 
-@enum.unique
-class ConnectorType(enum.Enum):
-    CATALOGUE = 1
-    DATASET = 2
-
-
 class BaseDataConnector(metaclass=plugin.Plugin):
     """
     Base class of data connectors which provide access to data / metadata via an external API.
@@ -57,7 +58,8 @@ class BaseDataConnector(metaclass=plugin.Plugin):
     * A single dataset
     * A data catalogue - a collection of datasets
     """
-    TYPE = None
+    #: Does this data connector represent a data catalogue containing multiple datasets?
+    is_catalogue = None
 
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
@@ -102,7 +104,8 @@ class DataCatalogueConnector(BaseDataConnector, collections_abc.Mapping):
     """
     Base class of data connectors which provide access to a data catalogue.
     """
-    TYPE = ConnectorType.CATALOGUE
+    #: Does this data connector represent a data catalogue containing multiple datasets?
+    is_catalogue = True
 
     def get_data(self,
                  params: typing.Optional[typing.Mapping[str, str]] = None):
@@ -135,7 +138,8 @@ class DataSetConnector(BaseDataConnector):
     If you wish to connect to a source that provides metadata itself, you must create a new
     connector class which inherits from this one.
     """
-    TYPE = ConnectorType.DATASET
+    #: Does this data connector represent a data catalogue containing multiple datasets?
+    is_catalogue = False
 
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
