@@ -19,14 +19,6 @@ class CsvConnector(DataSetConnector):
     """
     Data connector for retrieving data from CSV files.
     """
-    def get_metadata(self,
-                     params: typing.Optional[typing.Mapping[str, str]] = None):
-        raise NotImplementedError('CSV does not provide metadata')
-
-    def get_data(self,
-                 params: typing.Optional[typing.Mapping[str, str]] = None):
-        raise NotImplementedError('CSV does not provide metadata')
-
     def get_response(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
         """

@@ -29,7 +29,7 @@ class Plugin(abc.ABCMeta):
         else:
             cls._plugins[name] = cls
 
-    def get_plugin(cls, class_name: str) -> type:
+    def get_plugin(cls, class_name: str) -> typing.Type:
         """
         Get a plugin class by name.
 

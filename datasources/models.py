@@ -5,9 +5,11 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db import models
 from django.urls import reverse
+import requests
+import requests.exceptions
 
-from datasources.connectors.base import BaseDataConnector
 from core.models import BaseAppDataModel, MAX_LENGTH_API_KEY, MAX_LENGTH_NAME, MAX_LENGTH_PATH
+from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_AUTH_FUNCTIONS
 
 
 class DataSource(BaseAppDataModel):
@@ -42,15 +44,51 @@ class DataSource(BaseAppDataModel):
     api_key = models.CharField(max_length=MAX_LENGTH_API_KEY,
                                blank=True, null=False)
 
+    #: Which authentication method to use - defined in datasources.connectors.base.AuthMethod enum
+    auth_method = models.IntegerField(choices=AuthMethod.choices(),
+                                      default=AuthMethod.UNKNOWN.value,
+                                      editable=False, blank=False, null=False)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data_connector = None
+
+    def save(self, **kwargs):
+        # Find out which auth method to use
+        if not self.auth_method:
+            self.auth_method = self._determine_auth().value
+
+        return super().save(**kwargs)
+
+    @property
+    def is_catalogue(self) -> bool:
+        return self.data_connector_class.is_catalogue
 
     @property
     def connector_string(self):
         if self._connector_string:
             return self._connector_string
         return self.url
+
+    @property
+    def data_connector_class(self) -> typing.Type[BaseDataConnector]:
+        """
+        Get the data connector class for this source.
+
+        :return: Data connector class
+        """
+        BaseDataConnector.load_plugins('datasources/connectors')
+
+        try:
+            plugin = BaseDataConnector.get_plugin(self.plugin_name)
+
+        except KeyError as e:
+            if not self.plugin_name:
+                raise ValueError('Data source plugin is not set') from e
+
+            raise KeyError('Data source plugin not found') from e
+
+        return plugin
 
     @property
     def data_connector(self) -> BaseDataConnector:
@@ -60,31 +98,32 @@ class DataSource(BaseAppDataModel):
         :return: Data connector instance
         """
         if self._data_connector is None:
-            BaseDataConnector.load_plugins('datasources/connectors')
+            plugin = self.data_connector_class
 
-            try:
-                plugin = BaseDataConnector.get_plugin(self.plugin_name)
+            # Is the authentication method set?
+            auth_method = AuthMethod(self.auth_method)
+            if not auth_method:
+                auth_method = self._determine_auth()
 
-            except KeyError as e:
-                if not self.plugin_name:
-                    raise ValueError('Data source plugin is not set') from e
-
-                raise KeyError('Data source plugin not found') from e
+            # Inject function to get authenticated request
+            auth_class = REQUEST_AUTH_FUNCTIONS[auth_method]
 
             if self.api_key:
-                self._data_connector = plugin(self.connector_string, self.api_key)
+                self._data_connector = plugin(self.connector_string, self.api_key,
+                                              auth=auth_class)
             else:
-                self._data_connector = plugin(self.connector_string)
+                self._data_connector = plugin(self.connector_string,
+                                              auth=auth_class)
 
         return self._data_connector
 
     @property
-    def search_representation(self) -> typing.List[str]:
-        lines = []
-
-        lines.append(self.name)
-        lines.append(self.owner.get_full_name())
-        lines.append(self.description)
+    def search_representation(self) -> str:
+        lines = [
+            self.name,
+            self.owner.get_full_name(),
+            self.description,
+        ]
 
         try:
             lines.append(json.dumps(
@@ -99,6 +138,23 @@ class DataSource(BaseAppDataModel):
 
         result = '\n'.join(lines)
         return result
+
+    def _determine_auth(self) -> AuthMethod:
+        # If not using an API key - can't require auth
+        if not self.api_key:
+            return AuthMethod.NONE
+
+        for auth_method_id, auth_function in REQUEST_AUTH_FUNCTIONS.items():
+            try:
+                # Can we get a response using this auth method?
+                response = requests.get(self.url,
+                                        auth=auth_function(self.api_key, ''))
+
+                response.raise_for_status()
+                return auth_method_id
+
+            except (TypeError, requests.exceptions.HTTPError):
+                pass
 
     def get_absolute_url(self):
         return reverse('datasources:datasource.detail',
