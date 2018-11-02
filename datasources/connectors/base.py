@@ -144,7 +144,7 @@ class DataSetConnector(BaseDataConnector):
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
                  auth: typing.Optional[typing.Callable] = None,
-                 metadata: typing.Optional[typing.Mapping] = None):
+                 metadata: typing.Optional = None):
         super().__init__(location, api_key, auth=auth)
 
         self._metadata = metadata

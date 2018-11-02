@@ -42,10 +42,11 @@ class DataSourceDataSetSearchView(DetailView):
     def get(self, request, *args, **kwargs):
         try:
             return super().get(request, *args, **kwargs)
-        except requests.exceptions.HTTPError:
+        except requests.exceptions.HTTPError as e:
             return HttpResponse(
                 'API call failed',
-                status=424
+                # Pass status code through unless it was 200 OK
+                status=424 if e.response.status_code == 200 else e.response.status_code
             )
 
     def get_context_data(self, **kwargs):
@@ -53,11 +54,19 @@ class DataSourceDataSetSearchView(DetailView):
 
         connector = self.object.data_connector
         try:
-            context['datasets'] = connector.items(
+            datasets = list(connector.items(
                 params={
                     'prefix-val': self.request.GET.get('q')
                 }
-            )
+            ))
+            context['datasets'] = datasets
+
+            # Check the metadata format of the first dataset
+            # TODO will all metadata formats be the same
+            if isinstance(datasets[0][1].get_metadata(), list):
+                context['metadata_type'] = 'list'
+            else:
+                context['metadata_type'] = 'dict'
 
         except AttributeError:
             # DataSource is not a catalogue

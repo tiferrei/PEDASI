@@ -15,12 +15,21 @@
                             </thead>
 
                             <tbody>
-                            {% for meta in dataset.get_metadata %}
-                                <tr>
-                                    <td>{{ meta.rel }}</td>
-                                    <td>{{ meta.val }}</td>
-                                </tr>
-                            {% endfor %}
+                            {% if metadata_type == 'list' %}
+                                {% for meta in dataset.get_metadata %}
+                                    <tr>
+                                        <td>{{ meta.rel }}</td>
+                                        <td>{{ meta.val }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                {% for k, v in dataset.get_metadata.items %}
+                                    <tr>
+                                        <td>{{ k }}</td>
+                                        <td>{{ v }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
                             </tbody>
                         </table>
                     </div>

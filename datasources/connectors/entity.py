@@ -24,9 +24,7 @@ class CiscoEntityConnector(DataCatalogueConnector):
         }
 
         # Use cached response if we have one
-        response = self._response
-        if response is None:
-            response = self._get_response(params=params)
+        response = self._get_response(params=params)
 
         dataset_item = self._get_item_by_key_value(
             response,
@@ -43,6 +41,27 @@ class CiscoEntityConnector(DataCatalogueConnector):
                           auth=self.auth,
                           metadata=dataset_item)
 
+    def items(self,
+              params=None) -> typing.ItemsView:
+        """
+        Get key-value pairs of dataset ID to dataset connector for datasets contained within this catalogue.
+
+        :param params: Query parameters to be passed through to the data source API
+        :return: Dictionary ItemsView over datasets
+        """
+        # Use cached response if we have one
+        response = self._get_response(params)
+
+        d = {
+            item['uri']: self.dataset_connector_class(item['uri'], self.api_key,
+                                                      auth=self.auth,
+                                                      metadata=item)
+            # Response JSON is a list of entities
+            for item in response
+        }
+
+        return d.items()
+
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
         if self._metadata is None:
@@ -53,9 +72,7 @@ class CiscoEntityConnector(DataCatalogueConnector):
     def get_datasets(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.List[str]:
         # Use cached response if we have one
-        response = self._response
-        if response is None:
-            response = self._get_response(params=params)
+        response = self._get_response(params=params)
 
         datasets = []
         if len(response) == 1 and 'timeseries' in response[0]:
@@ -82,9 +99,15 @@ class CiscoEntityConnector(DataCatalogueConnector):
 
         return matches[0]
 
-    def _get_response(self, params: typing.Optional[typing.Mapping[str, str]] = None):
-        response = self._get_auth_request(self.location,
-                                          params=params)
+    def _get_response(self, params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.Mapping:
+        # Use cached response if we have one
+        # TODO should we use cached responses?
+        if self._response is not None and params is None:
+            # Ignore params - they only filter - we already have everything
+            response = self._response
+        else:
+            response = self._get_auth_request(self.location,
+                                              params=params)
         response.raise_for_status()
         return response.json()
 
