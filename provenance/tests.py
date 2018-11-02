@@ -1,9 +1,14 @@
+"""
+Tests for PROV tracking functionality and the models required to support it.
+"""
+
 import json
 import pathlib
 import unittest
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 import jsonschema
@@ -15,11 +20,15 @@ from provenance import models
 
 
 # Create connection to test DB
-db = mongoengine.connect('test_prov')
-db.drop_database('test_prov')
+test_db = mongoengine.connect('test_prov')
+test_db.drop_database('test_prov')
 
 
 class ProvEntryTest(TestCase):
+    """
+    Test the :class:`ProvEntry` model in isolation.
+    """
+
     @classmethod
     def setUpTestData(cls):
         cls.user_model = get_user_model()
@@ -35,9 +44,11 @@ class ProvEntryTest(TestCase):
 
     def tearDown(self):
         # Have to delete instance manually since we're not using Django's database manager
+        datasource_type = ContentType.objects.get_for_model(DataSource)
+
         models.ProvWrapper.objects(
-            Q(app_label=self.datasource._meta.app_label) &
-            Q(model_name=self.datasource._meta.model_name) &
+            Q(app_label=datasource_type.app_label) &
+            Q(model_name=datasource_type.model) &
             Q(related_pk=self.datasource.pk)
         ).delete()
 
@@ -45,21 +56,23 @@ class ProvEntryTest(TestCase):
         """
         Test the creation of a :class:`ProvEntry` in isolation.
         """
-        self.entry = models.ProvEntry.create_prov(self.datasource,
-                                                  self.user.get_uri())
+        entry = models.ProvEntry.create_prov(self.datasource,
+                                             self.user.get_uri())
 
-        self.assertIsNotNone(self.entry)
+        self.assertIsNotNone(entry)
 
+    # TODO test content of PROV document - not just compliance to spec
     def test_prov_schema(self):
         """
         Validate :class:`ProvEntry` against PROV-JSON schema.
         """
-        self.entry = models.ProvEntry.create_prov(self.datasource,
-                                                  self.user.get_uri())
-        entry_json = json.loads(self.entry.to_json())
+        entry = models.ProvEntry.create_prov(self.datasource,
+                                             self.user.get_uri())
+        entry_json = json.loads(entry.to_json())
 
-        with open(pathlib.Path(settings.BASE_DIR).joinpath('provenance', 'data', 'prov-json.schema.json')) as fp:
-            schema = json.loads(fp.read())
+        schema_path = pathlib.Path(settings.BASE_DIR).joinpath('provenance', 'data', 'prov-json.schema.json')
+        with open(schema_path) as schema_file:
+            schema = json.load(schema_file)
 
         validator = jsonschema.Draft4Validator(schema)
 
@@ -72,6 +85,10 @@ class ProvEntryTest(TestCase):
 
 
 class ProvWrapperTest(TestCase):
+    """
+    Test the wrapper that allows us to look up :class:`ProvEntry`s for a given object.
+    """
+
     @classmethod
     def setUpTestData(cls):
         cls.user_model = get_user_model()
@@ -87,9 +104,11 @@ class ProvWrapperTest(TestCase):
 
     def tearDown(self):
         # Have to delete instance manually since we're not using Django's database manager
+        datasource_type = ContentType.objects.get_for_model(DataSource)
+
         models.ProvWrapper.objects(
-                Q(app_label=self.datasource._meta.app_label) &
-                Q(model_name=self.datasource._meta.model_name) &
+                Q(app_label=datasource_type.app_label) &
+                Q(model_name=datasource_type.model) &
                 Q(related_pk=self.datasource.pk)
         ).delete()
 

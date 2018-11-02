@@ -1,9 +1,18 @@
+"""
+This module provides models required for the creation, storage and manipulation of PROV documents.
+
+These PROV documents describe actions made by users and applications, allowing usage patterns to be tracked.
+
+For details on PROV see https://www.w3.org/TR/2013/NOTE-prov-overview-20130430/
+"""
+
 import enum
 import json
 import typing
 import uuid
 
 from django import apps
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import signals
 from django.dispatch import receiver
 from django.utils import timezone
@@ -21,17 +30,26 @@ MAX_LENGTH_NAME_FIELD = 100
 
 
 class PedasiDummyApplication:
+    """
+    Dummy application model to fall back to when an action was performed via the PEDASI web interface.
+    """
     name = 'PEDASI'
     pk = 'pedasi'  # We convert pk to string anyway - so this is fine
 
     @staticmethod
     def get_absolute_url():
+        """
+        Return the URL at which PEDASI is hosted.
+        """
         # TODO don't hardcode URL
         return 'http://www.pedasi-iot.org/'
 
 
 @enum.unique
 class ProvActivity(enum.Enum):
+    """
+    Enum representing the types of activity to be tracked by PROV.
+    """
     UPDATE = 'piot:update'
     ACCESS = 'piot:access'
 
@@ -50,6 +68,17 @@ class ProvEntry(mongoengine.DynamicDocument):
                     user_uri: str,
                     application: typing.Optional[Application] = None,
                     activity_type: typing.Optional[ProvActivity] = ProvActivity.UPDATE) -> 'ProvEntry':
+        """
+        Build a PROV document representing a particular activity within PEDASI.
+
+        :param instance: Application or DataSource which is the object of the activity
+        :param user_uri: URI of user who performed the activity
+        :param application: Application which the user used to perform the activity
+        :param activity_type: Type of the activity - from :class:`ProvActivity`
+        :return: PROV document in PROV-JSON form
+        """
+        instance_type = ContentType.objects.get_for_model(instance)
+
         document = prov.model.ProvDocument(namespaces={
             'piot': 'http://www.pedasi-iot.org/',
             'foaf': 'http://xmlns.com/foaf/0.1/',
@@ -58,9 +87,9 @@ class ProvEntry(mongoengine.DynamicDocument):
 
         entity = document.entity(
             # TODO unique identifier for instance
-            'piot:e-' + slugify(instance._meta.model_name[0]) + str(instance.pk),
+            'piot:e-' + slugify(instance_type.model) + str(instance.pk),
             other_attributes={
-                prov.model.PROV_TYPE: 'piot:' + slugify(instance._meta.model_name),
+                prov.model.PROV_TYPE: 'piot:' + slugify(instance_type.model),
                 'xsd:anyURI': instance.get_absolute_url(),
             }
         )
@@ -109,7 +138,19 @@ class ProvEntry(mongoengine.DynamicDocument):
         return cls.deserialize(content=document.serialize())
 
     @classmethod
-    def deserialize(cls, source=None, content=None, format='json', **kwargs):
+    def deserialize(cls, source=None, content: str = None, format: str = 'json', **kwargs):
+        """
+        Create an instance of :class:`ProvEntry` from another instance or a string document.
+
+        Used to create a :class:`ProvEntry` from a serialized PROV document.
+
+        Provide one of 'source' or 'content'.
+
+        :param source: Source from which to copy object
+        :param content: Text from which to create object
+        :param format: Format of text - e.g. JSON
+        :return: New instance of :class:`ProvEntry`
+        """
         if source is None and content is not None and format == 'json':
             json_string = content
 
@@ -163,10 +204,12 @@ class ProvWrapper(mongoengine.Document):
         :param instance: Model instance for which to get all :class:`ProvEntry`s
         :return: List of :class:`ProvEntry`s
         """
+        instance_type = ContentType.objects.get_for_model(instance)
+
         # TODO return a queryset rather than a generator
         for wrapper in ProvWrapper.objects(
-            Q(app_label=instance._meta.app_label) &
-            Q(model_name=instance._meta.model_name) &
+            Q(app_label=instance_type.app_label) &
+            Q(model_name=instance_type.model) &
             Q(related_pk=instance.pk)
         ):
             yield wrapper.entry
@@ -189,9 +232,11 @@ class ProvWrapper(mongoengine.Document):
                                            activity_type=activity_type)
         prov_entry.save()
 
+        instance_type = ContentType.objects.get_for_model(instance)
+
         wrapper = cls(
-            app_label=instance._meta.app_label,
-            model_name=instance._meta.model_name,
+            app_label=instance_type.app_label,
+            model_name=instance_type.model,
             related_pk=instance.pk,
             entry=prov_entry
         )
