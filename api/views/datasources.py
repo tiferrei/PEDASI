@@ -56,13 +56,14 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
             data_connector = data_connector[dataset]
 
         # Record this action in PROV
+        # TODO should PROV distinguish between data and metadata accesses?
         try:
             # Is the user actually a proxy for an application?
             application = self.request.user.application_proxy
 
             prov_models.ProvWrapper.create_prov(
                 instance,
-                self.request.user,
+                self.request.user.get_uri(),
                 application=application,
                 activity_type=prov_models.ProvActivity.ACCESS
             )
@@ -70,7 +71,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         except ObjectDoesNotExist:
             prov_models.ProvWrapper.create_prov(
                 instance,
-                self.request.user,
+                self.request.user.get_uri(),
                 activity_type=prov_models.ProvActivity.ACCESS
             )
 
