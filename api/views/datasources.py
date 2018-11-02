@@ -1,6 +1,7 @@
 import json
 import typing
 
+from django.db.models import ObjectDoesNotExist
 from django.http import HttpResponse
 from rest_framework import decorators, response, viewsets
 
@@ -53,6 +54,26 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
         if dataset is not None:
             data_connector = data_connector[dataset]
+
+        # Record this action in PROV
+        # TODO should PROV distinguish between data and metadata accesses?
+        try:
+            # Is the user actually a proxy for an application?
+            application = self.request.user.application_proxy
+
+            prov_models.ProvWrapper.create_prov(
+                instance,
+                self.request.user.get_uri(),
+                application=application,
+                activity_type=prov_models.ProvActivity.ACCESS
+            )
+
+        except ObjectDoesNotExist:
+            prov_models.ProvWrapper.create_prov(
+                instance,
+                self.request.user.get_uri(),
+                activity_type=prov_models.ProvActivity.ACCESS
+            )
 
         try:
             return map_response(data_connector, params)
