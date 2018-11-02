@@ -42,21 +42,21 @@
         </tbody>
     </table>
 
-    <div class="row">
+    <div class="row justify-content-sm-center">
         {% if application.access_control %}
-            <div class="col">
+            <div class="col-md-2 col-sm-4">
                 <a href="{% url 'applications:application.manage-access' pk=application.pk %}"
                    class="btn btn-block col btn-primary" role="button">Manage Access</a>
             </div>
         {% endif %}
 
         {% if has_edit_permission %}
-            <div class="col">
+            <div class="col-md-2 col-sm-4">
                 <a href="{% url 'admin:applications_application_change' application.id %}"
                    class="btn btn-block btn-success" role="button">Edit</a>
             </div>
 
-            <div class="col">
+            <div class="col-md-2 col-sm-4">
                 <a href="{% url 'admin:applications_application_delete' application.id %}"
                    class="btn btn-block col btn-danger" role="button">Delete</a>
             </div>
