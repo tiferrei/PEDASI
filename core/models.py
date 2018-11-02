@@ -1,3 +1,7 @@
+"""
+This module contains models for functionality common to both Application and DataSource models.
+"""
+
 import abc
 
 from django.conf import settings
@@ -14,6 +18,11 @@ MAX_LENGTH_PATH = 255
 
 
 class BaseAppDataModel(models.Model):
+    """
+    The parent class of the Application and DataSource models - providing common functionality.
+
+    This class is an abstract model and will not create a corresponding DB table.
+    """
     #: Friendly name of this application
     name = models.CharField(max_length=MAX_LENGTH_NAME,
                             blank=False, null=False)
@@ -97,6 +106,11 @@ class BaseAppDataModel(models.Model):
 
     @abc.abstractmethod
     def get_absolute_url(self):
+        """
+        Return URL at which this object may be viewed.
+
+        Method must be implemented by inheriting classes.
+        """
         raise NotImplementedError
 
     def __str__(self):

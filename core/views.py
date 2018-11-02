@@ -1,3 +1,7 @@
+"""
+This module contains views for behaviour common to both Application and DataSource models.
+"""
+
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.views.generic.detail import DetailView

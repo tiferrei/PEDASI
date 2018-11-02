@@ -1,3 +1,7 @@
+"""
+This module contains functionality for configurable plugins.
+"""
+
 import abc
 import importlib
 import typing
@@ -55,5 +59,3 @@ class Plugin(abc.ABCMeta):
             # When importing a module the class definitions are executed
             # This causes a call to the metaclass __init__ method which registers the plugin
             importlib.import_module(str(plugin_dir).replace('/', '.') + '.' + module_name)
-
-
