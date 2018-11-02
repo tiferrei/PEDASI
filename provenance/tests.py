@@ -20,8 +20,8 @@ from provenance import models
 
 
 # Create connection to test DB
-test_db = mongoengine.connect('test_prov')
-test_db.drop_database('test_prov')
+TEST_DB = mongoengine.connect('test_prov')
+TEST_DB.drop_database('test_prov')
 
 
 class ProvEntryTest(TestCase):
@@ -107,15 +107,15 @@ class ProvWrapperTest(TestCase):
         datasource_type = ContentType.objects.get_for_model(DataSource)
 
         models.ProvWrapper.objects(
-                Q(app_label=datasource_type.app_label) &
-                Q(model_name=datasource_type.model) &
-                Q(related_pk=self.datasource.pk)
+            Q(app_label=datasource_type.app_label) &
+            Q(model_name=datasource_type.model) &
+            Q(related_pk=self.datasource.pk)
         ).delete()
 
     @staticmethod
     def _count_prov(datasource: DataSource) -> int:
         prov_entries = models.ProvWrapper.filter_model_instance(datasource)
-        return len(list(prov_entries))
+        return prov_entries.count()
 
     def test_prov_datasource_create(self):
         """
@@ -163,5 +163,4 @@ class ProvWrapperTest(TestCase):
         new_prov_entries = models.ProvWrapper.filter_model_instance(new_datasource)
 
         intersection = set(prov_entries).intersection(new_prov_entries)
-
-        self.assertEqual(len(intersection), 0)
+        self.assertFalse(intersection)

@@ -13,7 +13,7 @@ import uuid
 
 from django import apps
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import signals
+from django.db.models import QuerySet, signals
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
@@ -197,7 +197,7 @@ class ProvWrapper(mongoengine.Document):
         return model.objects.get(pk=self.related_pk)
 
     @classmethod
-    def filter_model_instance(cls, instance: BaseAppDataModel) -> typing.Generator[ProvEntry, None, None]:
+    def filter_model_instance(cls, instance: BaseAppDataModel) -> QuerySet:
         """
         Get all :class:`ProvEntry` documents related to a particular Django model instance.
 
@@ -206,13 +206,11 @@ class ProvWrapper(mongoengine.Document):
         """
         instance_type = ContentType.objects.get_for_model(instance)
 
-        # TODO return a queryset rather than a generator
-        for wrapper in ProvWrapper.objects(
+        return ProvWrapper.objects(
             Q(app_label=instance_type.app_label) &
             Q(model_name=instance_type.model) &
             Q(related_pk=instance.pk)
-        ):
-            yield wrapper.entry
+        ).values_list('entry')
 
     @classmethod
     def create_prov(cls,
