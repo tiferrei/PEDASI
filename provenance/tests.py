@@ -23,7 +23,7 @@ class ProvEntryTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user_model = get_user_model()
-        cls.user = cls.user_model.objects.create_user('test')
+        cls.user = cls.user_model.objects.create_user('Test Prov User')
 
     def setUp(self):
         self.datasource = DataSource.objects.create(
@@ -45,7 +45,8 @@ class ProvEntryTest(TestCase):
         """
         Test the creation of a :class:`ProvEntry` in isolation.
         """
-        self.entry = models.ProvEntry.create_prov(self.datasource, self.user)
+        self.entry = models.ProvEntry.create_prov(self.datasource,
+                                                  self.user.get_uri())
 
         self.assertIsNotNone(self.entry)
 
@@ -53,7 +54,8 @@ class ProvEntryTest(TestCase):
         """
         Validate :class:`ProvEntry` against PROV-JSON schema.
         """
-        self.entry = models.ProvEntry.create_prov(self.datasource, self.user)
+        self.entry = models.ProvEntry.create_prov(self.datasource,
+                                                  self.user.get_uri())
         entry_json = json.loads(self.entry.to_json())
 
         with open(pathlib.Path(settings.BASE_DIR).joinpath('provenance', 'data', 'prov-json.schema.json')) as fp:
@@ -73,7 +75,7 @@ class ProvWrapperTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user_model = get_user_model()
-        cls.user = cls.user_model.objects.create_user('test')
+        cls.user = cls.user_model.objects.create_user('Test Prov User')
 
     def setUp(self):
         self.datasource = DataSource.objects.create(
