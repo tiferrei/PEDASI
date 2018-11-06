@@ -1,3 +1,4 @@
+import enum
 import json
 import typing
 
@@ -10,6 +11,54 @@ import requests.exceptions
 
 from core.models import BaseAppDataModel, MAX_LENGTH_API_KEY, MAX_LENGTH_NAME, MAX_LENGTH_PATH
 from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_AUTH_FUNCTIONS
+
+
+@enum.unique
+class UserPermissionLevels(enum.IntEnum):
+    """
+    User permission levels on data sources.
+    """
+    #: No permissions
+    NONE = 0
+
+    #: Permission to view in PEDASI UI
+    VIEW = 1
+
+    #: Permission to query metadata via API / UI
+    META = 2
+
+    #: Permission to query data via API / UI
+    DATA = 3
+
+    #: Permission to query PROV via API / UI
+    PROV = 4
+
+    @classmethod
+    def choices(cls):
+        return tuple((i.name, i.value) for i in cls)
+
+
+class UserPermissionLink(models.Model):
+    """
+    Model to act as a many to many joining table to handle user permission levels for access to data sources.
+    """
+    #: User being managed
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE)
+
+    #: Data source on which the permissions are being granted
+    datasource = models.ForeignKey('DataSource',
+                                   on_delete=models.CASCADE)
+
+    #: Granted permission level
+    granted = models.IntegerField(choices=UserPermissionLevels.choices(),
+                                  default=UserPermissionLevels.NONE,
+                                  blank=False, null=False)
+
+    #: Requested permission level
+    requested = models.IntegerField(choices=UserPermissionLevels.choices(),
+                                    default=UserPermissionLevels.NONE,
+                                    blank=False, null=False)
 
 
 class DataSource(BaseAppDataModel):
@@ -44,10 +93,14 @@ class DataSource(BaseAppDataModel):
     api_key = models.CharField(max_length=MAX_LENGTH_API_KEY,
                                blank=True, null=False)
 
-    #: Which authentication method to use - defined in datasources.connectors.base.AuthMethod enum
+    #: Which authentication method to use - defined in :class:`datasources.connectors.base.AuthMethod` enum
     auth_method = models.IntegerField(choices=AuthMethod.choices(),
                                       default=AuthMethod.UNKNOWN.value,
                                       editable=False, blank=False, null=False)
+
+    #: Users - linked via a permission table - see :class:`UserPermissionLink`
+    users = models.ManyToManyField(settings.AUTH_USER_MODEL,
+                                   through=UserPermissionLink)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
