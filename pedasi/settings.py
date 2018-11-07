@@ -54,10 +54,16 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = [
-    'localhost',
-    'pedasi-dev.eastus.cloudapp.azure.com',
-]
+if DEBUG:
+    ALLOWED_HOSTS = [
+        '*',
+    ]
+
+else:
+    ALLOWED_HOSTS = [
+        'localhost',
+        'pedasi-dev.eastus.cloudapp.azure.com',
+    ]
 
 
 # Application definition
