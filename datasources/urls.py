@@ -13,13 +13,19 @@ urlpatterns = [
          views.DataSourceDetailView.as_view(),
          name='datasource.detail'),
 
-    path('<int:pk>/manage-access',
-         views.DataSourceManageAccessView.as_view(),
-         name='datasource.manage-access'),
+    path('<int:pk>/access',
+         views.DataSourceAccessManageView.as_view(),
+         name='datasource.access.manage'),
 
-    path('<int:pk>/users/<int:user_pk>',
-         views.DataSourceRequestAccessView.as_view(),
-         name='datasource.manage-access.user'),
+    # Requires level to be provided as kwargs
+    path('<int:pk>/access/request',
+         views.DataSourceAccessRequestView.as_view(),
+         name='datasource.access.request'),
+
+    # Requires user and level to be provided as kwargs
+    path('<int:pk>/access/grant',
+         views.DataSourceAccessGrantView.as_view(),
+         name='datasource.access.grant'),
 
     path('<int:pk>/query',
          views.DataSourceQueryView.as_view(),

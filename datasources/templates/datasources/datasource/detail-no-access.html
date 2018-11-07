@@ -39,7 +39,7 @@
             <script type="application/javascript">
                 function requestAccess(){
                     $.ajax({
-                        url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',
+                        url: '{% url 'datasources:datasource.access.request' pk=datasource.pk %}',
                         headers: {
                             'X-CSRFToken': Cookies.get('csrftoken')
                         },

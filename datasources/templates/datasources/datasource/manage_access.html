@@ -47,18 +47,12 @@
                 <tr id="requested-user-{{ permission.user.pk }}">
                     <td>{{ permission.user.username }}</td>
                     <td>
-                        <button onclick="userGrantAccess(
-                                            '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=permission.user.pk %}',
-                                            {{ permission.user.pk }}
-                                )"
+                        <button onclick="userGrantAccess({{ permission.user.pk }})"
                                 class="btn btn-success"
                                 role="button">Approve</button>
                     </td>
                     <td>
-                        <button onclick="userRemoveAccess(
-                                    '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=permission.user.pk %}',
-                                    {{ permission.user.pk }}
-                                )"
+                        <button onclick="userRemoveAccess({{ permission.user.pk }})"
                                 class="btn btn-danger"
                                 role="button">Reject</button>
                     </td>
@@ -88,10 +82,7 @@
                 <td>{{ permission.user.username }}</td>
                 <td></td>
                 <td>
-                    <button onclick="userRemoveAccess(
-                                '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=permission.user.pk %}',
-                                {{ permission.user.pk }}
-                            )"
+                    <button onclick="userRemoveAccess({{ permission.user.pk }})"
                             class="btn btn-danger"
                             role="button">Remove</button>
                 </td>
@@ -103,10 +94,12 @@
     </table>
 
     <script type="application/javascript">
-        function userGrantAccess(url, userPk){
+        function userGrantAccess(userPk){
             $.ajax({
-                {#url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',#}
-                url: url,
+                url: '{% url 'datasources:datasource.access.grant' pk=datasource.pk %}',
+                data: {
+                    'user': userPk
+                },
                 headers: {
                     'X-CSRFToken': Cookies.get('csrftoken')
                 },
@@ -119,14 +112,17 @@
             })
         }
 
-        function userRemoveAccess(url, userPk){
+        function userRemoveAccess(userPk){
             $.ajax({
-                {#url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',#}
-                url: url,
+                url: '{% url 'datasources:datasource.access.grant' pk=datasource.pk %}',
+                data: {
+                    'user': userPk,
+                    'level': 0
+                },
                 headers: {
                     'X-CSRFToken': Cookies.get('csrftoken')
                 },
-                method: 'DELETE',
+                method: 'PUT',
                 success: function(result, status, xhr){
                     try {
                         document.getElementById('approved-user-' + userPk.toString()).remove();
@@ -135,9 +131,9 @@
                     try {
                         document.getElementById('requested-user-' + userPk.toString()).remove();
                     } catch (err) {}
-                }
 
-                // TODO if table is empty add 'table is empty' row
+                    // TODO if table is empty add 'table is empty' row
+                }
             })
         }
     </script>

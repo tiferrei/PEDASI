@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db.models import F
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse, QueryDict
 from django.views.generic import View
 from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.list import ListView
@@ -76,7 +76,7 @@ class DataSourceDataSetSearchView(DetailView):
         return context
 
 
-class DataSourceManageAccessView(OwnerPermissionRequiredMixin, DetailView):
+class DataSourceAccessManageView(OwnerPermissionRequiredMixin, DetailView):
     model = models.DataSource
     template_name = 'datasources/datasource/manage_access.html'
     context_object_name = 'datasource'
@@ -101,7 +101,7 @@ class DataSourceManageAccessView(OwnerPermissionRequiredMixin, DetailView):
         return context
 
 
-class DataSourceRequestAccessView(SingleObjectMixin, View):
+class DataSourceAccessGrantView(SingleObjectMixin, View):
     """
     Manage a user's access to a DataSource.
 
@@ -115,7 +115,7 @@ class DataSourceRequestAccessView(SingleObjectMixin, View):
             try:
                 permission = models.UserPermissionLink.objects.get(
                     user=user,
-                    datasource=self.object,
+                    datasource=self.get_object(),
                 )
                 permission.delete()
 
@@ -127,7 +127,7 @@ class DataSourceRequestAccessView(SingleObjectMixin, View):
         try:
             permission = models.UserPermissionLink.objects.get(
                 user=user,
-                datasource=self.object,
+                datasource=self.get_object(),
             )
 
             permission.granted = level
@@ -137,46 +137,12 @@ class DataSourceRequestAccessView(SingleObjectMixin, View):
         except models.UserPermissionLink.DoesNotExist:
             permission = models.UserPermissionLink.objects.create(
                 user=user,
-                datasource=self.object,
+                datasource=self.get_object(),
                 granted=level,
                 requested=level
             )
 
         return permission
-
-    def _request_permission(self, user, level=models.UserPermissionLevels.VIEW):
-        try:
-            permission = models.UserPermissionLink.objects.get(
-                user=user,
-                datasource=self.object
-            )
-
-            if permission.granted >= level:
-                return HttpResponseBadRequest(
-                    JsonResponse({
-                        'status': 'fail',
-                        'message': 'You already have access to this resource',
-                    })
-                )
-
-            if permission.requested >= level:
-                return HttpResponseBadRequest(
-                    JsonResponse({
-                        'status': 'fail',
-                        'message': 'You have already requested access to this resource',
-                    })
-                )
-
-            permission.requested = max(permission.requested, level)
-            permission.save()
-
-        except models.UserPermissionLink.DoesNotExist:
-            # If user is requesting for themselves, mark them as 'permission requested'
-            permission = models.UserPermissionLink.objects.create(
-                user=user,
-                datasource=self.object,
-                requested=level
-            )
 
     def put(self, request, *args, **kwargs):
         """
@@ -191,26 +157,27 @@ class DataSourceRequestAccessView(SingleObjectMixin, View):
         :param kwargs:
         :return:
         """
-        self.request = request
-        self.object = self.get_object()
+        data = QueryDict(request.body)
+        user = get_user_model().objects.get(pk=data['user'])
 
-        user = get_user_model().objects.get(pk=kwargs['user_pk'])
-        level = self.request.GET.get('level', models.UserPermissionLevels.VIEW)
-
-        if self.request.user == self.object.owner or self.request.user.is_superuser:
-            # If request is from DataSource owner or superuser, add user to access group
-            permission = self._set_permission(user, level=level)
-
-        elif self.request.user == user:
-            permission = self._request_permission(user, level=level)
-
-        else:
-            return HttpResponseForbidden(
-                JsonResponse({
-                    'status': 'fail',
-                    'message': 'You do not have permission to set access for this user',
-                })
+        try:
+            level = models.UserPermissionLevels(
+                int(data['level'])
             )
+
+        except KeyError:
+            level = models.UserPermissionLevels.VIEW
+
+        permission = self._set_permission(
+            user,
+            level=level
+        )
+
+        if permission is None:
+            return JsonResponse({
+                'status': 'success',
+                'data': None
+            })
 
         return JsonResponse({
             'status': 'success',
@@ -225,33 +192,91 @@ class DataSourceRequestAccessView(SingleObjectMixin, View):
             },
         })
 
-    def delete(self, request, *args, **kwargs):
-        self.request = request
-        self.object = self.get_object()
 
-        user = get_user_model().objects.get(pk=kwargs['user_pk'])
+class DataSourceAccessRequestView(SingleObjectMixin, View):
+    """
+    Manage a user's access to a DataSource.
 
-        if self.request.user == user or self.request.user == self.object.owner or self.request.user.is_superuser:
-            # Users can remove themselves, be removed by the DataSource owner, or by staff
+    Accepts PUT and DELETE requests to add a user to, or remove a user from the access group.
+    Request responses follow JSend specification (see http://labs.omniti.com/labs/jsend).
+    """
+    model = models.DataSource
+
+    def _request_permission(self, user, level):
+        if level == models.UserPermissionLevels.NONE:
+            try:
+                permission = models.UserPermissionLink.objects.get(
+                    user=user,
+                    datasource=self.get_object(),
+                )
+                permission.delete()
+
+            except models.UserPermissionLink.DoesNotExist:
+                pass
+
+            return None
+
+        try:
             permission = models.UserPermissionLink.objects.get(
                 user=user,
-                datasource=self.object
+                datasource=self.get_object()
             )
-            permission.delete()
 
-        else:
-            return HttpResponseForbidden(
-                JsonResponse({
-                    'status': 'fail',
-                    'message': 'You do not have permission to set access for this user',
-                })
+            permission.requested = level
+            permission.save()
+
+        except models.UserPermissionLink.DoesNotExist:
+            permission = models.UserPermissionLink.objects.create(
+                user=user,
+                datasource=self.get_object(),
+                requested=level
             )
+
+        return permission
+
+    def put(self, request, *args, **kwargs):
+        """
+        Add a user to the access group for a DataSource.
+
+        If the request is performed by the DataSource owner or by staff: add them directly to the access group,
+        If the request is performed by the user themselves: add them to the 'access requested' group,
+        Else reject the request.
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        data = QueryDict(request.body)
+
+        try:
+            level = models.UserPermissionLevels(
+                int(data['level'])
+            )
+
+        except KeyError:
+            level = models.UserPermissionLevels.VIEW
+
+        permission = self._request_permission(
+            request.user,
+            level=level
+        )
+
+        if permission is None:
+            return JsonResponse({
+                'status': 'success',
+                'data': None
+            })
 
         return JsonResponse({
             'status': 'success',
             'data': {
-                'user': {
-                    'pk': user.pk
+                'permission': {
+                    'pk': permission.id,
+                    'user': permission.user_id,
+                    'datasource': permission.datasource_id,
+                    'granted': permission.granted,
+                    'requested': permission.requested,
                 },
             },
         })
