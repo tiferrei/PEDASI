@@ -113,6 +113,29 @@ class DataSource(BaseAppDataModel):
 
         return super().save(**kwargs)
 
+    def has_view_permission(self, user: settings.AUTH_USER_MODEL) -> bool:
+        """
+        Does a user have permission to view this data source in the PEDASI UI?
+
+        :param user: User to check
+        :return: User has permission?
+        """
+        if not self.access_control:
+            return True
+
+        if self.owner == user:
+            return True
+
+        try:
+            permission = UserPermissionLink.objects.get(
+                user=user,
+                datasource=self
+            )
+        except UserPermissionLink.DoesNotExist:
+            return False
+
+        return permission.granted >= UserPermissionLevels.VIEW
+
     @property
     def is_catalogue(self) -> bool:
         return self.data_connector_class.is_catalogue

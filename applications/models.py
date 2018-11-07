@@ -85,7 +85,7 @@ class Application(BaseAppDataModel):
 
     def has_view_permission(self, user: settings.AUTH_USER_MODEL) -> bool:
         """
-        Does a user have permission to use this data source?
+        Does a user have permission to use this application?
 
         :param user: User to check
         :return: User has permission?

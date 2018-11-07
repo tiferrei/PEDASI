@@ -43,21 +43,21 @@
         </thead>
 
         <tbody>
-            {% for user in datasource.users_group_requested.user_set.all %}
-                <tr id="requested-user-{{ user.pk }}">
-                    <td>{{ user.username }}</td>
+            {% for permission in permissions_requested.all %}
+                <tr id="requested-user-{{ permission.user.pk }}">
+                    <td>{{ permission.user.username }}</td>
                     <td>
                         <button onclick="userGrantAccess(
-                                            '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
-                                            {{ user.pk }}
+                                            '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=permission.user.pk %}',
+                                            {{ permission.user.pk }}
                                 )"
                                 class="btn btn-success"
                                 role="button">Approve</button>
                     </td>
                     <td>
                         <button onclick="userRemoveAccess(
-                                    '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
-                                    {{ user.pk }}
+                                    '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=permission.user.pk %}',
+                                    {{ permission.user.pk }}
                                 )"
                                 class="btn btn-danger"
                                 role="button">Reject</button>
@@ -83,14 +83,14 @@
         </thead>
 
         <tbody>
-        {% for user in datasource.users_group.user_set.all %}
-            <tr id="approved-user-{{ user.pk }}">
-                <td>{{ user.username }}</td>
+        {% for permission in permissions_granted %}
+            <tr id="approved-user-{{ permission.user.pk }}">
+                <td>{{ permission.user.username }}</td>
                 <td></td>
                 <td>
                     <button onclick="userRemoveAccess(
-                                '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
-                                {{ user.pk }}
+                                '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=permission.user.pk %}',
+                                {{ permission.user.pk }}
                             )"
                             class="btn btn-danger"
                             role="button">Remove</button>

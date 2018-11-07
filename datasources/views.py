@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import F
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.views.generic import View
 from django.views.generic.detail import DetailView, SingleObjectMixin
@@ -87,6 +88,16 @@ class DataSourceManageAccessView(OwnerPermissionRequiredMixin, DetailView):
 
         context['all_users'] = get_user_model().objects
 
+        context['permissions_requested'] = models.UserPermissionLink.objects.filter(
+            datasource=self.object,
+            requested__gt=F('granted')
+        )
+        context['permissions_granted'] = models.UserPermissionLink.objects.filter(
+            datasource=self.object,
+            requested__lte=F('granted'),
+            granted__gt=models.UserPermissionLevels.NONE
+        )
+
         return context
 
 
@@ -98,6 +109,74 @@ class DataSourceRequestAccessView(SingleObjectMixin, View):
     Request responses follow JSend specification (see http://labs.omniti.com/labs/jsend).
     """
     model = models.DataSource
+
+    def _set_permission(self, user, level=models.UserPermissionLevels.VIEW):
+        if level == models.UserPermissionLevels.NONE:
+            try:
+                permission = models.UserPermissionLink.objects.get(
+                    user=user,
+                    datasource=self.object,
+                )
+                permission.delete()
+
+            except models.UserPermissionLink.DoesNotExist:
+                pass
+
+            return None
+
+        try:
+            permission = models.UserPermissionLink.objects.get(
+                user=user,
+                datasource=self.object,
+            )
+
+            permission.granted = level
+            permission.requested = max(permission.requested, level)
+            permission.save()
+
+        except models.UserPermissionLink.DoesNotExist:
+            permission = models.UserPermissionLink.objects.create(
+                user=user,
+                datasource=self.object,
+                granted=level,
+                requested=level
+            )
+
+        return permission
+
+    def _request_permission(self, user, level=models.UserPermissionLevels.VIEW):
+        try:
+            permission = models.UserPermissionLink.objects.get(
+                user=user,
+                datasource=self.object
+            )
+
+            if permission.granted >= level:
+                return HttpResponseBadRequest(
+                    JsonResponse({
+                        'status': 'fail',
+                        'message': 'You already have access to this resource',
+                    })
+                )
+
+            if permission.requested >= level:
+                return HttpResponseBadRequest(
+                    JsonResponse({
+                        'status': 'fail',
+                        'message': 'You have already requested access to this resource',
+                    })
+                )
+
+            permission.requested = max(permission.requested, level)
+            permission.save()
+
+        except models.UserPermissionLink.DoesNotExist:
+            # If user is requesting for themselves, mark them as 'permission requested'
+            permission = models.UserPermissionLink.objects.create(
+                user=user,
+                datasource=self.object,
+                requested=level
+            )
 
     def put(self, request, *args, **kwargs):
         """
@@ -116,25 +195,14 @@ class DataSourceRequestAccessView(SingleObjectMixin, View):
         self.object = self.get_object()
 
         user = get_user_model().objects.get(pk=kwargs['user_pk'])
-        access_group = self.object.users_group
-        request_group = self.object.users_group_requested
+        level = self.request.GET.get('level', models.UserPermissionLevels.VIEW)
 
-        if self.request.user == self.object.owner or self.request.user.is_staff:
-            # If request is from DataSource owner or staff, add user to access group
-            access_group.user_set.add(user)
-            request_group.user_set.remove(user)
+        if self.request.user == self.object.owner or self.request.user.is_superuser:
+            # If request is from DataSource owner or superuser, add user to access group
+            permission = self._set_permission(user, level=level)
 
         elif self.request.user == user:
-            if access_group.user_set.filter(id=user.id).exists():
-                return HttpResponseBadRequest(
-                    JsonResponse({
-                        'status': 'fail',
-                        'message': 'You already have access to this resource',
-                    })
-                )
-
-            # If user is requesting for themselves, add them to 'access requested' group
-            request_group.user_set.add(user)
+            permission = self._request_permission(user, level=level)
 
         else:
             return HttpResponseForbidden(
@@ -147,8 +215,12 @@ class DataSourceRequestAccessView(SingleObjectMixin, View):
         return JsonResponse({
             'status': 'success',
             'data': {
-                'user': {
-                    'pk': user.pk
+                'permission': {
+                    'pk': permission.pk,
+                    'user': permission.user_id,
+                    'datasource': permission.datasource_id,
+                    'granted': permission.granted,
+                    'requested': permission.requested,
                 },
             },
         })
@@ -158,13 +230,14 @@ class DataSourceRequestAccessView(SingleObjectMixin, View):
         self.object = self.get_object()
 
         user = get_user_model().objects.get(pk=kwargs['user_pk'])
-        access_group = self.object.users_group
-        request_group = self.object.users_group_requested
 
-        if self.request.user == user or self.request.user == self.object.owner or self.request.user.is_staff:
+        if self.request.user == user or self.request.user == self.object.owner or self.request.user.is_superuser:
             # Users can remove themselves, be removed by the DataSource owner, or by staff
-            access_group.user_set.remove(user)
-            request_group.user_set.remove(user)
+            permission = models.UserPermissionLink.objects.get(
+                user=user,
+                datasource=self.object
+            )
+            permission.delete()
 
         else:
             return HttpResponseForbidden(
