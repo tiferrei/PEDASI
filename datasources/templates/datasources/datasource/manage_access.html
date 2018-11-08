@@ -37,6 +37,7 @@
         <thead class="thead">
             <tr>
                 <th>Username</th>
+                <th>Level</th>
                 <th></th>
                 <th></th>
             </tr>
@@ -45,7 +46,15 @@
         <tbody>
             {% for permission in permissions_requested.all %}
                 <tr id="requested-user-{{ permission.user.pk }}">
-                    <td>{{ permission.user.username }}</td>
+                    <td>
+                        <p>
+                            {{ permission.user.username }}
+                        </p>
+                        <div class="alert alert-secondary" role="note">
+                            {{ permission.reason }}
+                        </div>
+                    </td>
+                    <td>{{ permission.requested }}</td>
                     <td>
                         <button onclick="userGrantAccess({{ permission.user.pk }})"
                                 class="btn btn-success"
@@ -71,6 +80,7 @@
         <thead class="thead">
         <tr>
             <th>Username</th>
+            <th>Level</th>
             <th></th>
             <th></th>
         </tr>
@@ -80,7 +90,7 @@
         {% for permission in permissions_granted %}
             <tr id="approved-user-{{ permission.user.pk }}">
                 <td>{{ permission.user.username }}</td>
-                <td></td>
+                <td>{{ permission.granted }}</td>
                 <td>
                     <button onclick="userRemoveAccess({{ permission.user.pk }})"
                             class="btn btn-danger"

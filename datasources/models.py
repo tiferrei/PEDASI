@@ -12,6 +12,9 @@ import requests.exceptions
 from core.models import BaseAppDataModel, MAX_LENGTH_API_KEY, MAX_LENGTH_NAME, MAX_LENGTH_PATH
 from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_AUTH_FUNCTIONS
 
+#: Length of request reason field - must include brief description of project
+MAX_LENGTH_REASON = 511
+
 
 @enum.unique
 class UserPermissionLevels(enum.IntEnum):
@@ -35,7 +38,7 @@ class UserPermissionLevels(enum.IntEnum):
 
     @classmethod
     def choices(cls):
-        return tuple((i.name, i.value) for i in cls)
+        return tuple((i.value, i.name) for i in cls)
 
 
 class UserPermissionLink(models.Model):
@@ -59,6 +62,10 @@ class UserPermissionLink(models.Model):
     requested = models.IntegerField(choices=UserPermissionLevels.choices(),
                                     default=UserPermissionLevels.NONE,
                                     blank=False, null=False)
+
+    #: Reason the permission was requested
+    reason = models.CharField(max_length=MAX_LENGTH_REASON,
+                              blank=True, null=False)
 
 
 class DataSource(BaseAppDataModel):

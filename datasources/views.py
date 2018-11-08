@@ -1,14 +1,17 @@
 from django.contrib.auth import get_user_model
 from django.db.models import F
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse, QueryDict
+from django.http import HttpResponse, JsonResponse, QueryDict
+from django.shortcuts import reverse
 from django.views.generic import View
 from django.views.generic.detail import DetailView, SingleObjectMixin
+from django.views.generic.edit import UpdateView
 from django.views.generic.list import ListView
 
 import requests.exceptions
 
-from profiles.permissions import HasViewPermissionMixin, OwnerPermissionRequiredMixin
+from . import forms
 from datasources import models
+from profiles.permissions import HasViewPermissionMixin, OwnerPermissionRequiredMixin
 
 
 class DataSourceListView(ListView):
@@ -193,93 +196,36 @@ class DataSourceAccessGrantView(SingleObjectMixin, View):
         })
 
 
-class DataSourceAccessRequestView(SingleObjectMixin, View):
+class DataSourceAccessRequestView(UpdateView):
     """
     Manage a user's access to a DataSource.
 
     Accepts PUT and DELETE requests to add a user to, or remove a user from the access group.
     Request responses follow JSend specification (see http://labs.omniti.com/labs/jsend).
     """
-    model = models.DataSource
+    model = models.UserPermissionLink
+    form_class = forms.PermissionRequestForm
+    template_name = 'datasources/user_permission_link/form.html'
 
-    def _request_permission(self, user, level):
-        if level == models.UserPermissionLevels.NONE:
-            try:
-                permission = models.UserPermissionLink.objects.get(
-                    user=user,
-                    datasource=self.get_object(),
-                )
-                permission.delete()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
 
-            except models.UserPermissionLink.DoesNotExist:
-                pass
+        context['datasource'] = models.DataSource.objects.get(pk=self.kwargs['pk'])
 
-            return None
+        return context
 
-        try:
-            permission = models.UserPermissionLink.objects.get(
-                user=user,
-                datasource=self.get_object()
-            )
+    def get_object(self, queryset=None):
+        self.datasource = models.DataSource.objects.get(pk=self.kwargs['pk'])
 
-            permission.requested = level
-            permission.save()
-
-        except models.UserPermissionLink.DoesNotExist:
-            permission = models.UserPermissionLink.objects.create(
-                user=user,
-                datasource=self.get_object(),
-                requested=level
-            )
-
-        return permission
-
-    def put(self, request, *args, **kwargs):
-        """
-        Add a user to the access group for a DataSource.
-
-        If the request is performed by the DataSource owner or by staff: add them directly to the access group,
-        If the request is performed by the user themselves: add them to the 'access requested' group,
-        Else reject the request.
-
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        data = QueryDict(request.body)
-
-        try:
-            level = models.UserPermissionLevels(
-                int(data['level'])
-            )
-
-        except KeyError:
-            level = models.UserPermissionLevels.VIEW
-
-        permission = self._request_permission(
-            request.user,
-            level=level
+        obj, created = self.model.objects.get_or_create(
+            user=self.request.user,
+            datasource=self.datasource
         )
 
-        if permission is None:
-            return JsonResponse({
-                'status': 'success',
-                'data': None
-            })
+        return obj
 
-        return JsonResponse({
-            'status': 'success',
-            'data': {
-                'permission': {
-                    'pk': permission.id,
-                    'user': permission.user_id,
-                    'datasource': permission.datasource_id,
-                    'granted': permission.granted,
-                    'requested': permission.requested,
-                },
-            },
-        })
+    def get_success_url(self):
+        return reverse('datasources:datasource.detail', kwargs={'pk': self.datasource.pk})
 
 
 class DataSourceQueryView(HasViewPermissionMixin, DetailView):

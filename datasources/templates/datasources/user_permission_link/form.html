@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ datasource.name }}
+            </li>
+        </ol>
+    </nav>
+
+
+    <h2>{{ datasource.name }}</h2>
+
+    {% if datasource.description %}
+        {{ datasource.description|linebreaks }}
+    {% endif %}
+
+    <table class="table">
+        <thead>
+            <th scope="col" class="col-md-2 border-0"></th>
+            <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td>Owner</td>
+                <td>
+                    {{ datasource.owner }}
+                </td>
+            </tr>
+            <tr>
+                <td>URL</td>
+                <td>{{ datasource.url }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+
+        {% buttons %}
+            <input type="submit" class="btn btn-success" value="Request">
+             <button onclick="window.history.back();" class="btn btn-default" type="button">Cancel</button>
+        {% endbuttons %}
+    </form>
+
+{% endblock %}

@@ -33,25 +33,8 @@
             You must be logged in to request access.
 
         {% else %}
-            <button id="btn-request-access" onclick="requestAccess()"
-                    class="btn btn-primary" role="button">Request Access</button>
-
-            <script type="application/javascript">
-                function requestAccess(){
-                    $.ajax({
-                        url: '{% url 'datasources:datasource.access.request' pk=datasource.pk %}',
-                        headers: {
-                            'X-CSRFToken': Cookies.get('csrftoken')
-                        },
-                        method: 'PUT',
-                        success: function(result, status, xhr){
-                            const btn = document.getElementById('btn-request-access');
-                            btn.textContent = 'Access Requested';
-                            btn.disabled = true;
-                        }
-                    })
-                }
-            </script>
+            <a href="{% url 'datasources:datasource.access.request' pk=datasource.pk %}"
+               class="btn btn-primary" role="button">Request Access</a>
         {% endif %}
     </div>
 
