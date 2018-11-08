@@ -40,6 +40,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
     """
     queryset = models.DataSource.objects.all()
     serializer_class = serializers.DataSourceSerializer
+    permission_classes = [permissions.ViewPermission]
 
     def try_passthrough_response(self,
                                  map_response: typing.Callable[..., HttpResponse],
