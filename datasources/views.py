@@ -192,6 +192,20 @@ class DataSourceAccessRequestView(UpdateView):
 
         return obj
 
+    def form_valid(self, form):
+        """
+        Automatically grant requests which are either:
+            - Edited by owner / admin
+            - Requests for a reduction in permission level
+        """
+        if (
+                self.request.user == self.datasource.owner or self.request.user.is_superuser or
+                form.instance.granted > form.instance.requested
+        ):
+            form.instance.granted = form.instance.requested
+
+        return super().form_valid(form)
+
     def get_success_url(self):
         """
         Return to the data source or access management view depending on user class.
