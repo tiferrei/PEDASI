@@ -37,7 +37,9 @@
         <thead class="thead">
             <tr>
                 <th>Username</th>
-                <th>Level</th>
+                <th>Requested</th>
+                <th>Current</th>
+                <th></th>
                 <th></th>
                 <th></th>
             </tr>
@@ -54,11 +56,17 @@
                             {{ permission.reason }}
                         </div>
                     </td>
-                    <td>{{ permission.requested }}</td>
+                    <td>{{ permission.get_requested_display }}</td>
+                    <td>{{ permission.get_granted_display }}</td>
                     <td>
-                        <button onclick="userGrantAccess({{ permission.user.pk }})"
+                        <button onclick="userGrantAccess({{ permission.user.pk }}, {{ permission.requested }})"
                                 class="btn btn-success"
                                 role="button">Approve</button>
+                    </td>
+                    <td>
+                        <a href="{% url 'datasources:datasource.access.request' pk=datasource.pk %}?user={{ permission.user_id }}"
+                           class="btn btn-info"
+                           role="button">Edit</a>
                     </td>
                     <td>
                         <button onclick="userRemoveAccess({{ permission.user.pk }})"
@@ -90,7 +98,7 @@
         {% for permission in permissions_granted %}
             <tr id="approved-user-{{ permission.user.pk }}">
                 <td>{{ permission.user.username }}</td>
-                <td>{{ permission.granted }}</td>
+                <td>{{ permission.get_granted_display }}</td>
                 <td>
                     <button onclick="userRemoveAccess({{ permission.user.pk }})"
                             class="btn btn-danger"
@@ -104,11 +112,12 @@
     </table>
 
     <script type="application/javascript">
-        function userGrantAccess(userPk){
+        function userGrantAccess(userPk, level){
             $.ajax({
                 url: '{% url 'datasources:datasource.access.grant' pk=datasource.pk %}',
                 data: {
-                    'user': userPk
+                    'user': userPk,
+                    'level': level
                 },
                 headers: {
                     'X-CSRFToken': Cookies.get('csrftoken')

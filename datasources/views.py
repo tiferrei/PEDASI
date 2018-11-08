@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.db.models import F
+from django.db.models import F, ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import reverse
 from django.views.generic import View
@@ -216,15 +216,27 @@ class DataSourceAccessRequestView(UpdateView):
 
     def get_object(self, queryset=None):
         self.datasource = models.DataSource.objects.get(pk=self.kwargs['pk'])
+        user = self.request.user
+
+        if self.request.user == self.datasource.owner or self.request.user.is_superuser:
+            try:
+                # Let owner and admins edit other user's requests
+                user = get_user_model().objects.get(id=self.request.GET.get('user'))
+
+            except ObjectDoesNotExist:
+                pass
 
         obj, created = self.model.objects.get_or_create(
-            user=self.request.user,
+            user=user,
             datasource=self.datasource
         )
 
         return obj
 
     def get_success_url(self):
+        if self.request.user == self.datasource.owner or self.request.user.is_superuser:
+            return reverse('datasources:datasource.access.manage', kwargs={'pk': self.datasource.pl})
+
         return reverse('datasources:datasource.detail', kwargs={'pk': self.datasource.pk})
 
 
