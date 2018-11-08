@@ -64,7 +64,7 @@
                                 role="button">Approve</button>
                     </td>
                     <td>
-                        <a href="{% url 'datasources:datasource.access.request' pk=datasource.pk %}?user={{ permission.user_id }}"
+                        <a href="{% url 'datasources:datasource.access.grant' pk=datasource.pk %}?user={{ permission.user_id }}"
                            class="btn btn-info"
                            role="button">Edit</a>
                     </td>

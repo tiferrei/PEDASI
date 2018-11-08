@@ -12,4 +12,4 @@ class PermissionRequestForm(forms.ModelForm):
 class PermissionGrantForm(forms.ModelForm):
     class Meta:
         model = models.UserPermissionLink
-        fields = ['user', 'requested', 'granted', 'reason']
+        fields = ['granted']
