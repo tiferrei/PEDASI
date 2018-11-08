@@ -5,6 +5,7 @@ from django.db.models import ObjectDoesNotExist
 from django.http import HttpResponse
 from rest_framework import decorators, response, viewsets
 
+from .. import permissions
 from datasources import models, serializers
 from provenance import models as prov_models
 
@@ -85,7 +86,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
             }
             return response.Response(data, status=400)
 
-    @decorators.action(detail=True)
+    @decorators.action(detail=True, permission_classes=[permissions.ProvPermission])
     def prov(self, request, pk=None):
         """
         View for /api/datasources/<int>/prov/
@@ -100,7 +101,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         }
         return response.Response(data, status=200)
 
-    @decorators.action(detail=True)
+    @decorators.action(detail=True, permission_classes=[permissions.MetadataPermission])
     def metadata(self, request, pk=None):
         """
         View for /api/datasources/<int>/metadata/
@@ -117,7 +118,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         return self.try_passthrough_response(map_response,
                                              'Data source does not provide metadata')
 
-    @decorators.action(detail=True)
+    @decorators.action(detail=True, permission_classes=[permissions.DataPermission])
     def data(self, request, pk=None):
         """
         View for /api/datasources/<int>/data/
@@ -132,7 +133,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         return self.try_passthrough_response(map_response,
                                              'Data source does not provide data')
 
-    @decorators.action(detail=True)
+    @decorators.action(detail=True, permission_classes=[permissions.MetadataPermission])
     def datasets(self, request, pk=None):
         """
         View for /api/datasources/<int>/datasets/
@@ -151,7 +152,8 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
     # TODO URL pattern here uses pre Django 2 format
     @decorators.action(detail=True,
-                       url_path='datasets/(?P<href>.*)/metadata')
+                       url_path='datasets/(?P<href>.*)/metadata',
+                       permission_classes=[permissions.MetadataPermission])
     def dataset_metadata(self, request, pk=None, **kwargs):
         """
         View for /api/datasources/<int>/datasets/<href>/metadata/
@@ -171,7 +173,8 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
     # TODO URL pattern here uses pre Django 2 format
     @decorators.action(detail=True,
-                       url_path='datasets/(?P<href>.*)/data')
+                       url_path='datasets/(?P<href>.*)/data',
+                       permission_classes=[permissions.DataPermission])
     def dataset_data(self, request, pk=None, **kwargs):
         """
         View for /api/datasources/<int>/datasets/<href>/metadata/
