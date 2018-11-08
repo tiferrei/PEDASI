@@ -69,7 +69,7 @@
                            role="button">Edit</a>
                     </td>
                     <td>
-                        <button onclick="userRemoveAccess({{ permission.user.pk }})"
+                        <button onclick="userGrantAccess({{ permission.user.pk }}, {{ permission.granted }})"
                                 class="btn btn-danger"
                                 role="button">Reject</button>
                     </td>
@@ -88,7 +88,9 @@
         <thead class="thead">
         <tr>
             <th>Username</th>
-            <th>Level</th>
+            <th>Requested</th>
+            <th>Current</th>
+            <th></th>
             <th></th>
             <th></th>
         </tr>
@@ -98,7 +100,13 @@
         {% for permission in permissions_granted %}
             <tr id="approved-user-{{ permission.user.pk }}">
                 <td>{{ permission.user.username }}</td>
+                <td>{{ permission.get_requested_display }}</td>
                 <td>{{ permission.get_granted_display }}</td>
+                <td>
+                    <a href="{% url 'datasources:datasource.access.grant' pk=datasource.pk %}?user={{ permission.user_id }}"
+                       class="btn btn-info"
+                       role="button">Edit</a>
+                </td>
                 <td>
                     <button onclick="userRemoveAccess({{ permission.user.pk }})"
                             class="btn btn-danger"
@@ -113,16 +121,16 @@
 
     <script type="application/javascript">
         function userGrantAccess(userPk, level){
-            $.ajax({
+            $.post({
                 url: '{% url 'datasources:datasource.access.grant' pk=datasource.pk %}',
                 data: {
                     'user': userPk,
-                    'level': level
+                    'granted': level,
+                    'requested': level
                 },
                 headers: {
                     'X-CSRFToken': Cookies.get('csrftoken')
                 },
-                method: 'PUT',
                 success: function(result, status, xhr){
                     document.getElementById('requested-user-' + userPk.toString()).remove();
 
@@ -132,16 +140,16 @@
         }
 
         function userRemoveAccess(userPk){
-            $.ajax({
+            $.post({
                 url: '{% url 'datasources:datasource.access.grant' pk=datasource.pk %}',
                 data: {
                     'user': userPk,
-                    'level': 0
+                    'granted': 0,
+                    'requested': 0
                 },
                 headers: {
                     'X-CSRFToken': Cookies.get('csrftoken')
                 },
-                method: 'PUT',
                 success: function(result, status, xhr){
                     try {
                         document.getElementById('approved-user-' + userPk.toString()).remove();

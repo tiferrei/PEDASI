@@ -17,12 +17,10 @@ urlpatterns = [
          views.DataSourceAccessManageView.as_view(),
          name='datasource.access.manage'),
 
-    # Requires level to be provided as kwargs
     path('<int:pk>/access/request',
          views.DataSourceAccessRequestView.as_view(),
          name='datasource.access.request'),
 
-    # Requires user and level to be provided as kwargs
     path('<int:pk>/access/grant',
          views.DataSourceAccessGrantView.as_view(),
          name='datasource.access.grant'),

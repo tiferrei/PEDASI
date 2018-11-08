@@ -10,8 +10,11 @@
             <li class="breadcrumb-item" aria-current="page">
                 <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
             </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}">{{ datasource.name }}</a>
+            </li>
             <li class="breadcrumb-item active" aria-current="page">
-                {{ datasource.name }}
+                Manage Access
             </li>
         </ol>
     </nav>
@@ -42,6 +45,8 @@
             </tr>
         </tbody>
     </table>
+
+    <h2>Access Request</h2>
 
     <form method="post">
         {% csrf_token %}

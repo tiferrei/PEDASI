@@ -104,110 +104,20 @@ class DataSourceAccessManageView(OwnerPermissionRequiredMixin, DetailView):
         return context
 
 
-class DataSourceAccessGrantView(SingleObjectMixin, View):
+class DataSourceAccessGrantView(UpdateView):
     """
     Manage a user's access to a DataSource.
 
-    Accepts PUT and DELETE requests to add a user to, or remove a user from the access group.
-    Request responses follow JSend specification (see http://labs.omniti.com/labs/jsend).
-    """
-    model = models.DataSource
-
-    def _set_permission(self, user, level=models.UserPermissionLevels.VIEW):
-        if level == models.UserPermissionLevels.NONE:
-            try:
-                permission = models.UserPermissionLink.objects.get(
-                    user=user,
-                    datasource=self.get_object(),
-                )
-                permission.delete()
-
-            except models.UserPermissionLink.DoesNotExist:
-                pass
-
-            return None
-
-        try:
-            permission = models.UserPermissionLink.objects.get(
-                user=user,
-                datasource=self.get_object(),
-            )
-
-            permission.granted = level
-            permission.requested = max(permission.requested, level)
-            permission.save()
-
-        except models.UserPermissionLink.DoesNotExist:
-            permission = models.UserPermissionLink.objects.create(
-                user=user,
-                datasource=self.get_object(),
-                granted=level,
-                requested=level
-            )
-
-        return permission
-
-    def put(self, request, *args, **kwargs):
-        """
-        Add a user to the access group for a DataSource.
-
-        If the request is performed by the DataSource owner or by staff: add them directly to the access group,
-        If the request is performed by the user themselves: add them to the 'access requested' group,
-        Else reject the request.
-
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        data = QueryDict(request.body)
-        user = get_user_model().objects.get(pk=data['user'])
-
-        try:
-            level = models.UserPermissionLevels(
-                int(data['level'])
-            )
-
-        except KeyError:
-            level = models.UserPermissionLevels.VIEW
-
-        permission = self._set_permission(
-            user,
-            level=level
-        )
-
-        if permission is None:
-            return JsonResponse({
-                'status': 'success',
-                'data': None
-            })
-
-        return JsonResponse({
-            'status': 'success',
-            'data': {
-                'permission': {
-                    'pk': permission.pk,
-                    'user': permission.user_id,
-                    'datasource': permission.datasource_id,
-                    'granted': permission.granted,
-                    'requested': permission.requested,
-                },
-            },
-        })
-
-
-class DataSourceAccessRequestView(UpdateView):
-    """
-    Manage a user's access to a DataSource.
-
-    Accepts PUT and DELETE requests to add a user to, or remove a user from the access group.
-    Request responses follow JSend specification (see http://labs.omniti.com/labs/jsend).
+    Provides a form view to edit permissions, but permissions may also be set using an AJAX POST request.
     """
     model = models.UserPermissionLink
-    form_class = forms.PermissionRequestForm
+    form_class = forms.PermissionGrantForm
     template_name = 'datasources/user_permission_link/form.html'
 
     def get_context_data(self, **kwargs):
+        """
+        Add data source to the context.
+        """
         context = super().get_context_data()
 
         context['datasource'] = models.DataSource.objects.get(pk=self.kwargs['pk'])
@@ -215,6 +125,55 @@ class DataSourceAccessRequestView(UpdateView):
         return context
 
     def get_object(self, queryset=None):
+        """
+        Get or create a permission object for the relevant user.
+        """
+        self.datasource = models.DataSource.objects.get(pk=self.kwargs['pk'])
+
+        if self.request.method == 'POST':
+            user = get_user_model().objects.get(id=self.request.POST.get('user'))
+
+        else:
+            user = get_user_model().objects.get(id=self.request.GET.get('user'))
+
+        obj, created = self.model.objects.get_or_create(
+            user=user,
+            datasource=self.datasource
+        )
+
+        return obj
+
+    def get_success_url(self):
+        """
+        Return to access management view.
+        """
+        return reverse('datasources:datasource.access.manage', kwargs={'pk': self.datasource.pk})
+
+
+class DataSourceAccessRequestView(UpdateView):
+    """
+    Request access to a data source, or request changes to an existing permission.
+
+    Provides a form view to edit permission requests, but permissions may also be requested using an AJAX POST request.
+    """
+    model = models.UserPermissionLink
+    form_class = forms.PermissionRequestForm
+    template_name = 'datasources/user_permission_link/form.html'
+
+    def get_context_data(self, **kwargs):
+        """
+        Add data source to the context.
+        """
+        context = super().get_context_data()
+
+        context['datasource'] = models.DataSource.objects.get(pk=self.kwargs['pk'])
+
+        return context
+
+    def get_object(self, queryset=None):
+        """
+        Get or create a permission object for the relevant user.
+        """
         self.datasource = models.DataSource.objects.get(pk=self.kwargs['pk'])
         user = self.request.user
 
@@ -234,6 +193,9 @@ class DataSourceAccessRequestView(UpdateView):
         return obj
 
     def get_success_url(self):
+        """
+        Return to the data source or access management view depending on user class.
+        """
         if self.request.user == self.datasource.owner or self.request.user.is_superuser:
             return reverse('datasources:datasource.access.manage', kwargs={'pk': self.datasource.pl})
 
