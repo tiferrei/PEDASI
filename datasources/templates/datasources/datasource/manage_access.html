@@ -37,28 +37,39 @@
         <thead class="thead">
             <tr>
                 <th>Username</th>
+                <th>Requested</th>
+                <th>Current</th>
+                <th></th>
                 <th></th>
                 <th></th>
             </tr>
         </thead>
 
         <tbody>
-            {% for user in datasource.users_group_requested.user_set.all %}
-                <tr id="requested-user-{{ user.pk }}">
-                    <td>{{ user.username }}</td>
+            {% for permission in permissions_requested.all %}
+                <tr id="requested-user-{{ permission.user.pk }}">
                     <td>
-                        <button onclick="userGrantAccess(
-                                            '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
-                                            {{ user.pk }}
-                                )"
+                        <p>
+                            {{ permission.user.username }}
+                        </p>
+                        <div class="alert alert-secondary" role="note">
+                            {{ permission.reason }}
+                        </div>
+                    </td>
+                    <td>{{ permission.get_requested_display }}</td>
+                    <td>{{ permission.get_granted_display }}</td>
+                    <td>
+                        <button onclick="userGrantAccess({{ permission.user.pk }}, {{ permission.requested }})"
                                 class="btn btn-success"
                                 role="button">Approve</button>
                     </td>
                     <td>
-                        <button onclick="userRemoveAccess(
-                                    '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
-                                    {{ user.pk }}
-                                )"
+                        <a href="{% url 'datasources:datasource.access.grant' pk=datasource.pk %}?user={{ permission.user_id }}"
+                           class="btn btn-info"
+                           role="button">Edit</a>
+                    </td>
+                    <td>
+                        <button onclick="userGrantAccess({{ permission.user.pk }}, {{ permission.granted }})"
                                 class="btn btn-danger"
                                 role="button">Reject</button>
                     </td>
@@ -77,21 +88,27 @@
         <thead class="thead">
         <tr>
             <th>Username</th>
+            <th>Requested</th>
+            <th>Current</th>
+            <th></th>
             <th></th>
             <th></th>
         </tr>
         </thead>
 
         <tbody>
-        {% for user in datasource.users_group.user_set.all %}
-            <tr id="approved-user-{{ user.pk }}">
-                <td>{{ user.username }}</td>
-                <td></td>
+        {% for permission in permissions_granted %}
+            <tr id="approved-user-{{ permission.user.pk }}">
+                <td>{{ permission.user.username }}</td>
+                <td>{{ permission.get_requested_display }}</td>
+                <td>{{ permission.get_granted_display }}</td>
                 <td>
-                    <button onclick="userRemoveAccess(
-                                '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=user.pk %}',
-                                {{ user.pk }}
-                            )"
+                    <a href="{% url 'datasources:datasource.access.grant' pk=datasource.pk %}?user={{ permission.user_id }}"
+                       class="btn btn-info"
+                       role="button">Edit</a>
+                </td>
+                <td>
+                    <button onclick="userRemoveAccess({{ permission.user.pk }})"
                             class="btn btn-danger"
                             role="button">Remove</button>
                 </td>
@@ -103,14 +120,17 @@
     </table>
 
     <script type="application/javascript">
-        function userGrantAccess(url, userPk){
-            $.ajax({
-                {#url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',#}
-                url: url,
+        function userGrantAccess(userPk, level){
+            $.post({
+                url: '{% url 'datasources:datasource.access.grant' pk=datasource.pk %}',
+                data: {
+                    'user': userPk,
+                    'granted': level,
+                    'requested': level
+                },
                 headers: {
                     'X-CSRFToken': Cookies.get('csrftoken')
                 },
-                method: 'PUT',
                 success: function(result, status, xhr){
                     document.getElementById('requested-user-' + userPk.toString()).remove();
 
@@ -119,14 +139,17 @@
             })
         }
 
-        function userRemoveAccess(url, userPk){
-            $.ajax({
-                {#url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',#}
-                url: url,
+        function userRemoveAccess(userPk){
+            $.post({
+                url: '{% url 'datasources:datasource.access.grant' pk=datasource.pk %}',
+                data: {
+                    'user': userPk,
+                    'granted': 0,
+                    'requested': 0
+                },
                 headers: {
                     'X-CSRFToken': Cookies.get('csrftoken')
                 },
-                method: 'DELETE',
                 success: function(result, status, xhr){
                     try {
                         document.getElementById('approved-user-' + userPk.toString()).remove();
@@ -135,9 +158,9 @@
                     try {
                         document.getElementById('requested-user-' + userPk.toString()).remove();
                     } catch (err) {}
-                }
 
-                // TODO if table is empty add 'table is empty' row
+                    // TODO if table is empty add 'table is empty' row
+                }
             })
         }
     </script>

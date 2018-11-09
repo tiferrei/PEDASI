@@ -149,6 +149,191 @@ class DataSourceApiTest(TestCase):
         self._assert_datasource_correct(datasource)
 
 
+class DataSourceApiPermissionsTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user('Test API User')
+        cls.owner = get_user_model().objects.create_user('Test API Owner')
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+        self.owner_client = APIClient()
+        self.owner_client.force_authenticate(self.owner)
+
+        self.test_name = 'Permissions'
+        # TODO don't rely on external URL for testing
+        self.test_url = 'https://api.iotuk.org.uk/iotOrganisation'
+
+    def tearDown(self):
+        try:
+            self.model.delete()
+        except AttributeError:
+            pass
+
+    def _grant_permission(self, level: models.UserPermissionLevels):
+        response = self.owner_client.post('/datasources/{}/access/grant'.format(self.model.pk),
+                                          data={
+                                              'user': self.user.pk,
+                                              'granted': level.value,
+                                          },
+                                          headers={
+                                              'Accept': 'application/json'
+                                          })
+        # TODO make this return a proper response code for AJAX-like requests
+        self.assertEqual(response.status_code, 302)
+
+    def test_datasource_permission_view(self):
+        """
+        Test that permissions are correctly handled when attempting to view a data source.
+        """
+        self.model = models.DataSource.objects.create(
+            name=self.test_name,
+            owner=self.owner,
+            url=self.test_url,
+            plugin_name='DataSetConnector',
+            access_control=True
+        )
+
+        url = '/api/datasources/{}/'.format(self.model.pk)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        self._grant_permission(models.UserPermissionLevels.VIEW)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self._grant_permission(models.UserPermissionLevels.META)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self._grant_permission(models.UserPermissionLevels.DATA)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self._grant_permission(models.UserPermissionLevels.PROV)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_datasource_permission_meta(self):
+        """
+        Test that permissions are correctly handled when attempting to get metadata from a data source.
+        """
+        self.model = models.DataSource.objects.create(
+            name=self.test_name,
+            owner=self.owner,
+            url=self.test_url,
+            plugin_name='DataSetConnector',
+            access_control=True
+        )
+
+        url = '/api/datasources/{}/metadata/'.format(self.model.pk)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        self._grant_permission(models.UserPermissionLevels.VIEW)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        self._grant_permission(models.UserPermissionLevels.META)
+
+        response = self.client.get(url)
+        # This data connector does not provide metadata
+        self.assertEqual(response.status_code, 400)
+
+        self._grant_permission(models.UserPermissionLevels.DATA)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
+
+        self._grant_permission(models.UserPermissionLevels.PROV)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
+
+    def test_datasource_permission_data(self):
+        """
+        Test that permissions are correctly handled when attempting to get data from a data source.
+        """
+        self.model = models.DataSource.objects.create(
+            name=self.test_name,
+            owner=self.owner,
+            url=self.test_url,
+            plugin_name='DataSetConnector',
+            access_control=True
+        )
+
+        url = '/api/datasources/{}/data/?year=2018'.format(self.model.pk)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        self._grant_permission(models.UserPermissionLevels.VIEW)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        self._grant_permission(models.UserPermissionLevels.META)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        self._grant_permission(models.UserPermissionLevels.DATA)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self._grant_permission(models.UserPermissionLevels.PROV)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_datasource_permission_prov(self):
+        """
+        Test that permissions are correctly handled when attempting to get PROV data from a data source.
+        """
+        self.model = models.DataSource.objects.create(
+            name=self.test_name,
+            owner=self.owner,
+            url=self.test_url,
+            plugin_name='DataSetConnector',
+            access_control=True
+        )
+
+        url = '/api/datasources/{}/prov/'.format(self.model.pk)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        self._grant_permission(models.UserPermissionLevels.VIEW)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        self._grant_permission(models.UserPermissionLevels.META)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        self._grant_permission(models.UserPermissionLevels.DATA)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        self._grant_permission(models.UserPermissionLevels.PROV)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+
 class DataSourceApiIoTUKTest(TestCase):
     @classmethod
     def setUpTestData(cls):

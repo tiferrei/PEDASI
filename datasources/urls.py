@@ -6,34 +6,41 @@ app_name = 'datasources'
 
 urlpatterns = [
     path('',
-         views.DataSourceListView.as_view(),
+         views.datasource.DataSourceListView.as_view(),
          name='datasource.list'),
 
     path('<int:pk>/',
-         views.DataSourceDetailView.as_view(),
+         views.datasource.DataSourceDetailView.as_view(),
          name='datasource.detail'),
 
-    path('<int:pk>/manage-access',
-         views.DataSourceManageAccessView.as_view(),
-         name='datasource.manage-access'),
-
-    path('<int:pk>/users/<int:user_pk>',
-         views.DataSourceRequestAccessView.as_view(),
-         name='datasource.manage-access.user'),
-
     path('<int:pk>/query',
-         views.DataSourceQueryView.as_view(),
+         views.datasource.DataSourceQueryView.as_view(),
          name='datasource.query'),
 
     path('<int:pk>/metadata',
-         views.DataSourceMetadataView.as_view(),
+         views.datasource.DataSourceMetadataView.as_view(),
          name='datasource.metadata'),
 
     path('<int:pk>/explore',
-         views.DataSourceExploreView.as_view(),
+         views.datasource.DataSourceExploreView.as_view(),
          name='datasource.explore'),
 
     path('<int:pk>/search',
-         views.DataSourceDataSetSearchView.as_view(),
+         views.datasource.DataSourceDataSetSearchView.as_view(),
          name='datasource.dataset.search'),
+
+    #######################
+    # Permission management
+
+    path('<int:pk>/access',
+         views.user_permission_link.DataSourceAccessManageView.as_view(),
+         name='datasource.access.manage'),
+
+    path('<int:pk>/access/request',
+         views.user_permission_link.DataSourceAccessRequestView.as_view(),
+         name='datasource.access.request'),
+
+    path('<int:pk>/access/grant',
+         views.user_permission_link.DataSourceAccessGrantView.as_view(),
+         name='datasource.access.grant'),
 ]

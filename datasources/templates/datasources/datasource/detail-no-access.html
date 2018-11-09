@@ -20,43 +20,53 @@
         </ol>
     </nav>
 
-    <h2>View Data Source - {{ datasource.name }}</h2>
+
+    <div class="row">
+        <div class="col-md-10 col-sm-8">
+            <h2>{{ datasource.name }}</h2>
+
+            {% if datasource.description %}
+                {{ datasource.description|linebreaks }}
+            {% endif %}
+        </div>
+
+        <div class="col-md-2 col-sm-4">
+            {% if datasource.access_control and request.user != datasource.owner and not request.user.is_superuser %}
+                <a href="{% url 'datasources:datasource.access.request' pk=datasource.id %}"
+                   class="btn btn-block btn-secondary" role="button">Manage My Access</a>
+            {% endif %}
+        </div>
+    </div>
 
     <div class="alert alert-warning">
         You do not have permission to access this resource.
 
-        {% if datasource.users_group_requested in request.user.groups.all %}
-            <button id="btn-request-access" disabled
-                    class="btn btn-primary" role="button">Access Requested</button>
+        {% if request.user in datasource.users.all %}
+            Please wait for your request to be approved.
 
         {% elif not request.user.is_authenticated %}
             You must be logged in to request access.
-
-        {% else %}
-            <button id="btn-request-access" onclick="requestAccess()"
-                    class="btn btn-primary" role="button">Request Access</button>
-
-            <script type="application/javascript">
-                function requestAccess(){
-                    $.ajax({
-                        url: '{% url 'datasources:datasource.manage-access.user' pk=datasource.pk user_pk=request.user.pk %}',
-                        headers: {
-                            'X-CSRFToken': Cookies.get('csrftoken')
-                        },
-                        method: 'PUT',
-                        success: function(result, status, xhr){
-                            const btn = document.getElementById('btn-request-access');
-                            btn.textContent = 'Access Requested';
-                            btn.disabled = true;
-                        }
-                    })
-                }
-            </script>
         {% endif %}
     </div>
 
-    {% if datasource.description %}
-        <p>{{ datasource.description }}</p>
-    {% endif %}
+    <table class="table">
+        <thead>
+        <th scope="col" class="col-md-2 border-0"></th>
+        <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td>Owner</td>
+            <td>
+                {{ datasource.owner }}
+            </td>
+        </tr>
+        <tr>
+            <td>URL</td>
+            <td>{{ datasource.url }}</td>
+        </tr>
+        </tbody>
+    </table>
 
 {% endblock %}
