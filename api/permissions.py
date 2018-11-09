@@ -13,12 +13,16 @@ class ViewPermission(permissions.BasePermission):
         if not obj.access_control:
             return True
 
-        permission = models.UserPermissionLink.objects.get(
-            user=request.user,
-            datasource=obj
-        )
+        try:
+            permission = models.UserPermissionLink.objects.get(
+                user=request.user,
+                datasource=obj
+            )
 
-        return permission.granted >= models.UserPermissionLevels.VIEW
+            return permission.granted >= models.UserPermissionLevels.VIEW
+
+        except models.UserPermissionLink.DoesNotExist:
+            return False
 
 
 class MetadataPermission(permissions.BasePermission):
@@ -28,12 +32,16 @@ class MetadataPermission(permissions.BasePermission):
         if not obj.access_control:
             return True
 
-        permission = models.UserPermissionLink.objects.get(
-            user=request.user,
-            datasource=obj
-        )
+        try:
+            permission = models.UserPermissionLink.objects.get(
+                user=request.user,
+                datasource=obj
+            )
 
-        return permission.granted >= models.UserPermissionLevels.META
+            return permission.granted >= models.UserPermissionLevels.META
+
+        except models.UserPermissionLink.DoesNotExist:
+            return False
 
 
 class DataPermission(permissions.BasePermission):
@@ -43,12 +51,16 @@ class DataPermission(permissions.BasePermission):
         if not obj.access_control:
             return True
 
-        permission = models.UserPermissionLink.objects.get(
-            user=request.user,
-            datasource=obj
-        )
+        try:
+            permission = models.UserPermissionLink.objects.get(
+                user=request.user,
+                datasource=obj
+            )
 
-        return permission.granted >= models.UserPermissionLevels.DATA
+            return permission.granted >= models.UserPermissionLevels.DATA
+
+        except models.UserPermissionLink.DoesNotExist:
+            return False
 
 
 class ProvPermission(permissions.BasePermission):
@@ -58,9 +70,13 @@ class ProvPermission(permissions.BasePermission):
         if not obj.access_control:
             return True
 
-        permission = models.UserPermissionLink.objects.get(
-            user=request.user,
-            datasource=obj
-        )
+        try:
+            permission = models.UserPermissionLink.objects.get(
+                user=request.user,
+                datasource=obj
+            )
 
-        return permission.granted >= models.UserPermissionLevels.PROV
+            return permission.granted >= models.UserPermissionLevels.PROV
+
+        except models.UserPermissionLink.DoesNotExist:
+            return False
