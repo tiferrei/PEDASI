@@ -59,7 +59,6 @@ class ConnectorHyperCatTest(TestCase):
         self.assertTrue(connection.is_catalogue)
 
     def test_plugin_get_metadata(self):
-        connection = self.plugin(self.url, auth=HTTPBasicAuth)
         connection = self._get_connection()
 
         result = connection.get_metadata()
@@ -93,7 +92,6 @@ class ConnectorHyperCatTest(TestCase):
 
     def test_plugin_iter_datasets(self):
         connection = self._get_connection()
-
 
         for dataset in connection:
             self.assertEqual(str,
@@ -171,7 +169,6 @@ class ConnectorHyperCatTest(TestCase):
         """
         Test that we can get data from a single dataset within the catalogue.
         """
-
         connection = self._get_connection()
 
         dataset = connection[self.dataset]

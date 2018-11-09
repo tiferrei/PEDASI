@@ -409,37 +409,31 @@ class DataSourceApiIoTUKTest(TestCase):
         self.assertLessEqual(1, len(data['data']))
 
 
-class DataSourceApiBTHyperCatTest(TestCase):
+class DataSourceApiHyperCatTest(TestCase):
+    test_name = 'HyperCat'
+    plugin_name = 'HyperCat'
+    test_url = 'https://api.cityverve.org.uk/v1/cat/polling-station'
+    dataset = 'https://api.cityverve.org.uk/v1/entity/polling-station/5'
+
     @classmethod
     def setUpTestData(cls):
-        cls.user = get_user_model().objects.create_user('Test API User')
-
-    def setUp(self):
         from decouple import config
 
-        self.client = APIClient()
-        self.client.force_authenticate(self.user)
+        cls.user = get_user_model().objects.create_user('Test API User')
 
-        self.test_name = 'BT HyperCat'
-        self.test_url = 'https://portal.bt-hypercat.com/cat'
-        self.api_key = config('HYPERCAT_BT_API_KEY')
-        self.plugin_name = 'HyperCat'
+        cls.api_key = config('HYPERCAT_CISCO_API_KEY')
 
-        self.dataset = 'http://api.bt-hypercat.com/sensors/feeds/c7f361c6-7cb7-4ef5-aed9-397a0c0c4088'
-
-        self.model = models.DataSource.objects.create(
-            name=self.test_name,
-            owner=self.user,
-            url=self.test_url,
-            api_key=self.api_key,
-            plugin_name=self.plugin_name
+        cls.model = models.DataSource.objects.create(
+            name=cls.test_name,
+            owner=cls.user,
+            url=cls.test_url,
+            api_key=cls.api_key,
+            plugin_name=cls.plugin_name
         )
 
-    def tearDown(self):
-        try:
-            self.model.delete()
-        except AttributeError:
-            pass
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
 
     def test_api_datasource_get(self):
         """
@@ -511,8 +505,8 @@ class DataSourceApiBTHyperCatTest(TestCase):
         response = self.client.get('/api/datasources/{}/datasets/{}/data/'.format(self.model.pk, self.dataset))
         self.assertEqual(response.status_code, 200)
 
-        self.assertEqual('text/xml', response['Content-Type'])
-        self.assertTrue(response.content)
+        data = response.json()
+        self.assertTrue(data)
         # TODO test content
 
 
