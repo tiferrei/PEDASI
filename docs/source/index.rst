@@ -10,6 +10,15 @@ Welcome to PEDASI's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   user_docs/index
+
+
+Introduction
+============
+
+PEDASI is a...
+
+What sort of research can be done using PEDASI?
 
 
 Indices and tables
