@@ -37,6 +37,18 @@
         </div>
     </div>
 
+    {% if datasource.is_encrypted %}
+        <div class="alert alert-warning">
+            <p>
+                This data source contains encrypted data.
+            </p>
+
+            {% if datasource.encrypted_docs_url %}
+                For guidance on how to process this data please see <a href="{{ datasource.encrypted_docs_url }}">{{ datasource.encrypted_docs_url }}</a>.
+            {% endif %}
+        </div>
+    {% endif %}
+
     <table class="table">
         <thead>
             <th scope="col" class="col-md-2 border-0"></th>
