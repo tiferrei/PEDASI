@@ -1,11 +1,12 @@
 from django.contrib import admin
 
-from . import models
+from . import forms, models
 
 
 @admin.register(models.DataSource)
 class DataSourceAdmin(admin.ModelAdmin):
     readonly_fields = ['owner']
+    form = forms.DataSourceForm
 
     def has_change_permission(self, request, obj=None) -> bool:
         """

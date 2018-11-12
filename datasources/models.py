@@ -100,6 +100,14 @@ class DataSource(BaseAppDataModel):
     api_key = models.CharField(max_length=MAX_LENGTH_API_KEY,
                                blank=True, null=False)
 
+    #: Contains encrypted data?
+    is_encrypted = models.BooleanField(default=False,
+                                       blank=False, null=False)
+
+    #: Where to find information about how to use this encrypted data
+    encrypted_docs_url = models.URLField('Documentation URL for managing encrypted data',
+                                         blank=True, null=False)
+
     #: Which authentication method to use - defined in :class:`datasources.connectors.base.AuthMethod` enum
     auth_method = models.IntegerField(choices=AuthMethod.choices(),
                                       default=AuthMethod.UNKNOWN.value,
