@@ -7,7 +7,8 @@
 {% endblock %}
 
 {% block pre_content %}
-    <header class="container-fluid masthead text-white text-left" style="background-image: url('https://via.placeholder.com/350x150')">
+    <header class="container-fluid masthead text-white text-left"
+            style="background-image: url('https://via.placeholder.com/350x200')">
         <div class="overlay"></div>
 
         <div class="row">
@@ -20,6 +21,32 @@
 {% endblock %}
 
 {% block content %}
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-sm-8">
+                <h2 class="pb-2">About PEDASI</h2>
+
+                <p>
+                    This project will address issues related to sharing IoT datasets on a large distributed scale to support
+                    innovation in a way that will not compromise privacy and security. The project will identify and address
+                    infrastructural, technological and legal issues to that end, and will initiate the deployment of an
+                    infrastructure that will enable individuals or organisations to share IoT datasets.
+                </p>
+
+                <p>
+                    This activity work in
+                    synergy with existing initiatives within the Web Science and Internet Science communities. It will provide for
+                    accessing IoT datasets already available on the Web and it will aim to host datasets from the experiments of the
+                    PETRAS project providing a vehicle for community engagement for the development of analytics and visualisations
+                    on those datasets across the PETRAS community and beyond.
+                </p>
+            </div>
+
+            <div class="col-sm-4 pb-3">
+                <img class="img-fluid" src="{% static 'img/IoT_observatory.png' %}">
+            </div>
+        </div>
+    </div>
 
     <div class="jumbotron jumbotron-fluid pt-3 pb-2 mb-3">
         <div class="container">
