@@ -24,10 +24,14 @@ PEDASI can be run using the Django development server by `python manage.py runse
 ### In Production
 
 This repository contains an Ansible `playbook.yml` file which will perform a full install of PEDASI onto a
-clean host, or update an existing PEDASI instance if it was previously deployed with the same script.
+clean host running Ubuntu 18.04 LTS, or update an existing PEDASI instance if it was previously deployed with the same script.
 
-To deploy using production settings you must create an Ansible inventory file and set `production=True` for
-the machine you wish to deploy to.
+To deploy using production settings you must:
+* Create an Ansible inventory file and set `production=True` for the machine you wish to deploy to
+* Create an SSH key and register it as a deployment key on the PEDASI GitHub project
+  * Move the SSH private key file to `deploy/.deployment-key`
+* Create a configuration file (see below) `deploy/.env.prod`
+* Run the Ansible deployment script `ansible-playbook -v -i inventory.yml playbook.yml -u <remote_username>`
 
 
 ## Configuring PEDASI
