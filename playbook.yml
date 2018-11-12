@@ -63,6 +63,13 @@
           dest: '{{ project_dir }}'
         when: vagrant_dir.stat.exists == True
 
+      - name: Copy deploy key
+        copy:
+          src: 'deploy/.deployment-key'
+          dest: '~/.deployment-key'
+          mode: 0600
+        when: vagrant_dir.stat.exists == False
+
       - name: Clone / update dev branch from main repo
         git:
           repo: 'ssh://git@github.com/Southampton-RSG/PEDASI-IoT.git'
@@ -199,15 +206,6 @@
         dest: /etc/nginx/sites-available/pedasi
         state: link
         force: yes
-      when: production is defined
-
-    - name: Copy web config files
-      file:
-        src: '{{ project_dir }}/deploy/nginx/sites-available/pedasi.dev'
-        dest: /etc/nginx/sites-available/pedasi
-        state: link
-        force: yes
-      when: production is not defined
 
     - name: Activate Nginx site
       file:
