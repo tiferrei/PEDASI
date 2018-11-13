@@ -1,18 +1,6 @@
 import typing
 
-from .base import DataSetConnector
-
-
-class DummyResponse:
-    def __init__(self,
-                 text: str,
-                 status_code: int,
-                 content_type: str):
-        self.text = text
-        self.status_code = status_code
-        self.headers = {
-            'content-type': content_type,
-        }
+from .base import DataSetConnector, DummyRequestsResponse
 
 
 class CsvConnector(DataSetConnector):
@@ -28,4 +16,4 @@ class CsvConnector(DataSetConnector):
         :return: Requested data
         """
         with open(self.location, 'r') as f:
-            return DummyResponse(f.read(), 200, 'text/plain')
+            return DummyRequestsResponse(f.read(), 200, 'text/plain')

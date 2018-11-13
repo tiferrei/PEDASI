@@ -8,6 +8,7 @@ import abc
 from collections import abc as collections_abc
 from collections import OrderedDict
 import enum
+import json
 import typing
 
 import requests
@@ -47,6 +48,22 @@ REQUEST_AUTH_FUNCTIONS = OrderedDict([
     (AuthMethod.BASIC, requests.auth.HTTPBasicAuth),
     (AuthMethod.HEADER, HttpHeaderAuth),
 ])
+
+
+class DummyRequestsResponse:
+    def __init__(self,
+                 text: str,
+                 status_code: int,
+                 content_type: str):
+        self.text = text
+        self.status_code = status_code
+        self.headers = {
+            'content-type': content_type,
+            'Content-Type': content_type,
+        }
+
+    def json(self):
+        return json.loads(self.text)
 
 
 class BaseDataConnector(metaclass=plugin.Plugin):
@@ -178,7 +195,10 @@ class DataSetConnector(BaseDataConnector):
         """
         response = self.get_response(params)
 
-        if 'json' in response.headers['Content-Type']:
+        try:
             return response.json()
+
+        except (AttributeError, json.decoder.JSONDecodeError):
+            pass
 
         return response.text

@@ -4,12 +4,13 @@ This module contains data connectors for SQL tables.
 These tables may be external or automatically manage by PEDASI.
 """
 
+import json
 import typing
 
 import sqlalchemy
 import sqlalchemy.orm
 
-from .base import DataSetConnector
+from .base import DataSetConnector, DummyRequestsResponse
 
 
 # TODO protect Django SQL database with proper password - this connector allows it to be retrieved
@@ -32,9 +33,8 @@ class UnmanagedSqlConnector(DataSetConnector):
         self._table_meta = sqlalchemy.MetaData(self._engine)
         self._table = sqlalchemy.Table(table, self._table_meta, autoload=True)
 
-    def get_data(self,
-                 params: typing.Optional[typing.Mapping[str, str]] = None):
-        # TODO select where params
+    def get_response(self,
+                     params: typing.Optional[typing.Mapping[str, str]] = None):
         """
         Select and return all contents of table.
         """
@@ -54,7 +54,10 @@ class UnmanagedSqlConnector(DataSetConnector):
 
         result = session.execute(query)
 
-        return [dict(row) for row in result]
+        return DummyRequestsResponse(
+            json.dumps([dict(row) for row in result], default=str),
+            200, content_type='application/json'
+        )
 
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
