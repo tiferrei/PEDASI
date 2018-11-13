@@ -238,7 +238,7 @@ class DataSource(BaseAppDataModel):
         for auth_method_id, auth_function in REQUEST_AUTH_FUNCTIONS.items():
             try:
                 # Can we get a response using this auth method?
-                response = requests.get(self._connector_string,
+                response = requests.get(self.connector_string,
                                         auth=auth_function(self.api_key, ''))
 
                 response.raise_for_status()
