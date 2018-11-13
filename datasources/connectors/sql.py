@@ -12,6 +12,7 @@ import sqlalchemy.orm
 from .base import DataSetConnector
 
 
+# TODO protect Django SQL database with proper password - this connector allows it to be retrieved
 class UnmanagedSqlConnector(DataSetConnector):
     """
     This connector handles requests for data from an SQL table outside of PEDASI.
@@ -25,7 +26,7 @@ class UnmanagedSqlConnector(DataSetConnector):
         # TODO validate db url
         db_url, table = location.rsplit('/', 1)
 
-        self._engine = sqlalchemy.create_engine(db_url, echo=True)
+        self._engine = sqlalchemy.create_engine(db_url)
         self._session_maker = sqlalchemy.orm.sessionmaker(bind=self._engine)
 
         self._table_meta = sqlalchemy.MetaData(self._engine)
@@ -40,9 +41,20 @@ class UnmanagedSqlConnector(DataSetConnector):
         session = self._session_maker()
 
         query = sqlalchemy.select([self._table])
+
+        # Apply filters in params dict
+        if params is not None:
+            for key, value in params.items():
+                try:
+                    col = getattr(self._table.c, key)
+                    query = query.where(col == value)
+
+                except AttributeError:
+                    continue
+
         result = session.execute(query)
 
-        return list(result)
+        return [dict(row) for row in result]
 
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):

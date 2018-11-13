@@ -87,3 +87,59 @@ class ConnectorIoTUKTest(TestCase):
         self.assertGreater(len(result['data']), 0)
 
 
+class ConnectorUnmanagedSqlTest(TestCase):
+    # Use Django migrations table as test data
+    location = 'mysql://pedasi:pedasi@localhost:3306/pedasi/django_migrations'
+
+    def _get_connection(self) -> BaseDataConnector:
+        return self.plugin(self.location)
+
+    def setUp(self):
+        BaseDataConnector.load_plugins('datasources/connectors')
+        self.plugin = BaseDataConnector.get_plugin('UnmanagedSqlConnector')
+
+    def test_get_plugin(self):
+        self.assertIsNotNone(self.plugin)
+
+    def test_plugin_init(self):
+        connection = self._get_connection()
+
+        self.assertEqual(connection.location, self.location)
+
+    def test_plugin_type(self):
+        connection = self._get_connection()
+
+        self.assertFalse(connection.is_catalogue)
+
+    def test_plugin_get_data(self):
+        connection = self._get_connection()
+
+        result = connection.get_data()
+
+        self.assertEqual(list, type(result))
+        self.assertLessEqual(1, len(result))
+        first = result[0]
+
+        self.assertEqual(dict, type(first))
+        self.assertIn('id', first)
+        self.assertIn('app', first)
+        self.assertIn('name', first)
+        self.assertIn('applied', first)
+
+    def test_plugin_get_data_query(self):
+        connection = self._get_connection()
+
+        result = connection.get_data(params={'app': 'datasources'})
+
+        self.assertEqual(list, type(result))
+        self.assertLessEqual(1, len(result))
+        first = result[0]
+
+        self.assertEqual(dict, type(first))
+        self.assertIn('id', first)
+        self.assertIn('app', first)
+        self.assertIn('name', first)
+        self.assertIn('applied', first)
+
+        for record in result:
+            self.assertEqual('datasources', record['app'])
