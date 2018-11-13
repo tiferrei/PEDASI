@@ -3,6 +3,8 @@ import typing
 
 from django.db.models import ObjectDoesNotExist
 from django.http import HttpResponse
+
+from requests.exceptions import InvalidSchema
 from rest_framework import decorators, response, viewsets
 
 from .. import permissions
@@ -127,9 +129,18 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         Retrieve :class:`DataSource` data via API call to data source URL.
         """
         def map_response(data_connector, params):
-            r = data_connector.get_response(params=params)
-            return HttpResponse(r.text, status=r.status_code,
-                                content_type=r.headers.get('content-type'))
+            try:
+                r = data_connector.get_response(params=params)
+                return HttpResponse(r.text, status=r.status_code,
+                                    content_type=r.headers.get('content-type'))
+
+            except InvalidSchema:
+                # TODO catch errors
+                data = {
+                    'status': 'success',
+                    'data': data_connector.get_data(params=params),
+                }
+                return response.Response(data, status=200)
 
         return self.try_passthrough_response(map_response,
                                              'Data source does not provide data')
