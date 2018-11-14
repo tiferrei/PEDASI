@@ -37,7 +37,9 @@ To deploy using production settings you must:
 ## Configuring PEDASI
 Both PEDASI and Django are able to be configured via a `.env` file in the project root.
 
-The only required configuration property is the Django SECRET_KEY which should be a randomly generated
-character sequence.
+The required configuration properties are:
+- SECRET_KEY - should be a randomly generated value
+- DATABASE_USER
+- DATABASE_PASSWORD - should be a randomly generated value
 
 Other configuration properties are described at the top of `pedasi/settings.py`.
