@@ -1,6 +1,6 @@
 from django.urls import include, path
 
-from .views.views import UserInactiveView, UserProfileView, UserUriView
+from . import views
 
 app_name = 'profiles'
 
@@ -8,14 +8,18 @@ urlpatterns = [
     path('', include('django.contrib.auth.urls')),
 
     path('profile',
-         UserProfileView.as_view(),
+         views.user.UserProfileView.as_view(),
          name='profile'),
 
     path('inactive',
-         UserInactiveView.as_view(),
+         views.user.UserInactiveView.as_view(),
          name='inactive'),
 
     path('uri/<int:pk>',
-         UserUriView.as_view(),
+         views.user.UserUriView.as_view(),
          name='uri'),
+
+    path('institutions/<int:pk>',
+         views.institution.InstitutionDetailView.as_view(),
+         name='institution.detail'),
 ]

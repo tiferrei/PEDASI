@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                Institutions
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ institution.name }}
+            </li>
+        </ol>
+    </nav>
+
+    <h2>{{ institution.name }}</h2>
+
+{% endblock %}

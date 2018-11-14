@@ -15,4 +15,24 @@
 
     <h2>My Profile</h2>
 
+    <table class="table">
+        <thead>
+        <th scope="col" class="col-md-2 border-0"></th>
+        <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+        {% if request.user.institution %}
+            <tr>
+                <td>Institution</td>
+                <td>
+                    {{ request.user.institution.name }}
+                    <a href="{% url 'profiles:institution.detail' pk=request.user.institution_id %}"
+                       class="btn btn-info">Detail</a>
+                </td>
+            </tr>
+        {% endif %}
+        </tbody>
+    </table>
+
 {% endblock %}
