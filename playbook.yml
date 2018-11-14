@@ -140,13 +140,21 @@
         name: 'pedasi'
         state: present
 
-    - name: Create DB user
+    - name: Create DB user - dev settings
       mysql_user:
-        name: 'pedasi'
-        # TODO generate a real password
-        password: 'pedasi'
+        name: "{{ lookup('ini', 'DATABASE_USER type=properties file=deploy/.env.dev') }}"
+        password: "{{ lookup('ini', 'DATABASE_PASSWORD type=properties file=deploy/.env.dev') }}"
         state: present
         priv: 'pedasi.*:ALL'
+      when: production is not defined
+
+    - name: Create DB user - prod settings
+      mysql_user:
+        name: "{{ lookup('ini', 'DATABASE_USER type=properties file=deploy/.env.prod') }}"
+        password: "{{ lookup('ini', 'DATABASE_PASSWORD type=properties file=deploy/.env.prod') }}"
+        state: present
+        priv: 'pedasi.*:ALL'
+      when: production is defined
 
     - name: Set permissions on project directory
       file:

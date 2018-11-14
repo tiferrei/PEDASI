@@ -139,6 +139,11 @@ DATABASES = {
     ),
 }
 
+DATABASES['default'].update({
+    'USER': config('DATABASE_USER'),
+    'PASSWORD': config('DATABASE_PASSWORD'),
+})
+
 mongoengine.register_connection(
     host=config(
         'PROV_DATABASE_URL',
