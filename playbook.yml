@@ -214,7 +214,7 @@
         dest: /etc/nginx/sites-available/pedasi
         state: link
         force: yes
-      when: production is not defined
+      when: production is defined
 
     - name: Activate Nginx site
       file:
