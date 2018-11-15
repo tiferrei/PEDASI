@@ -22,12 +22,12 @@
         </thead>
 
         <tbody>
-        {% if request.user.institution %}
+        {% if request.user.organisational_unit %}
             <tr>
-                <td>Institution</td>
+                <td>Organisational Unit</td>
                 <td>
-                    {{ request.user.institution.name }}
-                    <a href="{% url 'profiles:institution.detail' pk=request.user.institution_id %}"
+                    {{ request.user.organisational_unit.name }}
+                    <a href="{% url 'profiles:organisational_unit.detail' pk=request.user.organisational_unit_id %}"
                        class="btn btn-info">Detail</a>
                 </td>
             </tr>

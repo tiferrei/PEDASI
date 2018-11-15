@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                Organisational Units
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ organisational_unit.name }}
+            </li>
+        </ol>
+    </nav>
+
+    <h2>{{ organisational_unit.name }}</h2>
+
+    <h4 class="pt-3">Auditors</h4>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for auditor in organisational_unit.auditors.all %}
+                <tr>
+                    <td>{{ auditor.get_full_name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

@@ -19,7 +19,7 @@ urlpatterns = [
          views.user.UserUriView.as_view(),
          name='uri'),
 
-    path('institutions/<int:pk>',
-         views.institution.InstitutionDetailView.as_view(),
-         name='institution.detail'),
+    path('orgunit/<int:pk>',
+         views.organisational_unit.OrganisationalUnitDetailView.as_view(),
+         name='organisational_unit.detail'),
 ]

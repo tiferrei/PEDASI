@@ -3,9 +3,9 @@ from django.views.generic import TemplateView
 from applications.models import Application
 from datasources.models import DataSource
 
-from . import institution, user
+from . import organisational_unit, user
 
-__all__ = ['IndexView', 'institution', 'user']
+__all__ = ['IndexView', 'organisational_unit', 'user']
 
 
 class IndexView(TemplateView):
