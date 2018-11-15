@@ -200,12 +200,21 @@
         - { src: '{{ project_dir }}/deploy/uwsgi/sites/pedasi.ini', dest: /etc/uwsgi/sites/pedasi.ini }
         - { src: '{{ project_dir }}/deploy/systemd/system/uwsgi.service', dest: /etc/systemd/system/uwsgi.service }
 
-    - name: Copy web config files
+    - name: Copy web config files - dev
+      file:
+        src: '{{ project_dir }}/deploy/nginx/sites-available/pedasi.dev'
+        dest: /etc/nginx/sites-available/pedasi
+        state: link
+        force: yes
+      when: production is not defined
+
+    - name: Copy web config files - production
       file:
         src: '{{ project_dir }}/deploy/nginx/sites-available/pedasi'
         dest: /etc/nginx/sites-available/pedasi
         state: link
         force: yes
+      when: production is not defined
 
     - name: Activate Nginx site
       file:
