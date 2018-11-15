@@ -229,6 +229,17 @@
         - uwsgi
         - mongod
 
+    # Interferes with wildcard server_name in dev deployment
+    - name: Remove default Nginx server config
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Restart Nginx
+      systemd:
+        name: nginx
+        state: restarted
+
     - name: Open firewall
       ufw:
         rule: allow
