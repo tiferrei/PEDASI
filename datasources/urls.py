@@ -13,6 +13,10 @@ urlpatterns = [
          views.datasource.DataSourceDetailView.as_view(),
          name='datasource.detail'),
 
+    path('<int:pk>/audit',
+         views.datasource.DataSourceAuditView.as_view(),
+         name='datasource.audit'),
+
     path('<int:pk>/query',
          views.datasource.DataSourceQueryView.as_view(),
          name='datasource.query'),

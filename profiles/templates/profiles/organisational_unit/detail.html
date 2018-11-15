@@ -16,7 +16,15 @@
         </ol>
     </nav>
 
-    <h2>{{ organisational_unit.name }}</h2>
+    <div class="row">
+        <div class="col-md-10 col-sm-8">
+            <h2>{{ organisational_unit.name }}</h2>
+        </div>
+
+        <div class="col-md-2 col-sm-4">
+        </div>
+    </div>
+
 
     <h4 class="pt-3">Auditors</h4>
 
@@ -33,6 +41,28 @@
                     <td>{{ auditor.get_full_name }}</td>
                 </tr>
             {% endfor %}
+        </tbody>
+    </table>
+
+    <h4 class="pt-3">Data Sources</h4>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for datasource in datasources %}
+            <tr>
+                <td>{{ datasource.name }}</td>
+                <td>
+                    <a href="{% url 'datasources:datasource.audit' pk=datasource.pk %}"
+                       class="btn btn-secondary" role="button">Audit</a>
+                </td>
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
 

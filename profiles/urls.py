@@ -21,5 +21,5 @@ urlpatterns = [
 
     path('orgunit/<int:pk>',
          views.organisational_unit.OrganisationalUnitDetailView.as_view(),
-         name='organisational_unit.detail'),
+         name='org_unit.detail'),
 ]

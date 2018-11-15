@@ -6,6 +6,7 @@ import requests.exceptions
 
 from datasources import models
 from profiles.permissions import HasViewPermissionMixin
+from provenance.models import ProvWrapper
 
 
 class DataSourceListView(ListView):
@@ -111,3 +112,16 @@ class DataSourceExploreView(HasViewPermissionMixin, DetailView):
     model = models.DataSource
     template_name = 'datasources/datasource/explore.html'
     context_object_name = 'datasource'
+
+
+class DataSourceAuditView(DetailView):
+    model = models.DataSource
+    template_name = 'datasources/datasource/audit.html'
+    context_object_name = 'datasource'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+
+        context['records'] = ProvWrapper.filter_model_instance(self.object)
+
+        return context

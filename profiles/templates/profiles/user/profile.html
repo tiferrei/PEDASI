@@ -27,7 +27,7 @@
                 <td>Organisational Unit</td>
                 <td>
                     {{ request.user.organisational_unit.name }}
-                    <a href="{% url 'profiles:organisational_unit.detail' pk=request.user.organisational_unit_id %}"
+                    <a href="{% url 'profiles:org_unit.detail' pk=request.user.organisational_unit_id %}"
                        class="btn btn-info">Detail</a>
                 </td>
             </tr>

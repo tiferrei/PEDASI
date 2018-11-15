@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}">{{ datasource.name }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Audit
+            </li>
+        </ol>
+    </nav>
+
+    <h2>Audit Data Source - {{ datasource.name }}</h2>
+
+    {% if datasource.description %}
+        <p>{{ datasource.description }}</p>
+    {% endif %}
+
+    <hr/>
+
+    <h4>Records</h4>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+                <tr>
+                    <td>{{ record.to_json }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td>No records</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
