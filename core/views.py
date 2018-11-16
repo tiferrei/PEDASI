@@ -35,8 +35,8 @@ class ManageAccessView(DetailView):
         access_group = self.object.users_group
         request_group = self.object.users_group_requested
 
-        if self.request.user == self.object.owner or self.request.user.is_staff:
-            # If request is from resource owner or staff, add user to access group
+        if self.request.user == self.object.owner or self.request.user.is_superuser:
+            # If request is from resource owner or admin, add user to access group
             access_group.user_set.add(user)
             request_group.user_set.remove(user)
 

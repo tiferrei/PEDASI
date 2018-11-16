@@ -50,6 +50,10 @@ class Application(BaseAppDataModel):
                                                  editable=False,
                                                  blank=True, null=True)
 
+    #: Do users require explicit permission to use this application?
+    access_control = models.BooleanField(default=False,
+                                         blank=False, null=False)
+
     @property
     def _access_group_name(self):
         return str(type(self)) + ' ' + self.name + ' Users'

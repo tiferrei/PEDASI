@@ -193,7 +193,7 @@ class DataSourceApiPermissionsTest(TestCase):
             owner=self.owner,
             url=self.test_url,
             plugin_name='DataSetConnector',
-            access_control=True
+            public_permission_level=models.UserPermissionLevels.NONE
         )
 
         url = '/api/datasources/{}/'.format(self.model.pk)
@@ -230,7 +230,7 @@ class DataSourceApiPermissionsTest(TestCase):
             owner=self.owner,
             url=self.test_url,
             plugin_name='DataSetConnector',
-            access_control=True
+            public_permission_level=models.UserPermissionLevels.NONE
         )
 
         url = '/api/datasources/{}/metadata/'.format(self.model.pk)
@@ -268,7 +268,7 @@ class DataSourceApiPermissionsTest(TestCase):
             owner=self.owner,
             url=self.test_url,
             plugin_name='DataSetConnector',
-            access_control=True
+            public_permission_level=models.UserPermissionLevels.NONE
         )
 
         url = '/api/datasources/{}/data/?year=2018'.format(self.model.pk)
@@ -305,7 +305,7 @@ class DataSourceApiPermissionsTest(TestCase):
             owner=self.owner,
             url=self.test_url,
             plugin_name='DataSetConnector',
-            access_control=True
+            public_permission_level=models.UserPermissionLevels.NONE
         )
 
         url = '/api/datasources/{}/prov/'.format(self.model.pk)

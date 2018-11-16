@@ -30,7 +30,7 @@
             <a href="{% url 'api:datasource-detail' pk=datasource.id %}"
                class="btn btn-block btn-info" role="button">API Explorer</a>
 
-            {% if datasource.access_control and request.user != datasource.owner and not request.user.is_superuser %}
+            {% if request.user != datasource.owner and not request.user.is_superuser %}
                 <a href="{% url 'datasources:datasource.access.request' pk=datasource.id %}"
                    class="btn btn-block btn-secondary" role="button">Manage My Access</a>
             {% endif %}
@@ -71,12 +71,10 @@
 
     <div class="row justify-content-sm-center">
         {% if has_edit_permission %}
-            {% if datasource.access_control %}
-                <div class="col-md-2 col-sm-4">
-                    <a href="{% url 'datasources:datasource.access.manage' pk=datasource.pk %}"
-                       class="btn btn-block col btn-primary" role="button">Manage Access</a>
-                </div>
-            {% endif %}
+            <div class="col-md-2 col-sm-4">
+                <a href="{% url 'datasources:datasource.access.manage' pk=datasource.pk %}"
+                   class="btn btn-block col btn-primary" role="button">Manage Access</a>
+            </div>
 
             <div class="col-md-2 col-sm-4">
                 <a href="{% url 'admin:datasources_datasource_change' datasource.id %}"

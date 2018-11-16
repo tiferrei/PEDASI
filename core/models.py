@@ -31,10 +31,6 @@ class BaseAppDataModel(models.Model):
     #: Address at which the API may be accessed
     url = models.URLField(blank=True, null=False)
 
-    #: Do users require explicit permission to use this data source / application?
-    access_control = models.BooleanField(default=False,
-                                         blank=False, null=False)
-
     # TODO replace this with an admin group
     @property
     @abc.abstractmethod

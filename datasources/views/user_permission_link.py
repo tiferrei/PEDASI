@@ -35,6 +35,7 @@ class DataSourceAccessManageView(OwnerPermissionRequiredMixin, DetailView):
         return context
 
 
+# TODO check permissions
 class DataSourceAccessGrantView(UpdateView):
     """
     Manage a user's access to a DataSource.

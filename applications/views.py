@@ -25,7 +25,7 @@ class ApplicationDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context['has_edit_permission'] = self.request.user.is_staff or self.request.user == self.object.owner
+        context['has_edit_permission'] = self.request.user.is_superuser or self.request.user == self.object.owner
 
         return context
 

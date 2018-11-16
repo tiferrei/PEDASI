@@ -5,7 +5,7 @@ from django.views.generic.list import ListView
 import requests.exceptions
 
 from datasources import models
-from profiles.permissions import HasViewPermissionMixin
+from datasources.permissions import HasPermissionLevelMixin
 
 
 class DataSourceListView(ListView):
@@ -32,10 +32,12 @@ class DataSourceDetailView(DetailView):
         return context
 
 
-class DataSourceDataSetSearchView(DetailView):
+class DataSourceDataSetSearchView(HasPermissionLevelMixin, DetailView):
     model = models.DataSource
     template_name = 'datasources/datasource/dataset_search.html'
     context_object_name = 'datasource'
+
+    permission_level = models.UserPermissionLevels.META
 
     def get(self, request, *args, **kwargs):
         try:
@@ -73,10 +75,13 @@ class DataSourceDataSetSearchView(DetailView):
         return context
 
 
-class DataSourceQueryView(HasViewPermissionMixin, DetailView):
+# TODO are the following 3 views still used?
+class DataSourceQueryView(HasPermissionLevelMixin, DetailView):
     model = models.DataSource
     template_name = 'datasources/datasource/query.html'
     context_object_name = 'datasource'
+
+    permission_level = models.UserPermissionLevels.META
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -88,10 +93,12 @@ class DataSourceQueryView(HasViewPermissionMixin, DetailView):
         return context
 
 
-class DataSourceMetadataView(HasViewPermissionMixin, DetailView):
+class DataSourceMetadataView(HasPermissionLevelMixin, DetailView):
     model = models.DataSource
     template_name = 'datasources/datasource/metadata.html'
     context_object_name = 'datasource'
+
+    permission_level = models.UserPermissionLevels.META
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -107,7 +114,9 @@ class DataSourceMetadataView(HasViewPermissionMixin, DetailView):
         return context
 
 
-class DataSourceExploreView(HasViewPermissionMixin, DetailView):
+class DataSourceExploreView(HasPermissionLevelMixin, DetailView):
     model = models.DataSource
     template_name = 'datasources/datasource/explore.html'
     context_object_name = 'datasource'
+
+    permission_level = models.UserPermissionLevels.DATA

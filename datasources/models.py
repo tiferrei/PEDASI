@@ -117,6 +117,11 @@ class DataSource(BaseAppDataModel):
     users = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                    through=UserPermissionLink)
 
+    #: The level of access that users are assumed to have without gaining explicit permission
+    public_permission_level = models.IntegerField(choices=UserPermissionLevels.choices(),
+                                                  default=UserPermissionLevels.DATA,
+                                                  blank=False, null=False)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data_connector = None
@@ -135,7 +140,17 @@ class DataSource(BaseAppDataModel):
         :param user: User to check
         :return: User has permission?
         """
-        if not self.access_control:
+        return self.has_permission_level(user, UserPermissionLevels.VIEW)
+
+    def has_permission_level(self, user: settings.AUTH_USER_MODEL, level: UserPermissionLevels) -> bool:
+        """
+        Does a user have a particular permission level on this data source?
+
+        :param user: User to check
+        :param level: Permission level to check for
+        :return: User has permission?
+        """
+        if self.public_permission_level >= level:
             return True
 
         if self.owner == user:
@@ -149,7 +164,7 @@ class DataSource(BaseAppDataModel):
         except UserPermissionLink.DoesNotExist:
             return False
 
-        return permission.granted >= UserPermissionLevels.VIEW
+        return permission.granted >= level
 
     @property
     def is_catalogue(self) -> bool:
