@@ -8,7 +8,7 @@ class BaseUserPermission(permissions.BasePermission):
     permission_level = models.UserPermissionLevels.NONE
 
     def has_object_permission(self, request, view, obj):
-        if not obj.access_control:
+        if obj.public_permission_level >= self.permission_level:
             return True
 
         try:

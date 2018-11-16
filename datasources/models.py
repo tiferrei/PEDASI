@@ -117,6 +117,11 @@ class DataSource(BaseAppDataModel):
     users = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                    through=UserPermissionLink)
 
+    #: The level of access that users are assumed to have without gaining explicit permission
+    public_permission_level = models.IntegerField(choices=UserPermissionLevels.choices(),
+                                                  default=UserPermissionLevels.DATA,
+                                                  blank=False, null=False)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data_connector = None
@@ -145,7 +150,7 @@ class DataSource(BaseAppDataModel):
         :param level: Permission level to check for
         :return: User has permission?
         """
-        if not self.access_control:
+        if self.public_permission_level >= level:
             return True
 
         if self.owner == user:
