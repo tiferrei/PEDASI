@@ -15,7 +15,10 @@ class OwnerPermissionRequiredMixin(PermissionRequiredMixin):
 
         :return: Does the user have permission to perform this action?
         """
-        return super().has_permission() and self.request.user == getattr(self.get_object(), self.owner_attribute)
+        return self.request.user.is_superuser or (
+                super().has_permission() and
+                self.request.user == getattr(self.get_object(), self.owner_attribute)
+        )
 
 
 class HasViewPermissionMixin(UserPassesTestMixin):
