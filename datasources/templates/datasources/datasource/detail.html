@@ -16,7 +16,6 @@
         </ol>
     </nav>
 
-
     <div class="row">
         <div class="col-md-10 col-sm-8">
             <h2>{{ datasource.name }}</h2>
@@ -37,13 +36,13 @@
 
             {% if has_edit_permission %}
                 <a href="{% url 'datasources:datasource.access.manage' pk=datasource.pk %}"
-                   class="btn btn-block col btn-primary" role="button">Manage Access</a>
+                   class="btn btn-block btn-primary" role="button">Manage Access</a>
 
                 <a href="{% url 'admin:datasources_datasource_change' datasource.id %}"
                    class="btn btn-block btn-success" role="button">Edit</a>
 
                 <a href="{% url 'admin:datasources_datasource_delete' datasource.id %}"
-                   class="btn btn-block col btn-danger" role="button">Delete</a>
+                   class="btn btn-block btn-danger" role="button">Delete</a>
             {% endif %}
         </div>
     </div>
