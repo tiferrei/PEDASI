@@ -29,23 +29,6 @@
 
     <h4>Records</h4>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th scope="col"></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for record in records %}
-                <tr>
-                    <td>{{ record.to_json }}</td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td>No records</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% include 'prov_entry/include_table.html' with objects=records %}
 
 {% endblock %}

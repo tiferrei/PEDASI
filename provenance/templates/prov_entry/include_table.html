@@ -1,0 +1,24 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Entity</th>
+            <th scope="col">Agents</th>
+            <th scope="col">Activity</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for object in objects %}
+            <tr>
+                <td>{{ object.id }}</td>
+                <td>{{ object.entity }}</td>
+                <td>{{ object.agent }}</td>
+                <td>{{ object.activity }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td>No records</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
