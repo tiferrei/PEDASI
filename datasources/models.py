@@ -135,6 +135,16 @@ class DataSource(BaseAppDataModel):
         :param user: User to check
         :return: User has permission?
         """
+        return self.has_permission_level(user, UserPermissionLevels.VIEW)
+
+    def has_permission_level(self, user: settings.AUTH_USER_MODEL, level: UserPermissionLevels) -> bool:
+        """
+        Does a user have a particular permission level on this data source?
+
+        :param user: User to check
+        :param level: Permission level to check for
+        :return: User has permission?
+        """
         if not self.access_control:
             return True
 
@@ -149,7 +159,7 @@ class DataSource(BaseAppDataModel):
         except UserPermissionLink.DoesNotExist:
             return False
 
-        return permission.granted >= UserPermissionLevels.VIEW
+        return permission.granted >= level
 
     @property
     def is_catalogue(self) -> bool:
