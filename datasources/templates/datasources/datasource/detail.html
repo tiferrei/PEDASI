@@ -34,11 +34,22 @@
                 <a href="{% url 'datasources:datasource.access.request' pk=datasource.id %}"
                    class="btn btn-block btn-secondary" role="button">Manage My Access</a>
             {% endif %}
+
+            {% if has_edit_permission %}
+                <a href="{% url 'datasources:datasource.access.manage' pk=datasource.pk %}"
+                   class="btn btn-block col btn-primary" role="button">Manage Access</a>
+
+                <a href="{% url 'admin:datasources_datasource_change' datasource.id %}"
+                   class="btn btn-block btn-success" role="button">Edit</a>
+
+                <a href="{% url 'admin:datasources_datasource_delete' datasource.id %}"
+                   class="btn btn-block col btn-danger" role="button">Delete</a>
+            {% endif %}
         </div>
     </div>
 
     {% if datasource.is_encrypted %}
-        <div class="alert alert-warning">
+        <div class="alert alert-warning mt-3">
             <p>
                 This data source contains encrypted data.
             </p>
@@ -68,25 +79,6 @@
             </tr>
         </tbody>
     </table>
-
-    <div class="row justify-content-sm-center">
-        {% if has_edit_permission %}
-            <div class="col-md-2 col-sm-4">
-                <a href="{% url 'datasources:datasource.access.manage' pk=datasource.pk %}"
-                   class="btn btn-block col btn-primary" role="button">Manage Access</a>
-            </div>
-
-            <div class="col-md-2 col-sm-4">
-                <a href="{% url 'admin:datasources_datasource_change' datasource.id %}"
-                   class="btn btn-block btn-success" role="button">Edit</a>
-            </div>
-
-            <div class="col-md-2 col-sm-4">
-                <a href="{% url 'admin:datasources_datasource_delete' datasource.id %}"
-                   class="btn btn-block col btn-danger" role="button">Delete</a>
-            </div>
-        {% endif %}
-    </div>
 
     <hr>
 
