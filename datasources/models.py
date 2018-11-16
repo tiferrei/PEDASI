@@ -161,7 +161,8 @@ class DataSource(BaseAppDataModel):
                 user=user,
                 datasource=self
             )
-        except UserPermissionLink.DoesNotExist:
+        except (UserPermissionLink.DoesNotExist, TypeError):
+            # TypeError - user is not logged in
             return False
 
         return permission.granted >= level
