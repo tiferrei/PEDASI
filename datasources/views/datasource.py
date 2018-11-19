@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.http import HttpResponse
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
@@ -28,6 +29,11 @@ class DataSourceDetailView(DetailView):
         context = super().get_context_data(**kwargs)
 
         context['has_edit_permission'] = self.request.user.is_staff or self.request.user == self.object.owner
+
+        try:
+            context['is_catalogue'] = self.object.is_catalogue
+        except (KeyError, ValueError):
+            messages.error(self.request, 'This data source is not configured correctly.  Please notify the owner.')
 
         return context
 

@@ -8,19 +8,7 @@ class BaseUserPermission(permissions.BasePermission):
     permission_level = models.UserPermissionLevels.NONE
 
     def has_object_permission(self, request, view, obj):
-        if obj.public_permission_level >= self.permission_level:
-            return True
-
-        try:
-            permission = models.UserPermissionLink.objects.get(
-                user=request.user,
-                datasource=obj
-            )
-
-            return permission.granted >= self.permission_level
-
-        except models.UserPermissionLink.DoesNotExist:
-            return False
+        return obj.has_permission_level(request.user, self.permission_level)
 
 
 class ViewPermission(BaseUserPermission):

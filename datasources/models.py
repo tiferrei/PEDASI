@@ -151,9 +151,10 @@ class DataSource(BaseAppDataModel):
         :return: User has permission?
         """
         if self.public_permission_level >= level:
+            # Everyone has access
             return True
 
-        if self.owner == user:
+        if self.owner == user or user.is_superuser:
             return True
 
         try:
@@ -161,7 +162,8 @@ class DataSource(BaseAppDataModel):
                 user=user,
                 datasource=self
             )
-        except UserPermissionLink.DoesNotExist:
+        except (UserPermissionLink.DoesNotExist, TypeError):
+            # TypeError - user is not logged in
             return False
 
         return permission.granted >= level

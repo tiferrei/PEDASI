@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import F, ObjectDoesNotExist
 from django.http import HttpResponseRedirect
 from django.shortcuts import reverse
@@ -36,7 +37,7 @@ class DataSourceAccessManageView(OwnerPermissionRequiredMixin, DetailView):
 
 
 # TODO check permissions
-class DataSourceAccessGrantView(UpdateView):
+class DataSourceAccessGrantView(LoginRequiredMixin, UpdateView):
     """
     Manage a user's access to a DataSource.
 
@@ -102,7 +103,7 @@ class DataSourceAccessGrantView(UpdateView):
         return reverse('datasources:datasource.access.manage', kwargs={'pk': self.datasource.pk})
 
 
-class DataSourceAccessRequestView(UpdateView):
+class DataSourceAccessRequestView(LoginRequiredMixin, UpdateView):
     """
     Request access to a data source, or request changes to an existing permission.
 

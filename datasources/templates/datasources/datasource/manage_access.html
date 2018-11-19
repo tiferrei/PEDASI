@@ -23,13 +23,9 @@
         </ol>
     </nav>
 
-    <h2>View Data Source - {{ datasource.name }}</h2>
+    <h2>{{ datasource.name }}</h2>
 
-    {% if datasource.description %}
-        <p>{{ datasource.description }}</p>
-    {% endif %}
-
-    <hr/>
+    <hr>
 
     <h2>Requests for Access</h2>
 
@@ -52,9 +48,11 @@
                         <p>
                             {{ permission.user.username }}
                         </p>
-                        <div class="alert alert-secondary" role="note">
-                            {{ permission.reason }}
-                        </div>
+                        {% if permission.reason %}
+                            <div class="alert alert-secondary" role="note">
+                                {{ permission.reason }}
+                            </div>
+                        {% endif %}
                     </td>
                     <td>{{ permission.get_requested_display }}</td>
                     <td>{{ permission.get_granted_display }}</td>

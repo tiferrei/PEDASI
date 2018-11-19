@@ -20,52 +20,79 @@
         </ol>
     </nav>
 
-    <h2>View Application - {{ application.name }}</h2>
+    <div class="row">
+        <div class="col-md-10 col-sm-8">
+            <h2>{{ application.name }}</h2>
 
-    <p>
-        Owner: <a href="#" role="link">{{ application.owner }}</a>
-    </p>
+            {% if application.description %}
+                {{ application.description|linebreaks }}
+            {% endif %}
+        </div>
+
+        <div class="col-md-2 col-sm-4">
+            {% if application.users_group_requested in request.user.groups.all %}
+                <button id="btn-request-access" disabled
+                        class="btn btn-block btn-primary" role="button">Access Requested</button>
+
+            {% elif not request.user.is_authenticated %}
+                You must be logged in to request access.
+
+            {% else %}
+                <button id="btn-request-access" onclick="requestAccess()"
+                        class="btn btn-block btn-primary" role="button">Request Access</button>
+
+                <script type="application/javascript">
+                    function requestAccess(){
+                        $.ajax({
+                            url: '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=request.user.pk %}',
+                            headers: {
+                                'X-CSRFToken': Cookies.get('csrftoken')
+                            },
+                            method: 'PUT',
+                            success: function(result, status, xhr){
+                                const btn = document.getElementById('btn-request-access');
+                                btn.textContent = 'Access Requested';
+                                btn.disabled = true;
+                            }
+                        })
+                    }
+                </script>
+            {% endif %}
+        </div>
+    </div>
 
     <div class="alert alert-warning">
         You do not have permission to access this resource.
 
-        {% if application.users_group_requested in request.user.groups.all %}
-            <button id="btn-request-access" disabled
-                    class="btn btn-primary" role="button">Access Requested</button>
-
-        {% elif not request.user.is_authenticated %}
+        {% if not request.user.is_authenticated %}
             You must be logged in to request access.
 
-        {% else %}
-            <button id="btn-request-access" onclick="requestAccess()"
-                    class="btn btn-primary" role="button">Request Access</button>
+        {% elif request.user in application.users_group_requested.user_set.all %}
+            Please wait for your request to be approved.
 
-            <script type="application/javascript">
-                function requestAccess(){
-                    $.ajax({
-                        url: '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=request.user.pk %}',
-                        headers: {
-                            'X-CSRFToken': Cookies.get('csrftoken')
-                        },
-                        method: 'PUT',
-                        success: function(result, status, xhr){
-                            const btn = document.getElementById('btn-request-access');
-                            btn.textContent = 'Access Requested';
-                            btn.disabled = true;
-                        }
-                    })
-                }
-            </script>
+        {% else %}
+            You may request access using the 'Request Access' button.
         {% endif %}
     </div>
 
-    {% if application.description %}
-        <p>{{ application.description }}</p>
-    {% endif %}
+    <table class="table">
+        <thead>
+        <th scope="col" class="col-md-2 border-0"></th>
+        <th scope="col" class="border-0"></th>
+        </thead>
 
-    <a href="{% url 'admin:applications_application_change' application.id %}"
-       class="btn btn-success" role="button">Edit</a>
-    <a href="{% url 'admin:applications_application_delete' application.id %}"
-       class="btn btn-danger" role="button">Delete</a>
+        <tbody>
+        <tr>
+            <td>Owner</td>
+            <td>
+                {{ application.owner }}
+            </td>
+        </tr>
+        <tr>
+            <td>URL</td>
+            <td>{{ application.url }}</td>
+        </tr>
+        </tbody>
+    </table>
 
 {% endblock %}

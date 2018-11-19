@@ -19,12 +19,9 @@
         </ol>
     </nav>
 
-
     <h2>{{ datasource.name }}</h2>
 
-    {% if datasource.description %}
-        {{ datasource.description|linebreaks }}
-    {% endif %}
+    <hr>
 
     <table class="table">
         <thead>
@@ -50,11 +47,13 @@
 
     {{ permission.user.username }} requests {{ permission.get_requested_display }} permission on this data source
 
-    <div class="alert alert-secondary" role="note">
-        <p>
-            {{ permission.reason|linebreaks }}
-        </p>
-    </div>
+    {% if permission.reason %}
+        <div class="alert alert-secondary" role="note">
+            <p>
+                {{ permission.reason|linebreaks }}
+            </p>
+        </div>
+    {% endif %}
 
     <form method="post">
         {% csrf_token %}

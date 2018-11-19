@@ -14,17 +14,14 @@
                 <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}">{{ datasource.name }}</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
-                Manage Access
+                Request Access
             </li>
         </ol>
     </nav>
 
-
     <h2>{{ datasource.name }}</h2>
 
-    {% if datasource.description %}
-        {{ datasource.description|linebreaks }}
-    {% endif %}
+    <hr>
 
     <table class="table">
         <thead>

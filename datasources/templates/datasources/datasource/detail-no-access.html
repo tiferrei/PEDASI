@@ -44,8 +44,8 @@
         {% if request.user in datasource.users.all %}
             Please wait for your request to be approved.
 
-        {% elif not request.user.is_authenticated %}
-            You must be logged in to request access.
+        {% else %}
+            You may request access using the 'Manage My Access' button.
         {% endif %}
     </div>
 
