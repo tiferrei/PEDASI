@@ -58,6 +58,12 @@
                 <td>URL</td>
                 <td>{{ application.url }}</td>
             </tr>
+            {% if api_key %}
+                <tr>
+                    <td>API Key</td>
+                    <td>{{ api_key }}</td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 

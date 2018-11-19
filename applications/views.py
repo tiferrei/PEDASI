@@ -1,8 +1,9 @@
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
-from . import models
+from rest_framework.authtoken.models import Token
 
+from . import models
 from core.views import ManageAccessView
 
 
@@ -26,6 +27,9 @@ class ApplicationDetailView(DetailView):
         context = super().get_context_data(**kwargs)
 
         context['has_edit_permission'] = self.request.user.is_superuser or self.request.user == self.object.owner
+
+        if self.request.user == self.object.owner or self.request.user.is_superuser:
+            context['api_key'] = Token.objects.get(user=self.object.proxy_user)
 
         return context
 
