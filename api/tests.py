@@ -1,7 +1,8 @@
 import typing
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.contrib.auth.models import Group
+from django.test import Client, TestCase
 
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
@@ -150,17 +151,22 @@ class DataSourceApiTest(TestCase):
 
 
 class DataSourceApiPermissionsTest(TestCase):
+    fixtures = ['auth.Group.json']
+
     @classmethod
     def setUpTestData(cls):
         cls.user = get_user_model().objects.create_user('Test API User')
+
+        owner_group = Group.objects.get(name='Data Providers')
         cls.owner = get_user_model().objects.create_user('Test API Owner')
+        cls.owner.groups.add(owner_group)
 
     def setUp(self):
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
-        self.owner_client = APIClient()
-        self.owner_client.force_authenticate(self.owner)
+        self.owner_client = Client()
+        self.owner_client.force_login(self.owner)
 
         self.test_name = 'Permissions'
         # TODO don't rely on external URL for testing
@@ -183,6 +189,7 @@ class DataSourceApiPermissionsTest(TestCase):
                                           })
         # TODO make this return a proper response code for AJAX-like requests
         self.assertEqual(response.status_code, 302)
+        self.assertNotIn('login', response.url)
 
     def test_datasource_permission_view(self):
         """
