@@ -59,3 +59,7 @@ class Plugin(abc.ABCMeta):
             # When importing a module the class definitions are executed
             # This causes a call to the metaclass __init__ method which registers the plugin
             importlib.import_module(str(plugin_dir).replace('/', '.') + '.' + module_name)
+
+    @property
+    def plugin_choices(cls) -> typing.List[typing.Tuple[str, str]]:
+        return [(name, name) for name, plugin in cls._plugins.items()]

@@ -1,12 +1,18 @@
 from django import forms
 
-from . import models
+from . import connectors, models
+
+
+# TODO arrange such that this doesn't need to be loaded each time
+connectors.BaseDataConnector.load_plugins('datasources/connectors')
 
 
 class DataSourceForm(forms.ModelForm):
     """
     Form class for creating / updating DataSource.
     """
+    plugin_name = forms.ChoiceField(choices=connectors.BaseDataConnector.plugin_choices)
+
     class Meta:
         model = models.DataSource
         exclude = ['owner']
