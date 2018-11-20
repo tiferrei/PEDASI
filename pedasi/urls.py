@@ -20,6 +20,8 @@ from profiles.views import IndexView
 
 
 urlpatterns = [
+    path('accounts/', include('django.contrib.auth.urls')),
+
     path('admin/', admin.site.urls),
 
     path('',

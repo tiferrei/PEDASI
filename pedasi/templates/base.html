@@ -70,7 +70,7 @@
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profiles:logout' %}">Logout</a>
+                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                         </li>
 
                     {% else %}
@@ -81,7 +81,7 @@
                         {% endif %}
 
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profiles:login' %}">Login</a>
+                            <a class="nav-link" href="{% url 'login' %}">Login</a>
                         </li>
                     {% endif %}
                 </ul>
