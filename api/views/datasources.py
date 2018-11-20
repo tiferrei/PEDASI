@@ -178,7 +178,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
                        permission_classes=[permissions.DataPermission])
     def dataset_data(self, request, pk=None, **kwargs):
         """
-        View for /api/datasources/<int>/datasets/<href>/metadata/
+        View for /api/datasources/<int>/datasets/<href>/data/
 
         Retrieve :class:`DataSource` data for a single dataset via API call to data source URL.
         """
