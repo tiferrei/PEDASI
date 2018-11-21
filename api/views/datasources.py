@@ -42,23 +42,13 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.DataSourceSerializer
     permission_classes = [permissions.ViewPermission]
 
-    def try_passthrough_response(self,
-                                 map_response: typing.Callable[..., HttpResponse],
-                                 error_message: str,
-                                 dataset: str = None):
-        instance = self.get_object()
-        data_connector = instance.data_connector
-
-        # Are there any query params to pass on?
-        params = self.request.query_params
-        if not params:
-            params = None
-
-        if dataset is not None:
-            data_connector = data_connector[dataset]
-
-        # Record this action in PROV
+    def _create_prov_entry(self, instance: models.DataSource) -> None:
+        """
+        Create a PROV entry linking the data source and the authenticated user.
+        """
         # TODO should PROV distinguish between data and metadata accesses?
+        # TODO should we create PROV records for requests that failed
+
         try:
             # Is the user actually a proxy for an application?
             application = self.request.user.application_proxy
@@ -71,11 +61,34 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
             )
 
         except ObjectDoesNotExist:
+            # Normal (non-proxy) user
             prov_models.ProvWrapper.create_prov(
                 instance,
                 self.request.user.get_uri(),
                 activity_type=prov_models.ProvActivity.ACCESS
             )
+
+        except AttributeError:
+            # No logged in user - but has passed permission checks - data source must be public
+            pass
+
+    def try_passthrough_response(self,
+                                 map_response: typing.Callable[..., HttpResponse],
+                                 error_message: str,
+                                 dataset: str = None) -> HttpResponse:
+        instance = self.get_object()
+        data_connector = instance.data_connector
+
+        # Are there any query params to pass on?
+        params = self.request.query_params
+        if not params:
+            params = None
+
+        if dataset is not None:
+            data_connector = data_connector[dataset]
+
+        # Record this action in PROV
+        self._create_prov_entry(instance)
 
         try:
             return map_response(data_connector, params)
@@ -100,6 +113,10 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
             # Get all ProvEntry's related to this instance and encode them as JSON
             'prov': [json.loads(record.to_json()) for record in prov_models.ProvWrapper.filter_model_instance(instance)]
         }
+
+        # Record this action in PROV
+        self._create_prov_entry(instance)
+
         return response.Response(data, status=200)
 
     @decorators.action(detail=True, permission_classes=[permissions.MetadataPermission])
