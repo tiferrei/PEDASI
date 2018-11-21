@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.views.generic import TemplateView
 from django.views.generic.detail import DetailView
+
+from rest_framework.authtoken.models import Token
 
 from applications.models import Application
 from datasources.models import DataSource
@@ -31,6 +34,11 @@ class UserProfileView(DetailView):
     def get_object(self, queryset=None):
         return self.request.user
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        return context
+
 
 class UserUriView(DetailView):
     """
@@ -51,3 +59,28 @@ class UserUriView(DetailView):
 
 class UserInactiveView(TemplateView):
     template_name = 'profiles/user/inactive.html'
+
+
+class UserGetTokenView(LoginRequiredMixin, DetailView):
+    """
+    Get an API Token for the currently authenticated user.
+    """
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def render_to_response(self, context, **response_kwargs):
+        """
+        Get an existing API Token or create a new one for the currently authenticated user.
+
+        :return: JSON containing Token key
+        """
+        api_token, created = Token.objects.get_or_create(user=self.object)
+
+        return JsonResponse({
+            'status': 'success',
+            'data': {
+                'token': {
+                    'key': api_token.key
+                }
+            }
+        })
