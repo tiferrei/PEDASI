@@ -47,6 +47,7 @@
           - mysql-server
           - libmysqlclient-dev
           - mongodb-org
+          - goaccess
           # Required for Ansible to setup DB
           - python3-mysqldb
 
@@ -228,6 +229,13 @@
         - nginx
         - uwsgi
         - mongod
+
+    - name: Setup Goaccess Cron job
+      cron:
+        name: 'Generate Goaccess report'
+        user: www-data
+        state: present
+        job: "{{ project_dir }}/scripts/goaccess.sh {{ project_dir }}/static/report.html"
 
     # Interferes with wildcard server_name in dev deployment
     - name: Remove default Nginx server config
