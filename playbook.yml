@@ -235,6 +235,7 @@
         name: 'Generate Goaccess report'
         user: www-data
         state: present
+        minutes: "*/10"
         job: "{{ project_dir }}/scripts/goaccess.sh {{ project_dir }}/static/report.html"
 
     # Interferes with wildcard server_name in dev deployment
