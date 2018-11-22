@@ -62,4 +62,3 @@ class UserTest(TestCase):
         token = Token.objects.get(user=user)
 
         self.assertEqual(key, token.key)
-
