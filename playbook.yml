@@ -236,7 +236,7 @@
         user: www-data
         state: present
         minute: "*/10"
-        job: "{{ project_dir }}/scripts/goaccess.sh {{ project_dir }}/static/report.html"
+        job: "{{ project_dir }}/scripts/goaccess.sh {{ project_dir }}/report.html"
 
     # Interferes with wildcard server_name in dev deployment
     - name: Remove default Nginx server config
