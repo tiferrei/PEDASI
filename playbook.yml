@@ -48,6 +48,7 @@
           - libmysqlclient-dev
           - mongodb-org
           - goaccess
+          - apache2-utils
           # Required for Ansible to setup DB
           - python3-mysqldb
 
