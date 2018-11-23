@@ -10,6 +10,19 @@ class CsvConnector(DataSetConnector):
     """
     Data connector for retrieving data from CSV files.
     """
+    def get_metadata(self,
+                     params: typing.Optional[typing.Mapping[str, str]] = None):
+        """
+        Return a JSON response from a CSV file.
+
+        :param params: Query params - ignored
+        :return: Metadata
+        """
+        with open(self.location, 'r') as csvfile:
+            # Requires a header row
+            reader = csv.DictReader(csvfile)
+            return reader.fieldnames
+
     def get_response(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
         """
