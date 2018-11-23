@@ -1,18 +1,9 @@
+import csv
 import typing
 
+from django.http import JsonResponse
+
 from .base import DataSetConnector
-
-
-class DummyResponse:
-    def __init__(self,
-                 text: str,
-                 status_code: int,
-                 content_type: str):
-        self.text = text
-        self.status_code = status_code
-        self.headers = {
-            'content-type': content_type,
-        }
 
 
 class CsvConnector(DataSetConnector):
@@ -22,10 +13,43 @@ class CsvConnector(DataSetConnector):
     def get_response(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
         """
-        Return a dummy response from a CSV file.
+        Return a JSON response from a CSV file.
 
-        :param params: Optional query parameter filters - ignored
+        CSV file must have a header row with column titles.
+
+        :param params: Optional query parameter filters
         :return: Requested data
         """
-        with open(self.location, 'r') as f:
-            return DummyResponse(f.read(), 200, 'text/plain')
+        try:
+            with open(self.location, 'r') as csvfile:
+                # Requires a header row
+                reader = csv.DictReader(csvfile)
+
+                if params is None:
+                    params = {}
+
+                rows = []
+                for row in reader:
+                    for key, value in params.items():
+                        try:
+                            if row[key].strip() != value.strip():
+                                break
+
+                        except KeyError:
+                            # The filter field isn't in the data so no row can satisfy it
+                            break
+
+                    else:
+                        # All filters match
+                        rows.append(dict(row))
+
+            return JsonResponse({
+                'status': 'success',
+                'data': rows,
+            })
+
+        except UnicodeDecodeError:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid CSV file',
+            }, status=500)
