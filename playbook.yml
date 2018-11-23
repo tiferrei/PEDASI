@@ -231,9 +231,16 @@
         - uwsgi
         - mongod
 
+    - name: Set permissions on report.html
+      file:
+        path: "{{ project_dir }}/report.html"
+        state: touch
+        owner: www-data
+        group: www-data
+
     - name: Setup Goaccess Cron job
       cron:
-        name: 'Generate Goaccess report'
+        name: "Generate Goaccess report"
         user: www-data
         state: present
         minute: "*/10"

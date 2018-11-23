@@ -13,6 +13,7 @@ db.sqlite3
 /venv
 *.pyc
 __pycache__/
+/report.html
 
 # Editor settings
 .idea/
