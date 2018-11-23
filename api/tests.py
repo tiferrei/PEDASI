@@ -151,15 +151,10 @@ class DataSourceApiTest(TestCase):
 
 
 class DataSourceApiPermissionsTest(TestCase):
-    fixtures = ['auth.Group.json']
-
     @classmethod
     def setUpTestData(cls):
         cls.user = get_user_model().objects.create_user('Test API User')
-
-        owner_group = Group.objects.get(name='Data Providers')
         cls.owner = get_user_model().objects.create_user('Test API Owner')
-        cls.owner.groups.add(owner_group)
 
     def setUp(self):
         self.client = APIClient()
