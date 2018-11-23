@@ -145,8 +145,13 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         """
         def map_response(data_connector, params):
             r = data_connector.get_response(params=params)
-            return HttpResponse(r.text, status=r.status_code,
-                                content_type=r.headers.get('content-type'))
+            try:
+                return HttpResponse(r.text, status=r.status_code,
+                                    content_type=r.headers.get('content-type'))
+
+            except AttributeError:
+                # Should be a Django response already
+                return r
 
         return self.try_passthrough_response(map_response,
                                              'Data source does not provide data')
