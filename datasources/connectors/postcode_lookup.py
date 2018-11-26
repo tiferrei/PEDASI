@@ -19,7 +19,7 @@ from .base import DataSetConnector
 
 
 class OnsPostcodeDirectoryConnector(DataSetConnector):
-    _table_name = 'onspd'
+    _table_name = 'connector_postcode'
 
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
@@ -38,7 +38,7 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
 
     def get_response(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
-        if 'postcode' not in params:
+        if params is None or 'postcode' not in params:
             return JsonResponse({
                 'status': 'fail',
                 'data': {
@@ -48,7 +48,7 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
 
         query = sqlalchemy.select(
             [self._table]
-        ).where(self._table.c.pcd == params['postcode'])
+        ).where(self._table.c.postcode == params['postcode'].replace(' ', '').upper())
 
         result = self._session_maker().execute(query).fetchone()
 
@@ -61,7 +61,7 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
         metadata = sqlalchemy.MetaData(engine)
         postcodes = sqlalchemy.Table(
             cls._table_name, metadata,
-            sqlalchemy.Column('pcd', sqlalchemy.String(length=10), index=True, nullable=False, primary_key=True),
+            sqlalchemy.Column('postcode', sqlalchemy.String(length=10), index=True, nullable=False, primary_key=True),
             sqlalchemy.Column('lat', sqlalchemy.Float, nullable=False),
             sqlalchemy.Column('long', sqlalchemy.Float, nullable=False)
         )
@@ -79,7 +79,7 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
 
             # TODO this fails if any row already exists - but checking each row in turn is slow - find solution
             conn.execute(postcodes.insert(), [
-                {'pcd': row['pcd'], 'lat': row['lat'], 'long': row['long']} for row in reader
+                {'postcode': row['pcds'].replace(' ', '').upper(), 'lat': row['lat'], 'long': row['long']} for row in reader
             ])
 
 
