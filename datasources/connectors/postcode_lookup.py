@@ -52,7 +52,17 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
 
         result = self._session_maker().execute(query).fetchone()
 
-        return JsonResponse(dict(result), json_dumps_params={'default': str})
+        try:
+            return JsonResponse(dict(result), json_dumps_params={'default': str})
+
+        except TypeError:
+            # Did not return a valid result
+            return JsonResponse({
+                'status': 'fail',
+                'data': {
+                    'postcode': 'no record matching postcode \'{0}\' found'.format(params['postcode']),
+                },
+            }, status=400)
 
     @classmethod
     def setup(cls, filename):
