@@ -48,7 +48,7 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
 
         query = sqlalchemy.select(
             [self._table]
-        ).where(self._table.c.pcd)
+        ).where(self._table.c.pcd == params['postcode'])
 
         result = self._session_maker().execute(query).fetchone()
 
