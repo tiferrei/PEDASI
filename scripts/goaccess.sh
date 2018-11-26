@@ -6,7 +6,7 @@ if [[ "$#" -ne 1 ]]; then
 fi
 
 if [[ -f /var/log/nginx/access.log.1.gz ]]; then
-    zcat /var/log/nginx/access.log.*.gz | goaccess --log-format=COMBINED -o $1 /var/log/nginx/access.log -
+    zcat /var/log/nginx/access.log.*.gz | goaccess -q --log-format=COMBINED -o $1 /var/log/nginx/access.log -
 else
-    goaccess --log-format=COMBINED -o $1 /var/log/nginx/access.log
+    goaccess -q --log-format=COMBINED -o $1 /var/log/nginx/access.log
 fi
