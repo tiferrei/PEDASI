@@ -238,7 +238,8 @@ class DataSource(BaseAppDataModel):
                 self.data_connector.get_metadata(),
                 indent=4
             ))
-        except (KeyError, NotImplementedError, ValueError):
+
+        except:
             # KeyError: Plugin was not found
             # NotImplementedError: Plugin does not support metadata
             # ValueError: Plugin was not set
