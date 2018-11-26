@@ -8,8 +8,9 @@ import csv
 import sys
 import typing
 
-from decouple import config
 from django.http import JsonResponse
+
+from decouple import config
 import sqlalchemy
 from sqlalchemy.exc import NoSuchTableError
 import sqlalchemy.orm
@@ -56,13 +57,11 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
     @classmethod
     def setup(cls, filename):
         engine = sqlalchemy.create_engine(config('DATABASE_URL'))
-        session_maker = sqlalchemy.orm.sessionmaker(bind=engine)
 
         metadata = sqlalchemy.MetaData(engine)
         postcodes = sqlalchemy.Table(
             cls._table_name, metadata,
-            sqlalchemy.Column('id', sqlalchemy.Integer, primary_key=True, autoincrement=True),
-            sqlalchemy.Column('pcd', sqlalchemy.String(length=10), index=True, nullable=False),
+            sqlalchemy.Column('pcd', sqlalchemy.String(length=10), index=True, nullable=False, primary_key=True),
             sqlalchemy.Column('lat', sqlalchemy.Float, nullable=False),
             sqlalchemy.Column('long', sqlalchemy.Float, nullable=False)
         )
@@ -78,14 +77,10 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
         with open(filename, 'r') as csvfile:
             reader = csv.DictReader(csvfile)
 
-            for row in reader:
-                ins = postcodes.insert().values(
-                    pcd=row['pcd'],
-                    lat=row['lat'],
-                    long=row['long']
-                )
-
-                conn.execute(ins)
+            # TODO this fails if any row already exists - but checking each row in turn is slow - find solution
+            conn.execute(postcodes.insert(), [
+                {'pcd': row['pcd'], 'lat': row['lat'], 'long': row['long']} for row in reader
+            ])
 
 
 if __name__ == '__main__':
