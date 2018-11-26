@@ -62,7 +62,7 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
                 'data': {
                     'postcode': 'no record matching postcode \'{0}\' found'.format(params['postcode']),
                 },
-            }, status=400)
+            }, status=404)
 
     @classmethod
     def setup(cls, filename):
