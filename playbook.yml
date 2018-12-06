@@ -26,6 +26,10 @@
         repo: deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse
         filename: mongodb-org-4.0
 
+    - name: Add Certbot repo
+      apt_repository:
+        repo: ppa:certbot/certbot
+
     - name: Update apt
       apt:
         update_cache: yes
@@ -49,6 +53,7 @@
           - mongodb-org
           - goaccess
           - apache2-utils
+          - python-certbot-nginx
           # Required for Ansible to setup DB
           - python3-mysqldb
 

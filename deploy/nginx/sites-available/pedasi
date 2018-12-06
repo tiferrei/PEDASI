@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name localhost pedasi.* pedasi-dev.* iotobservatory.io;
+    server_name localhost pedasi.* pedasi-dev.* *.iotobservatory.io;
 
     location /favicon.ico {
         alias /var/www/pedasi/static/img/favicon.ico;
