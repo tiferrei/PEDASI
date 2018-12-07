@@ -122,6 +122,17 @@ class DataSource(BaseAppDataModel):
                                                   default=UserPermissionLevels.DATA,
                                                   blank=False, null=False)
 
+    #: Is this data source exempt from PROV tracking - e.g. utility data sources - postcode lookup
+    prov_exempt = models.BooleanField(default=False,
+                                      help_text=(
+                                          'Should this data source be exempt from PROV tracking? '
+                                          'This is useful for utility data sources which expect a large volume '
+                                          'of queries, but are not interested in analysing usage patterns. '
+                                          'Note that this only disables tracking of data accesses, '
+                                          'not of updates to the data source in PEDASI.'
+                                      ),
+                                      blank=False, null=False)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data_connector = None
