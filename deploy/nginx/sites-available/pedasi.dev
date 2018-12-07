@@ -1,6 +1,8 @@
 server {
     listen 80;
 
+    merge_slashes off;
+
     location = /favicon.ico {
         alias /var/www/pedasi/static/img/favicon.ico;
     }
