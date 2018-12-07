@@ -1,3 +1,4 @@
+import contextlib
 import enum
 import json
 import typing
@@ -210,6 +211,7 @@ class DataSource(BaseAppDataModel):
         return plugin
 
     @property
+    @contextlib.contextmanager
     def data_connector(self) -> BaseDataConnector:
         """
         Construct the data connector for this source.
@@ -234,7 +236,11 @@ class DataSource(BaseAppDataModel):
                 self._data_connector = plugin(self.connector_string,
                                               auth=auth_class)
 
-        return self._data_connector
+        try:
+            yield self._data_connector
+
+        finally:
+            print(self._data_connector.request_count)
 
     @property
     def search_representation(self) -> str:
