@@ -16,6 +16,40 @@ from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_A
 MAX_LENGTH_REASON = 511
 
 
+class MetadataField(models.Model):
+    """
+    A metadata field that can be dynamically added to a data source.
+    """
+    #: Name of the field
+    name = models.CharField(max_length=MAX_LENGTH_NAME,
+                            unique=True,
+                            blank=False, null=False)
+
+
+class MetadataItem(models.Model):
+    """
+    The value of the metadata field on a given data source.
+    """
+    #: The value of this metadata field
+    value = models.CharField(max_length=MAX_LENGTH_REASON,
+                             blank=True, null=False)
+
+    #: To which field does this relate?
+    field = models.ForeignKey(MetadataField,
+                              related_name='values',
+                              on_delete=models.PROTECT,
+                              blank=False, null=False)
+
+    #: To which data source does this relate?
+    datasource = models.ForeignKey('DataSource',
+                                   related_name='metadata_items',
+                                   on_delete=models.CASCADE,
+                                   blank=False, null=False)
+
+    class Meta:
+        unique_together = (('field', 'datasource'),)
+
+
 @enum.unique
 class UserPermissionLevels(enum.IntEnum):
     """
