@@ -4,6 +4,7 @@ import typing
 
 from django.conf import settings
 from django.contrib.auth.models import Group
+from django.core import validators
 from django.db import models
 from django.urls import reverse
 import requests
@@ -24,6 +25,20 @@ class MetadataField(models.Model):
     name = models.CharField(max_length=MAX_LENGTH_NAME,
                             unique=True,
                             blank=False, null=False)
+
+    short_name = models.CharField(max_length=MAX_LENGTH_NAME,
+                                  validators=[
+                                      validators.RegexValidator(
+                                          '^[a-zA-Z][a-zA-Z0-9_]*\Z',
+                                          'Short name must begin with a letter and consist only of letters, numbers and underscores.',
+                                          'invalid'
+                                      )
+                                  ],
+                                  unique=True,
+                                  blank=False, null=False)
+
+    def __str__(self):
+        return self.name
 
 
 class MetadataItem(models.Model):
@@ -48,6 +63,9 @@ class MetadataItem(models.Model):
 
     class Meta:
         unique_together = (('field', 'datasource'),)
+
+    def __str__(self):
+        return self.value
 
 
 @enum.unique

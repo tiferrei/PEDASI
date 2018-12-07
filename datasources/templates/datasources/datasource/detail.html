@@ -79,6 +79,30 @@
         </tbody>
     </table>
 
+    <table class="table">
+        <thead>
+        <th scope="col" class="w-25 border-0">Metadata key</th>
+        <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+        {% for metadata_item in datasource.metadata_items.all %}
+            <tr>
+                <td>{{ metadata_item.field.name }}</td>
+                <td>{{ metadata_item.value }}</td>
+            </tr>
+        {% endfor %}
+        {% if has_edit_permission %}
+            <form action="{% url 'datasources:datasource.detail' pk=datasource.pk %}">
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </form>
+        {% endif %}
+        </tbody>
+    </table>
+
     <hr>
 
     {% if is_catalogue %}
