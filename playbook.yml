@@ -208,19 +208,21 @@
         - { src: '{{ project_dir }}/deploy/systemd/system/uwsgi.service', dest: /etc/systemd/system/uwsgi.service }
 
     - name: Copy web config files - dev
-      file:
+      copy:
         src: '{{ project_dir }}/deploy/nginx/sites-available/pedasi.dev'
         dest: /etc/nginx/sites-available/pedasi
-        state: link
-        force: yes
+        remote_src: yes
+        # WARNING: this will not update an existing file
+        force: no
       when: production is not defined
 
     - name: Copy web config files - production
-      file:
+      copy:
         src: '{{ project_dir }}/deploy/nginx/sites-available/pedasi'
         dest: /etc/nginx/sites-available/pedasi
-        state: link
-        force: yes
+        remote_src: yes
+        # WARNING: this will not update an existing file
+        force: no
       when: production is defined
 
     - name: Activate Nginx site
@@ -265,4 +267,8 @@
     - name: Open firewall
       ufw:
         rule: allow
-        name: 'Nginx Full'
+        name: "{{ item }}"
+        state: enabled
+      with_items:
+        - 'Nginx Full'
+        - 'OpenSSH'
