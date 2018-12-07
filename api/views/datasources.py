@@ -88,7 +88,8 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
             data_connector = data_connector[dataset]
 
         # Record this action in PROV
-        self._create_prov_entry(instance)
+        if not instance.prov_exempt:
+            self._create_prov_entry(instance)
 
         try:
             return map_response(data_connector, params)
@@ -115,7 +116,8 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         }
 
         # Record this action in PROV
-        self._create_prov_entry(instance)
+        if not instance.prov_exempt:
+            self._create_prov_entry(instance)
 
         return response.Response(data, status=200)
 
