@@ -134,6 +134,14 @@ class DataSource(BaseAppDataModel):
                                       ),
                                       blank=False, null=False)
 
+    #: Total number of requests sent to the external API
+    external_requests_total = models.PositiveIntegerField(default=0,
+                                                          editable=False, blank=False, null=False)
+
+    #: Number of requests sent to the external API since the last reset - reset at midnight by cron job
+    external_requests = models.PositiveIntegerField(default=0,
+                                                    editable=False, blank=False, null=False)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data_connector = None
@@ -214,33 +222,38 @@ class DataSource(BaseAppDataModel):
     @contextlib.contextmanager
     def data_connector(self) -> BaseDataConnector:
         """
-        Construct the data connector for this source.
+        Context manager to construct the data connector for this source.
 
         :return: Data connector instance
         """
         if self._data_connector is None:
             plugin = self.data_connector_class
 
-            # Is the authentication method set?
-            auth_method = AuthMethod(self.auth_method)
-            if not auth_method:
-                auth_method = self._determine_auth()
+            if not self.api_key:
+                self._data_connector = plugin(self.connector_string)
 
-            # Inject function to get authenticated request
-            auth_class = REQUEST_AUTH_FUNCTIONS[auth_method]
-
-            if self.api_key:
-                self._data_connector = plugin(self.connector_string, self.api_key,
-                                              auth=auth_class)
             else:
-                self._data_connector = plugin(self.connector_string,
+                # Is the authentication method set?
+                auth_method = AuthMethod(self.auth_method)
+                if not auth_method:
+                    auth_method = self._determine_auth()
+
+                # Inject function to get authenticated request
+                auth_class = REQUEST_AUTH_FUNCTIONS[auth_method]
+
+                self._data_connector = plugin(self.connector_string, self.api_key,
                                               auth=auth_class)
 
         try:
+            # Returns as context manager
             yield self._data_connector
 
         finally:
-            print(self._data_connector.request_count)
+            # Executed after the context manager is closed
+            self.external_requests += self._data_connector.request_count
+            self.external_requests_total += self._data_connector.request_count
+
+            self.save()
 
     @property
     def search_representation(self) -> str:
