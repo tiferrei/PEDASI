@@ -49,6 +49,18 @@ REQUEST_AUTH_FUNCTIONS = OrderedDict([
 ])
 
 
+class RequestCounter:
+    def __init__(self, count: int = 0):
+        self._count = count
+
+    def __iadd__(self, other: int):
+        self._count += other
+        return self
+
+    def count(self):
+        return self._count
+
+
 class BaseDataConnector(metaclass=plugin.Plugin):
     """
     Base class of data connectors which provide access to data / metadata via an external API.
@@ -68,6 +80,12 @@ class BaseDataConnector(metaclass=plugin.Plugin):
         self.location = location
         self.api_key = api_key
         self.auth = auth
+
+        self._request_counter = RequestCounter()
+
+    @property
+    def request_count(self):
+        return self._request_counter.count()
 
     @abc.abstractmethod
     def get_metadata(self,
@@ -92,6 +110,8 @@ class BaseDataConnector(metaclass=plugin.Plugin):
                                       params=params)
 
     def _get_auth_request(self, url, **kwargs):
+        self._request_counter += 1
+
         if self.auth is None:
             return requests.get(url, **kwargs)
 

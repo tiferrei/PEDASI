@@ -21,7 +21,7 @@ class IndexView(TemplateView):
         """
         context = super().get_context_data(**kwargs)
 
-        context['datasources'] = DataSource.objects.order_by('-id')[:3]
+        context['datasources'] = DataSource.objects.order_by('-external_requests')[:6]
         context['applications'] = Application.objects.order_by('-id')[:3]
 
         return context
