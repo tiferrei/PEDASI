@@ -253,6 +253,15 @@
         minute: "*/10"
         job: "{{ project_dir }}/scripts/goaccess.sh {{ project_dir }}/report.html"
 
+    - name: Setup external API access counters reset Cron job
+      cron:
+        name: "Reset external API access counters"
+        user: www-data
+        state: present
+        hour: 0
+        minute: 0
+        job: "{{ venv_dir }}/bin/python {{ project_dir }}/manage.py reset_api_count"
+
     # Interferes with wildcard server_name in dev deployment
     - name: Remove default Nginx server config
       file:
