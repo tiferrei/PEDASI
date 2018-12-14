@@ -1,4 +1,10 @@
+import logging
+
 from django.apps import AppConfig
+from django.db.utils import ProgrammingError
+
+
+logger = logging.getLogger(__name__)
 
 
 class ProfilesConfig(AppConfig):
@@ -31,4 +37,8 @@ class ProfilesConfig(AppConfig):
 
     def ready(self):
         # Runs after app registry is populated - i.e. all models exist and are importable
-        self.create_groups()
+        try:
+            self.create_groups()
+
+        except ProgrammingError:
+            logging.warning('Could not create Group fixtures, database has not been initialized')
