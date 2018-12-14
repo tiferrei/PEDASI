@@ -160,18 +160,6 @@
         path: '{{ project_dir }}'
         mode: 0775
 
-    - name: Compile documentation
-      make:
-        chdir: '{{ project_dir }}/docs'
-        target: '{{ item }}'
-        params:
-          SPHINXBUILD: '{{ venv_dir }}/bin/sphinx-build'
-          SPHINXAPIDOC: '{{ venv_dir }}/bin/sphinx-apidoc'
-      loop:
-      - clean
-      - apidoc
-      - html
-
     - name: Create static directory
       file:
         path: '{{ project_dir }}/static'
@@ -180,11 +168,11 @@
         group: www-data
         mode: 0775
 
-    - name: Perform Django setup
-      django_manage: command={{ item }} app_path={{ project_dir }} virtualenv={{ venv_dir }}
-      with_items:
-        - migrate
-        - collectstatic
+    - name: Run Django migrations
+      django_manage:
+        command: migrate
+        app_path: "{{ project_dir }}"
+        virtualenv: "{{ venv_dir }}"
 
     - name: Install uWSGI
       pip:
@@ -245,23 +233,6 @@
         owner: www-data
         group: www-data
 
-    - name: Setup Goaccess Cron job
-      cron:
-        name: "Generate Goaccess report"
-        user: www-data
-        state: present
-        minute: "*/10"
-        job: "{{ project_dir }}/scripts/goaccess.sh {{ project_dir }}/report.html"
-
-    - name: Setup external API access counters reset Cron job
-      cron:
-        name: "Reset external API access counters"
-        user: www-data
-        state: present
-        hour: 0
-        minute: 0
-        job: "{{ venv_dir }}/bin/python {{ project_dir }}/manage.py reset_api_count"
-
     # Interferes with wildcard server_name in dev deployment
     - name: Remove default Nginx server config
       file:
@@ -281,3 +252,38 @@
       with_items:
         - 'Nginx Full'
         - 'OpenSSH'
+
+    - name: Setup Goaccess Cron job
+      cron:
+        name: "Generate Goaccess report"
+        user: www-data
+        state: present
+        minute: "*/10"
+        job: "{{ project_dir }}/scripts/goaccess.sh {{ project_dir }}/report.html"
+
+    - name: Setup external API access counters reset Cron job
+      cron:
+        name: "Reset external API access counters"
+        user: www-data
+        state: present
+        hour: 0
+        minute: 0
+        job: "{{ venv_dir }}/bin/python {{ project_dir }}/manage.py reset_api_count"
+
+    - name: Compile documentation
+      make:
+        chdir: '{{ project_dir }}/docs'
+        target: '{{ item }}'
+        params:
+          SPHINXBUILD: '{{ venv_dir }}/bin/sphinx-build'
+          SPHINXAPIDOC: '{{ venv_dir }}/bin/sphinx-apidoc'
+      loop:
+      - clean
+      - apidoc
+      - html
+
+    - name: Django collect static files
+      django_manage:
+        command: collectstatic
+        app_path: "{{ project_dir }}"
+        virtualenv: "{{ venv_dir }}"
