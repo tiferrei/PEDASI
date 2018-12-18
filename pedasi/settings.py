@@ -92,6 +92,7 @@ CUSTOM_APPS = [
     'datasources',
     'provenance',
     'core',
+    'api',
 ]
 
 # Custom apps have to be listed before Django apps so they override default templates
