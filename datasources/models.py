@@ -111,8 +111,8 @@ class DataSource(BaseAppDataModel):
 
     #: Which authentication method to use - defined in :class:`datasources.connectors.base.AuthMethod` enum
     auth_method = models.IntegerField(choices=AuthMethod.choices(),
-                                      default=AuthMethod.UNKNOWN.value,
-                                      editable=False, blank=False, null=False)
+                                      default=AuthMethod.UNKNOWN,
+                                      blank=False, null=False)
 
     #: Users - linked via a permission table - see :class:`UserPermissionLink`
     users = models.ManyToManyField(settings.AUTH_USER_MODEL,
@@ -145,13 +145,6 @@ class DataSource(BaseAppDataModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data_connector = None
-
-    def save(self, **kwargs):
-        # Find out which auth method to use
-        if not self.auth_method:
-            self.auth_method = self._determine_auth().value
-
-        return super().save(**kwargs)
 
     def has_view_permission(self, user: settings.AUTH_USER_MODEL) -> bool:
         """
@@ -278,22 +271,30 @@ class DataSource(BaseAppDataModel):
         result = '\n'.join(lines)
         return result
 
-    def _determine_auth(self) -> AuthMethod:
+    @staticmethod
+    def determine_auth_method(url: str, api_key: str) -> AuthMethod:
         # If not using an API key - can't require auth
-        if not self.api_key:
+        if not api_key:
             return AuthMethod.NONE
 
         for auth_method_id, auth_function in REQUEST_AUTH_FUNCTIONS.items():
             try:
                 # Can we get a response using this auth method?
-                response = requests.get(self.url,
-                                        auth=auth_function(self.api_key, ''))
+                if auth_function is None:
+                    response = requests.get(url)
+
+                else:
+                    response = requests.get(url,
+                                            auth=auth_function(api_key, ''))
 
                 response.raise_for_status()
                 return auth_method_id
 
-            except (TypeError, requests.exceptions.HTTPError):
+            except requests.exceptions.HTTPError:
                 pass
+
+        # None of the attempted authentication methods was successful
+        raise requests.exceptions.ConnectionError('Could not authenticate against external API')
 
     def get_absolute_url(self):
         return reverse('datasources:datasource.detail',

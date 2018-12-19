@@ -17,15 +17,25 @@ from core import plugin
 
 
 @enum.unique
-class AuthMethod(enum.Enum):
+class AuthMethod(enum.IntEnum):
+    """
+    Authentication method to be used when performing a request to the external API.
+    """
+    # Does not require authentication
     NONE = -1
+
+    # Unknown - assume no authentication if a request is sent
     UNKNOWN = 0
+
+    # HTTPBasicAuth from Requests
     BASIC = 1
+
+    # Same as HTTPBasicAuth but key is already b64 encoded
     HEADER = 2
 
     @classmethod
     def choices(cls):
-        return tuple((i.name, i.value) for i in cls)
+        return tuple((i.value, i.name) for i in cls)
 
 
 class HttpHeaderAuth(requests.auth.HTTPBasicAuth):
@@ -87,7 +97,6 @@ class BaseDataConnector(metaclass=plugin.Plugin):
     def request_count(self):
         return self._request_counter.count()
 
-    @abc.abstractmethod
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
         """
@@ -96,7 +105,14 @@ class BaseDataConnector(metaclass=plugin.Plugin):
         :param params: Optional query parameter filters
         :return: Requested metadata
         """
-        raise NotImplementedError
+        try:
+            if self._metadata is not None:
+                return self._metadata
+
+        except AttributeError:
+            pass
+
+        raise NotImplementedError('This data connector does not provide metadata')
 
     def get_response(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
@@ -168,22 +184,6 @@ class DataSetConnector(BaseDataConnector):
         super().__init__(location, api_key, auth=auth)
 
         self._metadata = metadata
-
-    def get_metadata(self,
-                     params: typing.Optional[typing.Mapping[str, str]] = None):
-        """
-        Retrieve the metadata for this source.
-
-        The metadata must have been given when this data source was looked up in the
-        parent catalogue.
-
-        :param params: Ignored
-        :return: Data source metadata
-        """
-        if self._metadata is None:
-            raise NotImplementedError('This data connector does not provide metadata')
-
-        return self._metadata
 
     def get_data(self,
                  params: typing.Optional[typing.Mapping[str, str]] = None):
