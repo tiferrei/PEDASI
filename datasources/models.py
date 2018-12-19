@@ -229,7 +229,7 @@ class DataSource(BaseAppDataModel):
                 # Is the authentication method set?
                 auth_method = AuthMethod(self.auth_method)
                 if not auth_method:
-                    auth_method = self._determine_auth()
+                    auth_method = self.determine_auth_method(self.url, self.api_key)
 
                 # Inject function to get authenticated request
                 auth_class = REQUEST_AUTH_FUNCTIONS[auth_method]

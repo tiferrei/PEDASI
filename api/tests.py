@@ -430,7 +430,8 @@ class DataSourceApiHyperCatTest(TestCase):
             owner=cls.user,
             url=cls.test_url,
             api_key=cls.api_key,
-            plugin_name=cls.plugin_name
+            plugin_name=cls.plugin_name,
+            auth_method=models.DataSource.determine_auth_method(cls.test_url, cls.api_key)
         )
 
     def setUp(self):
