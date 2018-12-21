@@ -87,3 +87,41 @@ class ConnectorIoTUKTest(TestCase):
         self.assertGreater(len(result['data']), 0)
 
 
+class ConnectorRestApiTest(TestCase):
+    url = 'https://api.iotuk.org.uk/'
+
+    def _get_connection(self) -> BaseDataConnector:
+        return self.plugin(self.url)
+
+    def setUp(self):
+        BaseDataConnector.load_plugins('datasources/connectors')
+        self.plugin = BaseDataConnector.get_plugin('RestApiConnector')
+
+    def test_get_plugin(self):
+        self.assertIsNotNone(self.plugin)
+
+    def test_plugin_init(self):
+        connection = self._get_connection()
+
+        self.assertEqual(connection.location, self.url)
+
+    def test_plugin_type(self):
+        connection = self._get_connection()
+
+        self.assertTrue(connection.is_catalogue)
+
+    def test_plugin_dataset_get_data_query(self):
+        connection = self._get_connection()
+
+        result = connection['iotOrganisation'].get_data(params={'year': 2018})
+
+        self.assertIn('status', result)
+        self.assertEqual(result['status'], 200)
+
+        self.assertIn('results', result)
+        self.assertGreater(result['results'], 0)
+
+        self.assertIn('data', result)
+        self.assertGreater(len(result['data']), 0)
+
+
