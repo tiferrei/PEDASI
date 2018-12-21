@@ -122,22 +122,87 @@
     <hr>
 
     <div class="row">
-        <div class="col-md">
+        <div class="col-md-6">
             <h5>Query Builder</h5>
 
-            <form class="form-inline">
+            <form class="form-inline" onsubmit="return addParam();">
                 <input type="text" class="form-control mb-2 mr-sm-2" id="inputParam" placeholder="Parameter">
                 <input type="text" class="form-control mb-2 mr-sm-2" id="inputValue" placeholder="Parameter value">
 
-                <button type="submit" class="btn btn-secondary mb-2">Add to Query</button>
+                <button type="submit" class="btn btn-secondary mb-2 mr-sm-2">Add to Query</button>
+                <button type="button" class="btn btn-success mb-2" onclick="submitQuery();">Submit Query</button>
+
+                <script type="application/javascript">
+                    let params = new Map();
+
+                    function addParam(){
+                        const param = document.getElementById("inputParam").value;
+                        const value = document.getElementById("inputValue").value;
+
+                        params.set(param, value);
+
+                        renderParams();
+
+                        return false;
+                    }
+
+                    function renderParams(){
+                        const table = document.getElementById("tableParams");
+
+                        /* Clear the table */
+                        while (table.rows.length > 1) {
+                            table.deleteRow(-1);
+                        }
+
+                        params.forEach(function (value, key, map) {
+                            const row = table.insertRow();
+
+                            const cellParam = row.insertCell();
+                            const textParam = document.createTextNode(key);
+                            cellParam.appendChild(textParam);
+
+                            const cellValue = row.insertCell();
+                            const textValue = document.createTextNode(value);
+                            cellValue.appendChild(textValue);
+                        });
+                    }
+
+                    function submitQuery() {
+                        const pre = document.getElementById("queryResults");
+
+                        const encodedParams = new URLSearchParams();
+                        params.forEach(function (value, key, map) {
+                            encodedParams.set(key, value);
+                        });
+
+                        const url = "/api/datasources/{{ datasource.pk }}/data/" + "?" + encodedParams.toString();
+
+                        $.getJSON(
+                            url,
+                            function (data) {
+                                console.log(data);
+
+                                pre.textContent = JSON.stringify(data, null, 4);
+                            }
+                        )
+                    }
+                </script>
             </form>
 
-            <table class="table">
+
+            <table class="table" id="tableParams">
                 <thead>
                 <th>Parameter</th>
                 <th>Value</th>
                 </thead>
             </table>
+        </div>
+
+        <div class="col-md-6">
+            <h5>Query Results</h5>
+
+            <pre id="queryResults" style="overflow-y: auto; height: 30vh;">
+            </pre>
         </div>
     </div>
 
