@@ -123,5 +123,3 @@ class ConnectorRestApiTest(TestCase):
 
         self.assertIn('data', result)
         self.assertGreater(len(result['data']), 0)
-
-
