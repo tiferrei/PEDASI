@@ -140,6 +140,11 @@ class DataCatalogueConnector(BaseDataConnector, collections_abc.Mapping):
         :param params: Query parameters to pass to data source API
         :return: List of datasets provided by this catalogue
         """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def __getitem__(self, item: str) -> BaseDataConnector:
+        raise NotImplementedError
 
     def __iter__(self):
         return iter(self.get_datasets())
