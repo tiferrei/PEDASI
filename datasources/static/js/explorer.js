@@ -124,7 +124,6 @@ function submitQuery() {
  */
 function populateMetadata() {
     "use strict";
-    console.log("Populating metadata");
 
     const element = document.getElementById("metadata");
 
@@ -134,7 +133,6 @@ function populateMetadata() {
     }
 
     const url = getBaseURL() + "metadata/";
-    console.log(url);
 
     $.getJSON(
         url,
@@ -182,7 +180,6 @@ function populateDatasets() {
     "use strict";
 
     const url = getBaseURL() + "datasets/";
-    console.log(url);
 
     $.getJSON(
         url,
