@@ -183,37 +183,38 @@ function populateDatasets() {
 
     fetch(url).then(function (response) {
         if (response.ok) {
-            const data = response.json();
-
-            if (data.status === "success") {
-                data.data.forEach(function (item) {
-                    const row = table.insertRow();
-                    const nameCell = row.insertCell();
-                    const buttonCell = row.insertCell();
-
-                    const nameText = document.createTextNode(item);
-                    nameCell.appendChild(nameText);
-
-                    const button = document.createElement("button");
-                    button.id = "btn-" + item;
-                    button.classList.add("btn", "btn-secondary", "btn-dataset");
-                    button.addEventListener(
-                        "click",
-                        function () {
-                            selectDataset(item);
-                        }
-                    );
-                    button.textContent = "Select";
-                    buttonCell.appendChild(button);
-                });
-            }
-        } else {
-            const row = table.insertRow();
-            const nameCell = row.insertCell();
-
-            const nameText = document.createTextNode("Unable to list datasets");
-            nameCell.appendChild(nameText);
+            return response.json();
         }
+        throw new Error("Datasets request failed.");
+    }).then(function (data) {
+        if (data.status === "success") {
+            data.data.forEach(function (item) {
+                const row = table.insertRow();
+                const nameCell = row.insertCell();
+                const buttonCell = row.insertCell();
+
+                const nameText = document.createTextNode(item);
+                nameCell.appendChild(nameText);
+
+                const button = document.createElement("button");
+                button.id = "btn-" + item;
+                button.classList.add("btn", "btn-secondary", "btn-dataset");
+                button.addEventListener(
+                    "click",
+                    function () {
+                        selectDataset(item);
+                    }
+                );
+                button.textContent = "Select";
+                buttonCell.appendChild(button);
+            });
+        }
+    }).catch(function (error) {
+        const row = table.insertRow();
+        const nameCell = row.insertCell();
+
+        const nameText = document.createTextNode(error.toString());
+        nameCell.appendChild(nameText);
     });
 }
 
