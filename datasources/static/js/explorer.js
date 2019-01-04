@@ -110,12 +110,25 @@ function submitQuery() {
     const results = document.getElementById("queryResults");
     const query = getBaseURL() + "data/?" + getQueryParamString();
 
-    $.getJSON(
-        query,
-        function (data) {
+    fetch(query).then(function (response) {
+        if (response.ok) {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json();
+            } else {
+                return response.text();
+            }
+        }
+        throw new Error("Request failed.");
+    }).then(function (data) {
+        if (typeof data === "string") {
+            results.textContent = data;
+        } else {
             results.textContent = JSON.stringify(data, null, 4);
         }
-    );
+    }).catch(function (error) {
+        results.textContent = error.toString();
+    });
 }
 
 
@@ -125,27 +138,83 @@ function submitQuery() {
 function populateMetadata() {
     "use strict";
 
-    const element = document.getElementById("metadata");
+    const table = document.getElementById("metadata");
 
     /* Clear the table */
-    while (element.hasChildNodes()) {
-        element.removeChild(element.firstChild);
+    while (table.rows.length > 0) {
+        table.deleteRow();
     }
 
     const url = getBaseURL() + "metadata/";
 
-    $.getJSON(
-        url,
-        function (data) {
+    fetch(url).then(function (response) {
+        if (response.ok) {
+            return response.json();
+        }
+        throw new Error("Metadata request failed.");
+    }).then(function (data) {
+        if (data.status === "success") {
+            data.data.forEach(function (item) {
+                const row = table.insertRow();
+                const cell = row.insertCell();
+                const text = document.createTextNode(JSON.stringify(item));
+
+                cell.appendChild(text);
+            });
+        }
+    }).catch(function (error) {
+        const row = table.insertRow();
+        const cell = row.insertCell();
+        const text = document.createTextNode(error.toString());
+
+        cell.appendChild(text);
+    });
+}
+
+
+/**
+ * Query the PEDASI API for the list of data sets within the data source and render into the 'datasets' panel.
+ */
+function populateDatasets() {
+    "use strict";
+
+    const url = getBaseURL() + "datasets/";
+    const table = document.getElementById("datasets");
+
+    fetch(url).then(function (response) {
+        if (response.ok) {
+            const data = response.json();
+
             if (data.status === "success") {
                 data.data.forEach(function (item) {
-                    const p = document.createElement("p");
-                    p.textContent = JSON.stringify(item);
-                    element.appendChild(p);
+                    const row = table.insertRow();
+                    const nameCell = row.insertCell();
+                    const buttonCell = row.insertCell();
+
+                    const nameText = document.createTextNode(item);
+                    nameCell.appendChild(nameText);
+
+                    const button = document.createElement("button");
+                    button.id = "btn-" + item;
+                    button.classList.add("btn", "btn-secondary", "btn-dataset");
+                    button.addEventListener(
+                        "click",
+                        function () {
+                            selectDataset(item);
+                        }
+                    );
+                    button.textContent = "Select";
+                    buttonCell.appendChild(button);
                 });
             }
+        } else {
+            const row = table.insertRow();
+            const nameCell = row.insertCell();
+
+            const nameText = document.createTextNode("Unable to list datasets");
+            nameCell.appendChild(nameText);
         }
-    );
+    });
 }
 
 
@@ -170,44 +239,4 @@ function selectDataset(datasetId) {
     const button = document.getElementById("btn-" + selectedDataset);
     button.textContent = "Selected";
     button.setAttribute("disabled", "true");
-}
-
-
-/**
- * Query the PEDASI API for the list of data sets within the data source and render into the 'datasets' panel.
- */
-function populateDatasets() {
-    "use strict";
-
-    const url = getBaseURL() + "datasets/";
-
-    $.getJSON(
-        url,
-        function (data) {
-            if (data.status === "success") {
-                const table = document.getElementById("datasets");
-
-                data.data.forEach(function (item) {
-                    const row = table.insertRow();
-                    const nameCell = row.insertCell();
-                    const buttonCell = row.insertCell();
-
-                    const nameText = document.createTextNode(item);
-                    nameCell.appendChild(nameText);
-
-                    const button = document.createElement("button");
-                    button.id = "btn-" + item;
-                    button.classList.add("btn", "btn-secondary", "btn-dataset");
-                    button.addEventListener(
-                        "click",
-                        function () {
-                            selectDataset(item);
-                        }
-                    );
-                    button.textContent = "Select";
-                    buttonCell.appendChild(button);
-                });
-            }
-        }
-    );
 }

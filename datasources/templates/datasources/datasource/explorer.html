@@ -169,27 +169,32 @@
             <h5>Metadata</h5>
 
             <div style="overflow-y: auto; height: 30vh;">
-                <div id="metadata"></div>
+                <table id="metadata" class="table">
+                    <script type="application/javascript">
+                        document.addEventListener("DOMContentLoaded", populateMetadata);
+                    </script>
+                </table>
             </div>
 
-            <script type="application/javascript">
-                document.addEventListener("DOMContentLoaded", populateMetadata);
-            </script>
         </div>
 
-        {% if datasource.is_catalogue %}
-            <div class="col-md">
-                <h5>Datasets</h5>
+        <div class="col-md">
+            <h5>Datasets</h5>
 
-                <div style="overflow-y: auto; height: 30vh;">
-                    <table id="datasets" class="table"></table>
-                </div>
-
-                <script type="application/javascript">
-                    document.addEventListener("DOMContentLoaded", populateDatasets)
-                </script>
+            <div style="overflow-y: auto; height: 30vh;">
+                <table id="datasets" class="table">
+                    {% if datasource.is_catalogue %}
+                        <script type="application/javascript">
+                            document.addEventListener("DOMContentLoaded", populateDatasets)
+                        </script>
+                    {% else %}
+                        <tr>
+                            <td>Data source does not contain datasets.</td>
+                        </tr>
+                    {% endif %}
+                </table>
             </div>
-        {% endif %}
+        </div>
     </div>
 
     <hr>

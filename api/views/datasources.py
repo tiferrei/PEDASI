@@ -94,7 +94,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
             try:
                 return map_response(data_connector, params)
 
-            except NotImplementedError:
+            except (AttributeError, NotImplementedError):
                 data = {
                     'status': 'error',
                     'message': error_message,
