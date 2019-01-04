@@ -13,17 +13,9 @@ urlpatterns = [
          views.datasource.DataSourceDetailView.as_view(),
          name='datasource.detail'),
 
-    path('<int:pk>/query',
-         views.datasource.DataSourceQueryView.as_view(),
-         name='datasource.query'),
-
-    path('<int:pk>/metadata',
-         views.datasource.DataSourceMetadataView.as_view(),
-         name='datasource.metadata'),
-
-    path('<int:pk>/explore',
-         views.datasource.DataSourceExploreView.as_view(),
-         name='datasource.explore'),
+    path('<int:pk>/explorer',
+         views.datasource.DataSourceExplorerView.as_view(),
+         name='datasource.explorer'),
 
     path('<int:pk>/search',
          views.datasource.DataSourceDataSetSearchView.as_view(),

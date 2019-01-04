@@ -81,48 +81,9 @@ class DataSourceDataSetSearchView(HasPermissionLevelMixin, DetailView):
         return context
 
 
-# TODO are the following 3 views still used?
-class DataSourceQueryView(HasPermissionLevelMixin, DetailView):
+class DataSourceExplorerView(HasPermissionLevelMixin, DetailView):
     model = models.DataSource
-    template_name = 'datasources/datasource/query.html'
-    context_object_name = 'datasource'
-
-    permission_level = models.UserPermissionLevels.META
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        context['results'] = self.object.data_connector.get_data(
-            params={'year': 2018}
-        )
-
-        return context
-
-
-class DataSourceMetadataView(HasPermissionLevelMixin, DetailView):
-    model = models.DataSource
-    template_name = 'datasources/datasource/metadata.html'
-    context_object_name = 'datasource'
-
-    permission_level = models.UserPermissionLevels.META
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        # Using data connector context manager saves API queries
-        with self.object.data_connector as dc:
-            context['metadata'] = dc.get_metadata()
-            context['datasets'] = {
-                dataset: dc.get_metadata(dataset)
-                for dataset in dc.get_datasets()
-            }
-
-        return context
-
-
-class DataSourceExploreView(HasPermissionLevelMixin, DetailView):
-    model = models.DataSource
-    template_name = 'datasources/datasource/explore.html'
+    template_name = 'datasources/datasource/explorer.html'
     context_object_name = 'datasource'
 
     permission_level = models.UserPermissionLevels.DATA
