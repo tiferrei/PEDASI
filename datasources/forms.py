@@ -56,3 +56,9 @@ class PermissionGrantForm(forms.ModelForm):
     class Meta:
         model = models.UserPermissionLink
         fields = ['granted']
+
+
+class MetadataFieldForm(forms.ModelForm):
+    class Meta:
+        model = models.MetadataItem
+        fields = ['field', 'value']

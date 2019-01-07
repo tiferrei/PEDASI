@@ -5,7 +5,7 @@ from django.views.generic.list import ListView
 
 import requests.exceptions
 
-from datasources import models
+from datasources import forms, models
 from datasources.permissions import HasPermissionLevelMixin
 
 
@@ -29,6 +29,8 @@ class DataSourceDetailView(DetailView):
         context = super().get_context_data(**kwargs)
 
         context['has_edit_permission'] = self.request.user.is_staff or self.request.user == self.object.owner
+        if context['has_edit_permission']:
+            context['metadata_field_form'] = forms.MetadataFieldForm()
 
         try:
             context['is_catalogue'] = self.object.is_catalogue

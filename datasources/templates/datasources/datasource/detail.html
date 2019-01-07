@@ -92,16 +92,26 @@
                 <td>{{ metadata_item.value }}</td>
             </tr>
         {% endfor %}
-        {% if has_edit_permission %}
-            <form action="{% url 'datasources:datasource.detail' pk=datasource.pk %}">
-                <tr>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </form>
-        {% endif %}
         </tbody>
     </table>
+
+    {% if metadata_field_form %}
+        <form class="form">
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-3">
+                    {% bootstrap_field metadata_field_form.field layout='inline' %}
+                </div>
+                <div class="col-7">
+                    {% bootstrap_field metadata_field_form.value layout='inline' %}
+                </div>
+                <div class="col-2">
+                    <button type="submit" class="btn btn-block btn-success">Add</button>
+                </div>
+            </div>
+        </form>
+    {% endif %}
 
     <hr>
 
