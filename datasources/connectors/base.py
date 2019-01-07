@@ -17,15 +17,25 @@ from core import plugin
 
 
 @enum.unique
-class AuthMethod(enum.Enum):
+class AuthMethod(enum.IntEnum):
+    """
+    Authentication method to be used when performing a request to the external API.
+    """
+    # Does not require authentication
     NONE = -1
+
+    # Unknown - assume no authentication if a request is sent
     UNKNOWN = 0
+
+    # HTTPBasicAuth from Requests
     BASIC = 1
+
+    # Same as HTTPBasicAuth but key is already b64 encoded
     HEADER = 2
 
     @classmethod
     def choices(cls):
-        return tuple((i.name, i.value) for i in cls)
+        return tuple((i.value, i.name) for i in cls)
 
 
 class HttpHeaderAuth(requests.auth.HTTPBasicAuth):
@@ -49,6 +59,18 @@ REQUEST_AUTH_FUNCTIONS = OrderedDict([
 ])
 
 
+class RequestCounter:
+    def __init__(self, count: int = 0):
+        self._count = count
+
+    def __iadd__(self, other: int):
+        self._count += other
+        return self
+
+    def count(self):
+        return self._count
+
+
 class BaseDataConnector(metaclass=plugin.Plugin):
     """
     Base class of data connectors which provide access to data / metadata via an external API.
@@ -69,7 +91,12 @@ class BaseDataConnector(metaclass=plugin.Plugin):
         self.api_key = api_key
         self.auth = auth
 
-    @abc.abstractmethod
+        self._request_counter = RequestCounter()
+
+    @property
+    def request_count(self):
+        return self._request_counter.count()
+
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
         """
@@ -78,7 +105,14 @@ class BaseDataConnector(metaclass=plugin.Plugin):
         :param params: Optional query parameter filters
         :return: Requested metadata
         """
-        raise NotImplementedError
+        try:
+            if self._metadata is not None:
+                return self._metadata
+
+        except AttributeError:
+            pass
+
+        raise NotImplementedError('This data connector does not provide metadata')
 
     def get_response(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
@@ -92,6 +126,8 @@ class BaseDataConnector(metaclass=plugin.Plugin):
                                       params=params)
 
     def _get_auth_request(self, url, **kwargs):
+        self._request_counter += 1
+
         if self.auth is None:
             return requests.get(url, **kwargs)
 
@@ -120,6 +156,11 @@ class DataCatalogueConnector(BaseDataConnector, collections_abc.Mapping):
         :param params: Query parameters to pass to data source API
         :return: List of datasets provided by this catalogue
         """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def __getitem__(self, item: str) -> BaseDataConnector:
+        raise NotImplementedError
 
     def __iter__(self):
         return iter(self.get_datasets())
@@ -148,22 +189,6 @@ class DataSetConnector(BaseDataConnector):
         super().__init__(location, api_key, auth=auth)
 
         self._metadata = metadata
-
-    def get_metadata(self,
-                     params: typing.Optional[typing.Mapping[str, str]] = None):
-        """
-        Retrieve the metadata for this source.
-
-        The metadata must have been given when this data source was looked up in the
-        parent catalogue.
-
-        :param params: Ignored
-        :return: Data source metadata
-        """
-        if self._metadata is None:
-            raise NotImplementedError('This data connector does not provide metadata')
-
-        return self._metadata
 
     def get_data(self,
                  params: typing.Optional[typing.Mapping[str, str]] = None):

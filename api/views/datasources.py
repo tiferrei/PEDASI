@@ -77,28 +77,29 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
                                  error_message: str,
                                  dataset: str = None) -> HttpResponse:
         instance = self.get_object()
-        data_connector = instance.data_connector
 
-        # Are there any query params to pass on?
-        params = self.request.query_params
-        if not params:
-            params = None
+        with instance.data_connector as data_connector:
+            # Are there any query params to pass on?
+            params = self.request.query_params
+            if not params:
+                params = None
 
-        if dataset is not None:
-            data_connector = data_connector[dataset]
+            if dataset is not None:
+                data_connector = data_connector[dataset]
 
-        # Record this action in PROV
-        self._create_prov_entry(instance)
+            # Record this action in PROV
+            if not instance.prov_exempt:
+                self._create_prov_entry(instance)
 
-        try:
-            return map_response(data_connector, params)
+            try:
+                return map_response(data_connector, params)
 
-        except NotImplementedError:
-            data = {
-                'status': 'error',
-                'message': error_message,
-            }
-            return response.Response(data, status=400)
+            except (AttributeError, NotImplementedError):
+                data = {
+                    'status': 'error',
+                    'message': error_message,
+                }
+                return response.Response(data, status=400)
 
     @decorators.action(detail=True, permission_classes=[permissions.ProvPermission])
     def prov(self, request, pk=None):
@@ -115,7 +116,8 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         }
 
         # Record this action in PROV
-        self._create_prov_entry(instance)
+        if not instance.prov_exempt:
+            self._create_prov_entry(instance)
 
         return response.Response(data, status=200)
 

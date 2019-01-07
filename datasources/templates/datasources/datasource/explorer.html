@@ -1,0 +1,221 @@
+{% load bootstrap4 %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>PEDASI</title>
+
+    {% load static %}
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}" type="image/vnd.microsoft.icon"/>
+
+    {% bootstrap_css %}
+
+    <!-- Font Awesome - https://fontawesome.com -->
+    <link rel="stylesheet"
+          href="https://use.fontawesome.com/releases/v5.2.0/css/solid.css"
+          integrity="sha384-wnAC7ln+XN0UKdcPvJvtqIH3jOjs9pnKnq9qX68ImXvOGz2JuFoEiCjT8jyZQX2z"
+          crossorigin="anonymous">
+
+    <link rel="stylesheet"
+          href="https://use.fontawesome.com/releases/v5.2.0/css/fontawesome.css"
+          integrity="sha384-HbmWTHay9psM8qyzEKPc8odH4DsOuzdejtnr+OFtDmOcIVnhgReQ4GZBH7uwcjf6"
+          crossorigin="anonymous">
+
+    <!-- BootSwatch Journal theme -->
+    <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.1.3/journal/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-5C8TGNupopdjruopVTTrVJacBbWqxHK9eis5DB+DYE6RfqIJapdLBRUdaZBTq7mE"
+          crossorigin="anonymous">
+
+    <link rel="stylesheet" href="{% static 'css/pedasi.css' %}">
+
+    <script type="application/javascript" src="{% static 'js/explorer.js' %}"></script>
+    <script type="application/javascript">
+        setDatasourceUrl("/api/datasources/{{ datasource.pk }}/");
+    </script>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">PEDASI</a>
+        <button class="navbar-toggler" type="button"
+                data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'applications:application.list' %}">Applications</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav">
+                {% if request.user.is_authenticated %}
+                    <li class="nav-item">
+                        <p class="navbar-text">
+                            Welcome {{ request.user.username }}
+                        </p>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'profiles:profile' %}">My Profile</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'profiles:logout' %}">Logout</a>
+                    </li>
+
+                {% else %}
+                    {% if 'google-oauth2' in backends.backends %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'social:begin' 'google-oauth2' %}">Google Login</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'profiles:login' %}">Login</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-3">
+    {% bootstrap_messages %}
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ datasource.name }}
+            </li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md">
+            <h2>{{ datasource.name }}</h2>
+
+            {% if datasource.description %}
+                <p>{{ datasource.description|linebreaks }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr>
+
+    {% if datasource.is_catalogue %}
+        <div class="row">
+            <div class="col-md">
+                <div class="alert alert-warning">
+                    <span id="selectedDataset"></span>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Query Builder</h5>
+
+            <form class="form-inline" onsubmit="return addParam();">
+                <input type="text" class="form-control mb-2 mr-sm-2" id="inputParam" placeholder="Parameter">
+                <input type="text" class="form-control mb-2 mr-sm-2" id="inputValue" placeholder="Parameter value">
+
+                <button type="submit" class="btn btn-secondary mb-2 mr-sm-2">Add to Query</button>
+                <button type="button" class="btn btn-success mb-2" onclick="submitQuery();">Submit Query</button>
+            </form>
+
+            <div class="alert alert-info w-100">
+                Query URL: /api/datasources/{{ datasource.pk }}/data/?<span id="queryParamSpan"></span>
+            </div>
+
+            <table class="table" id="tableParams">
+                <thead>
+                <th>Parameter</th>
+                <th>Value</th>
+                </thead>
+            </table>
+        </div>
+
+        <div class="col-md-6">
+            <h5>Query Results</h5>
+
+            <pre id="queryResults" style="overflow-y: auto; height: 30vh;">
+            </pre>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="col-md">
+            <h5>
+                Metadata
+                <button class="btn btn-sm btn-info mt-1 mb-2"
+                        onclick="toggleExpandPanel(event)" data-target="#metadataPanel">Expand</button>
+            </h5>
+
+            <div id="metadataPanel" style="overflow-y: auto; height: 30vh;">
+                <table id="metadata" class="table">
+                    <script type="application/javascript">
+                        document.addEventListener("DOMContentLoaded", populateMetadata);
+                    </script>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="col-md">
+            <h5>
+                Datasets
+                <button class="btn btn-sm btn-info mt-1 mb-2"
+                        onclick="toggleExpandPanel(event);" data-target="#datasetsPanel">Expand</button>
+            </h5>
+
+            <div id="datasetsPanel" style="overflow-y: auto; height: 30vh;">
+                <table id="datasets" class="table">
+                    {% if datasource.is_catalogue %}
+                        <script type="application/javascript">
+                            document.addEventListener("DOMContentLoaded", populateDatasets)
+                        </script>
+                    {% else %}
+                        <tr>
+                            <td>Data source does not contain datasets.</td>
+                        </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+</div>
+
+<footer class="footer bg-primary">
+    <div class="container">
+        <p class="m-0 text-center text-white">PEDASI: IoT Observatory Demonstrator</p>
+    </div>
+</footer>
+
+{% bootstrap_javascript jquery=True %}
+
+</body>
+</html>

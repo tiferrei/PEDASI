@@ -1,5 +1,7 @@
 from django import forms
 
+from requests.exceptions import ConnectionError
+
 from . import connectors, models
 
 
@@ -15,7 +17,21 @@ class DataSourceForm(forms.ModelForm):
 
     class Meta:
         model = models.DataSource
-        exclude = ['owner']
+        exclude = ['auth_method', 'owner']
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        try:
+            cleaned_data['auth_method'] = models.DataSource.determine_auth_method(
+                cleaned_data['url'],
+                cleaned_data['api_key']
+            )
+
+        except ConnectionError:
+            raise forms.ValidationError('Could not authenticate against URL with provided API key.')
+
+        return cleaned_data
 
     def clean_encrypted_docs_url(self):
         """

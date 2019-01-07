@@ -1,3 +1,4 @@
+import contextlib
 import enum
 import json
 import typing
@@ -162,8 +163,8 @@ class DataSource(BaseAppDataModel):
 
     #: Which authentication method to use - defined in :class:`datasources.connectors.base.AuthMethod` enum
     auth_method = models.IntegerField(choices=AuthMethod.choices(),
-                                      default=AuthMethod.UNKNOWN.value,
-                                      editable=False, blank=False, null=False)
+                                      default=AuthMethod.UNKNOWN,
+                                      blank=False, null=False)
 
     #: Users - linked via a permission table - see :class:`UserPermissionLink`
     users = models.ManyToManyField(settings.AUTH_USER_MODEL,
@@ -174,16 +175,28 @@ class DataSource(BaseAppDataModel):
                                                   default=UserPermissionLevels.DATA,
                                                   blank=False, null=False)
 
+    #: Is this data source exempt from PROV tracking - e.g. utility data sources - postcode lookup
+    prov_exempt = models.BooleanField(default=False,
+                                      help_text=(
+                                          'Should this data source be exempt from PROV tracking? '
+                                          'This is useful for utility data sources which expect a large volume '
+                                          'of queries, but are not interested in analysing usage patterns. '
+                                          'Note that this only disables tracking of data accesses, '
+                                          'not of updates to the data source in PEDASI.'
+                                      ),
+                                      blank=False, null=False)
+
+    #: Total number of requests sent to the external API
+    external_requests_total = models.PositiveIntegerField(default=0,
+                                                          editable=False, blank=False, null=False)
+
+    #: Number of requests sent to the external API since the last reset - reset at midnight by cron job
+    external_requests = models.PositiveIntegerField(default=0,
+                                                    editable=False, blank=False, null=False)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data_connector = None
-
-    def save(self, **kwargs):
-        # Find out which auth method to use
-        if not self.auth_method:
-            self.auth_method = self._determine_auth().value
-
-        return super().save(**kwargs)
 
     def has_view_permission(self, user: settings.AUTH_USER_MODEL) -> bool:
         """
@@ -251,31 +264,41 @@ class DataSource(BaseAppDataModel):
         return plugin
 
     @property
+    @contextlib.contextmanager
     def data_connector(self) -> BaseDataConnector:
         """
-        Construct the data connector for this source.
+        Context manager to construct the data connector for this source.
 
         :return: Data connector instance
         """
         if self._data_connector is None:
             plugin = self.data_connector_class
 
-            # Is the authentication method set?
-            auth_method = AuthMethod(self.auth_method)
-            if not auth_method:
-                auth_method = self._determine_auth()
+            if not self.api_key:
+                self._data_connector = plugin(self.connector_string)
 
-            # Inject function to get authenticated request
-            auth_class = REQUEST_AUTH_FUNCTIONS[auth_method]
+            else:
+                # Is the authentication method set?
+                auth_method = AuthMethod(self.auth_method)
+                if not auth_method:
+                    auth_method = self.determine_auth_method(self.url, self.api_key)
 
-            if self.api_key:
+                # Inject function to get authenticated request
+                auth_class = REQUEST_AUTH_FUNCTIONS[auth_method]
+
                 self._data_connector = plugin(self.connector_string, self.api_key,
                                               auth=auth_class)
-            else:
-                self._data_connector = plugin(self.connector_string,
-                                              auth=auth_class)
 
-        return self._data_connector
+        try:
+            # Returns as context manager
+            yield self._data_connector
+
+        finally:
+            # Executed after the context manager is closed
+            self.external_requests += self._data_connector.request_count
+            self.external_requests_total += self._data_connector.request_count
+
+            self.save()
 
     @property
     def search_representation(self) -> str:
@@ -300,22 +323,30 @@ class DataSource(BaseAppDataModel):
         result = '\n'.join(lines)
         return result
 
-    def _determine_auth(self) -> AuthMethod:
+    @staticmethod
+    def determine_auth_method(url: str, api_key: str) -> AuthMethod:
         # If not using an API key - can't require auth
-        if not self.api_key:
+        if not api_key:
             return AuthMethod.NONE
 
         for auth_method_id, auth_function in REQUEST_AUTH_FUNCTIONS.items():
             try:
                 # Can we get a response using this auth method?
-                response = requests.get(self.url,
-                                        auth=auth_function(self.api_key, ''))
+                if auth_function is None:
+                    response = requests.get(url)
+
+                else:
+                    response = requests.get(url,
+                                            auth=auth_function(api_key, ''))
 
                 response.raise_for_status()
                 return auth_method_id
 
-            except (TypeError, requests.exceptions.HTTPError):
+            except requests.exceptions.HTTPError:
                 pass
+
+        # None of the attempted authentication methods was successful
+        raise requests.exceptions.ConnectionError('Could not authenticate against external API')
 
     def get_absolute_url(self):
         return reverse('datasources:datasource.detail',
