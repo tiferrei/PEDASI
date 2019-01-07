@@ -168,7 +168,8 @@
         <div class="col-md">
             <h5>
                 Metadata
-                <button class="btn btn-sm btn-info mt-1 mb-2" onclick="toggleExpandPanel(this, 'metadataPanel')">Expand</button>
+                <button class="btn btn-sm btn-info mt-1 mb-2"
+                        onclick="toggleExpandPanel(event)" data-target="#metadataPanel">Expand</button>
             </h5>
 
             <div id="metadataPanel" style="overflow-y: auto; height: 30vh;">
@@ -184,7 +185,8 @@
         <div class="col-md">
             <h5>
                 Datasets
-                <button class="btn btn-sm btn-info mt-1 mb-2" onclick="toggleExpandPanel(this, 'datasetsPanel')">Expand</button>
+                <button class="btn btn-sm btn-info mt-1 mb-2"
+                        onclick="toggleExpandPanel(event);" data-target="#datasetsPanel">Expand</button>
             </h5>
 
             <div id="datasetsPanel" style="overflow-y: auto; height: 30vh;">

@@ -243,17 +243,18 @@ function selectDataset(datasetId) {
 }
 
 
-function toggleExpandPanel(obj, panelId) {
+function toggleExpandPanel(e) {
     "use strict";
-    const panel = document.getElementById(panelId);
+    const button = e.target;
+    const panel = document.querySelector(button.dataset.target);
 
     if ("expanded" in panel.dataset) {
         panel.style.height = "30vh";
-        obj.textContent = "Expand";
+        button.textContent = "Expand";
         delete panel.dataset.expanded;
     } else {
         panel.style.height = "100%";
-        obj.textContent = "Shrink";
+        button.textContent = "Shrink";
         panel.dataset.expanded = "true";
     }
 }
