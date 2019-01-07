@@ -241,3 +241,19 @@ function selectDataset(datasetId) {
     button.textContent = "Selected";
     button.setAttribute("disabled", "true");
 }
+
+
+function toggleExpandPanel(obj, panelId) {
+    "use strict";
+    const panel = document.getElementById(panelId);
+
+    if ("expanded" in panel.dataset) {
+        panel.style.height = "30vh";
+        obj.textContent = "Expand";
+        delete panel.dataset.expanded;
+    } else {
+        panel.style.height = "100%";
+        obj.textContent = "Shrink";
+        panel.dataset.expanded = "true";
+    }
+}
