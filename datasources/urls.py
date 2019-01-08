@@ -13,6 +13,10 @@ urlpatterns = [
          views.datasource.DataSourceDetailView.as_view(),
          name='datasource.detail'),
 
+    path('<int:pk>/metadata',
+         views.datasource.DataSourceMetadataAjaxView.as_view(),
+         name='datasource.metadata'),
+
     path('<int:pk>/explorer',
          views.datasource.DataSourceExplorerView.as_view(),
          name='datasource.explorer'),

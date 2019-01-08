@@ -3,6 +3,9 @@ from django.http import HttpResponse
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
+from rest_framework.response import Response
+from rest_framework import serializers
+from rest_framework.views import APIView
 import requests.exceptions
 
 from datasources import forms, models
@@ -28,7 +31,7 @@ class DataSourceDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context['has_edit_permission'] = self.request.user.is_staff or self.request.user == self.object.owner
+        context['has_edit_permission'] = self.request.user.is_superuser or self.request.user == self.object.owner
         if context['has_edit_permission']:
             context['metadata_field_form'] = forms.MetadataFieldForm()
 
@@ -81,6 +84,47 @@ class DataSourceDataSetSearchView(HasPermissionLevelMixin, DetailView):
             pass
 
         return context
+
+
+class DataSourceMetadataAjaxView(APIView):
+    model = models.DataSource
+
+    class MetadataSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = models.MetadataItem
+            fields = '__all__'
+
+    def get_object(self, pk):
+        return self.model.objects.get(pk=pk)
+
+    def put(self, request, pk, format=None):
+        datasource = self.get_object(pk)
+        if 'datasource' not in request.data:
+            request.data['datasource'] = datasource.pk
+
+        try:
+            instance = models.MetadataItem.objects.get(
+                datasource=datasource,
+                field=request.data['field'],
+            )
+
+        except models.MetadataItem.DoesNotExist:
+            instance = None
+
+        serializer = self.MetadataSerializer(instance=instance, data=request.data)
+
+        if serializer.is_valid():
+            obj = serializer.save()
+            return Response({
+                "status": "success",
+                "data": {
+                    "datasource": datasource.pk,
+                    "field": obj.field.name,
+                    "value": obj.value,
+                }
+            })
+
+        return Response({"status": "failure"})
 
 
 class DataSourceExplorerView(HasPermissionLevelMixin, DetailView):

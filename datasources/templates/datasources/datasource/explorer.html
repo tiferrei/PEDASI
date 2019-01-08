@@ -173,6 +173,19 @@
             </h5>
 
             <div id="metadataPanel" style="overflow-y: auto; height: 30vh;">
+                <h6>Metadata from PEDASI</h6>
+
+                <table class="table">
+                    {% for metadata_item in datasource.metadata_items.all %}
+                        <tr>
+                            <td>{{ metadata_item.field.name }}</td>
+                            <td>{{ metadata_item.value }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+
+                <h6>Metadata from source</h6>
+
                 <table id="metadata" class="table">
                     <script type="application/javascript">
                         document.addEventListener("DOMContentLoaded", populateMetadata);

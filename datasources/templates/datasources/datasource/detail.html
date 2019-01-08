@@ -79,7 +79,7 @@
         </tbody>
     </table>
 
-    <table class="table">
+    <table id="tableMetadata" class="table">
         <thead>
         <th scope="col" class="w-25 border-0">Metadata key</th>
         <th scope="col" class="border-0"></th>
@@ -96,7 +96,65 @@
     </table>
 
     {% if metadata_field_form %}
-        <form class="form">
+        <script type="application/javascript">
+            function getCookie(name) {
+                const re = new RegExp("(^| )" + name + "=([^;]+)");
+                const match = document.cookie.match(re);
+                if (match) return match[2];
+            }
+
+            function putMetadata() {
+                fetch(
+                    "{% url 'datasources:datasource.metadata' pk=datasource.pk %}",
+                    {
+                        method: "PUT",
+                        body: JSON.stringify({
+                            field: document.getElementById("id_field").value,
+                            value: document.getElementById("id_value").value
+                         }),
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCookie("csrftoken")
+                        }
+                    }
+                ).then(
+                    response => response.json()
+                ).then(
+                    function (response) {
+                        const field = response.data.field;
+                        const value = response.data.value;
+
+                        const table = document.getElementById("tableMetadata");
+                        let present = false;
+
+                        for (const row of table.rows) {
+                            if (row.cells[0].textContent === field) {
+                                row.cells[1].textContent = value;
+                                present = true;
+                            }
+                        }
+
+                        if (!present) {
+                            const row = table.insertRow(-1);
+                            const cellField = row.insertCell();
+                            const cellValue = row.insertCell();
+
+                            const textField = document.createTextNode(field);
+                            const textValue = document.createTextNode(value);
+                            cellField.appendChild(textField);
+                            cellValue.appendChild(textValue);
+                        }
+                    }
+                ).catch(
+                    function (e) {
+                        console.log(e);
+                    }
+                )
+            }
+        </script>
+
+        <form id="formMetadata" class="form" action="javascript:putMetadata();">
             {% csrf_token %}
 
             <div class="row">
