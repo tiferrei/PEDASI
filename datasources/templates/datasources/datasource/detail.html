@@ -103,6 +103,16 @@
                 if (match) return match[2];
             }
 
+            function appendRow(table, values) {
+                const row = table.insertRow(-1);
+
+                for (const value of values) {
+                    const cell = row.insertCell(-1);
+                    const text = document.createTextNode(value);
+                    cell.appendChild(text);
+                }
+            }
+
             function putMetadata() {
                 fetch(
                     "{% url 'datasources:datasource.metadata' pk=datasource.pk %}",
@@ -122,10 +132,10 @@
                     response => response.json()
                 ).then(
                     function (response) {
+                        const table = document.getElementById("tableMetadata");
                         const field = response.data.field;
                         const value = response.data.value;
 
-                        const table = document.getElementById("tableMetadata");
                         let present = false;
 
                         for (const row of table.rows) {
@@ -136,14 +146,7 @@
                         }
 
                         if (!present) {
-                            const row = table.insertRow(-1);
-                            const cellField = row.insertCell();
-                            const cellValue = row.insertCell();
-
-                            const textField = document.createTextNode(field);
-                            const textValue = document.createTextNode(value);
-                            cellField.appendChild(textField);
-                            cellValue.appendChild(textValue);
+                            appendRow(table, [field, value]);
                         }
                     }
                 ).catch(
