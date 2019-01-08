@@ -3,6 +3,11 @@ from django.contrib import admin
 from . import forms, models
 
 
+@admin.register(models.MetadataField)
+class MetadataFieldAdmin(admin.ModelAdmin):
+    pass
+
+
 @admin.register(models.DataSource)
 class DataSourceAdmin(admin.ModelAdmin):
     readonly_fields = ['owner']
@@ -36,6 +41,7 @@ class DataSourceAdmin(admin.ModelAdmin):
         """
         try:
             owner = form.instance.owner
+
         except models.DataSource.owner.RelatedObjectDoesNotExist:
             form.instance.owner = request.user
 

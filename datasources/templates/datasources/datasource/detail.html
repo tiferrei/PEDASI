@@ -79,6 +79,101 @@
         </tbody>
     </table>
 
+    <table id="tableMetadata" class="table">
+        <thead>
+        <th scope="col" class="w-25 border-0">Metadata key</th>
+        <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+        {% for metadata_item in datasource.metadata_items.all %}
+            <tr>
+                <td>{{ metadata_item.field.name }}</td>
+                <td>{{ metadata_item.value }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% if metadata_field_form %}
+        <script type="application/javascript">
+            function getCookie(name) {
+                const re = new RegExp("(^| )" + name + "=([^;]+)");
+                const match = document.cookie.match(re);
+                if (match) return match[2];
+            }
+
+            function appendRow(table, values) {
+                const row = table.insertRow(-1);
+
+                for (const value of values) {
+                    const cell = row.insertCell(-1);
+                    const text = document.createTextNode(value);
+                    cell.appendChild(text);
+                }
+            }
+
+            function putMetadata() {
+                fetch(
+                    "{% url 'datasources:datasource.metadata' pk=datasource.pk %}",
+                    {
+                        method: "PUT",
+                        body: JSON.stringify({
+                            field: document.getElementById("id_field").value,
+                            value: document.getElementById("id_value").value
+                         }),
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCookie("csrftoken")
+                        }
+                    }
+                ).then(
+                    response => response.json()
+                ).then(
+                    function (response) {
+                        const table = document.getElementById("tableMetadata");
+                        const field = response.data.field;
+                        const value = response.data.value;
+
+                        let present = false;
+
+                        for (const row of table.rows) {
+                            if (row.cells[0].textContent === field) {
+                                row.cells[1].textContent = value;
+                                present = true;
+                            }
+                        }
+
+                        if (!present) {
+                            appendRow(table, [field, value]);
+                        }
+                    }
+                ).catch(
+                    function (e) {
+                        console.log(e);
+                    }
+                )
+            }
+        </script>
+
+        <form id="formMetadata" class="form" action="javascript:putMetadata();">
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-3">
+                    {% bootstrap_field metadata_field_form.field layout='inline' %}
+                </div>
+                <div class="col-7">
+                    {% bootstrap_field metadata_field_form.value layout='inline' %}
+                </div>
+                <div class="col-2">
+                    <button type="submit" class="btn btn-block btn-success">Add</button>
+                </div>
+            </div>
+        </form>
+    {% endif %}
+
     <hr>
 
     {% if is_catalogue %}

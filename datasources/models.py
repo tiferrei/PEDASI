@@ -5,6 +5,7 @@ import typing
 
 from django.conf import settings
 from django.contrib.auth.models import Group
+from django.core import validators
 from django.db import models
 from django.urls import reverse
 import requests
@@ -15,6 +16,57 @@ from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_A
 
 #: Length of request reason field - must include brief description of project
 MAX_LENGTH_REASON = 511
+
+
+class MetadataField(models.Model):
+    """
+    A metadata field that can be dynamically added to a data source.
+    """
+    #: Name of the field
+    name = models.CharField(max_length=MAX_LENGTH_NAME,
+                            unique=True,
+                            blank=False, null=False)
+
+    short_name = models.CharField(max_length=MAX_LENGTH_NAME,
+                                  validators=[
+                                      validators.RegexValidator(
+                                          '^[a-zA-Z][a-zA-Z0-9_]*\Z',
+                                          'Short name must begin with a letter and consist only of letters, numbers and underscores.',
+                                          'invalid'
+                                      )
+                                  ],
+                                  unique=True,
+                                  blank=False, null=False)
+
+    def __str__(self):
+        return self.name
+
+
+class MetadataItem(models.Model):
+    """
+    The value of the metadata field on a given data source.
+    """
+    #: The value of this metadata field
+    value = models.CharField(max_length=MAX_LENGTH_REASON,
+                             blank=True, null=False)
+
+    #: To which field does this relate?
+    field = models.ForeignKey(MetadataField,
+                              related_name='values',
+                              on_delete=models.PROTECT,
+                              blank=False, null=False)
+
+    #: To which data source does this relate?
+    datasource = models.ForeignKey('DataSource',
+                                   related_name='metadata_items',
+                                   on_delete=models.CASCADE,
+                                   blank=False, null=False)
+
+    class Meta:
+        unique_together = (('field', 'datasource'),)
+
+    def __str__(self):
+        return self.value
 
 
 @enum.unique
