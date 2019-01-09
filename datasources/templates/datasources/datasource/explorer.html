@@ -166,23 +166,28 @@
 
     <div class="row">
         <div class="col-md">
-            <h5>
+            <h5 class="mb-3">
                 Metadata
-                <button class="btn btn-sm btn-info mt-1 mb-2"
-                        onclick="toggleExpandPanel(event)" data-target="#metadataPanel">Expand</button>
+                <button class="btn btn-sm btn-default float-right"
+                        onclick="toggleExpandPanel(event)" data-target="#metadataPanel">
+                    <span class="toggle-icon-plus fas fa-plus fa-lg"></span>
+                    <span class="toggle-icon-minus fas fa-minus fa-lg" style="display: none;"></span>
+                </button>
             </h5>
 
             <div id="metadataPanel" style="overflow-y: auto; height: 30vh;">
-                <h6>Metadata from PEDASI</h6>
+                {% if datasource.metadata_items.count %}
+                    <h6>Metadata from PEDASI</h6>
 
-                <table class="table">
-                    {% for metadata_item in datasource.metadata_items.all %}
-                        <tr>
-                            <td>{{ metadata_item.field.name }}</td>
-                            <td>{{ metadata_item.value }}</td>
-                        </tr>
-                    {% endfor %}
-                </table>
+                    <table class="table">
+                        {% for metadata_item in datasource.metadata_items.all %}
+                            <tr>
+                                <td>{{ metadata_item.field.name }}</td>
+                                <td>{{ metadata_item.value }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% endif %}
 
                 <h6>Metadata from source</h6>
 
@@ -196,10 +201,13 @@
         </div>
 
         <div class="col-md">
-            <h5>
+            <h5 class="mb-3">
                 Datasets
-                <button class="btn btn-sm btn-info mt-1 mb-2"
-                        onclick="toggleExpandPanel(event);" data-target="#datasetsPanel">Expand</button>
+                <button class="btn btn-sm btn-default float-right"
+                        onclick="toggleExpandPanel(event);" data-target="#datasetsPanel">
+                    <span class="toggle-icon-plus fas fa-plus fa-lg"></span>
+                    <span class="toggle-icon-minus fas fa-minus fa-lg" style="display: none;"></span>
+                </button>
             </h5>
 
             <div id="datasetsPanel" style="overflow-y: auto; height: 30vh;">
