@@ -32,7 +32,7 @@
             {% endif %}
 
             {% if has_edit_permission %}
-                <a href="{% url 'admin:applications_application_change' application.id %}"
+                <a href="{% url 'applications:application.edit' application.id %}"
                    class="btn btn-block btn-success" role="button">Edit</a>
 
                 <a href="{% url 'admin:applications_application_delete' application.id %}"

@@ -1,4 +1,5 @@
 from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic.list import ListView
 
 from rest_framework.authtoken.models import Token
@@ -11,6 +12,31 @@ class ApplicationListView(ListView):
     model = models.Application
     template_name = 'applications/application/list.html'
     context_object_name = 'applications'
+
+
+class ApplicationCreateView(CreateView):
+    model = models.Application
+    template_name = 'applications/application/create.html'
+    context_object_name = 'application'
+
+    fields = '__all__'
+
+    def form_valid(self, form):
+        try:
+            owner = form.instance.owner
+
+        except models.Application.owner.RelatedObjectDoesNotExist:
+            form.instance.owner = self.request.user
+
+        return super().form_valid(form)
+
+
+class ApplicationUpdateView(UpdateView):
+    model = models.Application
+    template_name = 'applications/application/update.html'
+    context_object_name = 'application'
+
+    fields = '__all__'
 
 
 class ApplicationDetailView(DetailView):

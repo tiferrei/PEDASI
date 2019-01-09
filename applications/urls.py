@@ -9,9 +9,17 @@ urlpatterns = [
          views.ApplicationListView.as_view(),
          name='application.list'),
 
+    path('add',
+         views.ApplicationCreateView.as_view(),
+         name='application.add'),
+
     path('<int:pk>/',
          views.ApplicationDetailView.as_view(),
          name='application.detail'),
+
+    path('<int:pk>/edit',
+         views.ApplicationUpdateView.as_view(),
+         name='application.edit'),
 
     path('<int:pk>/manage-access',
          views.ApplicationManageAccessView.as_view(),

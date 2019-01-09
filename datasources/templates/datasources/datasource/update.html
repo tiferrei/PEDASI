@@ -14,12 +14,12 @@
                 <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}">{{ datasource.name }}</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
-                Update
+                Edit
             </li>
         </ol>
     </nav>
 
-    <h2 class="pb-3">Update Data Source</h2>
+    <h2 class="pb-3">Edit Data Source</h2>
 
     <form class="form" method="post" action="">
         {% csrf_token %}
