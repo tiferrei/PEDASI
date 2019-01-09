@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.http import HttpResponse
 from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic.list import ListView
 
 from rest_framework.response import Response
@@ -41,6 +42,31 @@ class DataSourceDetailView(DetailView):
             messages.error(self.request, 'This data source is not configured correctly.  Please notify the owner.')
 
         return context
+
+
+class DataSourceCreateView(CreateView):
+    model = models.DataSource
+    template_name = 'datasources/datasource/create.html'
+    context_object_name = 'datasource'
+
+    form_class = forms.DataSourceForm
+
+    def form_valid(self, form):
+        try:
+            owner = form.instance.owner
+
+        except models.DataSource.owner.RelatedObjectDoesNotExist:
+            form.instance.owner = self.request.user
+
+        return super().form_valid(form)
+
+
+class DataSourceUpdateView(UpdateView):
+    model = models.DataSource
+    template_name = 'datasources/datasource/update.html'
+    context_object_name = 'datasource'
+
+    form_class = forms.DataSourceForm
 
 
 class DataSourceDataSetSearchView(HasPermissionLevelMixin, DetailView):

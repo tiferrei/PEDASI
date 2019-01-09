@@ -172,7 +172,7 @@ class DataSource(BaseAppDataModel):
 
     #: The level of access that users are assumed to have without gaining explicit permission
     public_permission_level = models.IntegerField(choices=UserPermissionLevels.choices(),
-                                                  default=UserPermissionLevels.DATA,
+                                                  default=UserPermissionLevels.DATA.value,
                                                   blank=False, null=False)
 
     #: Is this data source exempt from PROV tracking - e.g. utility data sources - postcode lookup

@@ -9,6 +9,10 @@ urlpatterns = [
          views.datasource.DataSourceListView.as_view(),
          name='datasource.list'),
 
+    path('add',
+         views.datasource.DataSourceCreateView.as_view(),
+         name='datasource.add'),
+
     path('<int:pk>/',
          views.datasource.DataSourceDetailView.as_view(),
          name='datasource.detail'),

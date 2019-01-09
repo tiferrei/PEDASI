@@ -83,6 +83,9 @@ class BaseDataConnector(metaclass=plugin.Plugin):
     #: Does this data connector represent a data catalogue containing multiple datasets?
     is_catalogue = None
 
+    #: Help string to be shown when a data provider is choosing a connector
+    description = None
+
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
                  auth: typing.Optional[typing.Callable] = None,
@@ -181,6 +184,12 @@ class DataSetConnector(BaseDataConnector):
     """
     #: Does this data connector represent a data catalogue containing multiple datasets?
     is_catalogue = False
+
+    #: Help string to be shown when a data provider is choosing a connector
+    description = (
+        'This connector is the default option and should be used when accessing an API at a single endpoint '
+        'which may or may not accept query parameters.'
+    )
 
     def __init__(self, location: str,
                  api_key: typing.Optional[str] = None,
