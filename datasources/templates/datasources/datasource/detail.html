@@ -38,7 +38,7 @@
                 <a href="{% url 'datasources:datasource.access.manage' pk=datasource.pk %}"
                    class="btn btn-block btn-primary" role="button">Manage Access</a>
 
-                <a href="{% url 'admin:datasources_datasource_change' datasource.id %}"
+                <a href="{% url 'datasources:datasource.edit' datasource.id %}"
                    class="btn btn-block btn-success" role="button">Edit</a>
 
                 <a href="{% url 'admin:datasources_datasource_delete' datasource.id %}"

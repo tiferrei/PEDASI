@@ -17,6 +17,10 @@ urlpatterns = [
          views.datasource.DataSourceDetailView.as_view(),
          name='datasource.detail'),
 
+    path('<int:pk>/edit',
+         views.datasource.DataSourceUpdateView.as_view(),
+         name='datasource.edit'),
+
     path('<int:pk>/metadata',
          views.datasource.DataSourceMetadataAjaxView.as_view(),
          name='datasource.metadata'),

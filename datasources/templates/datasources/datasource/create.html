@@ -11,7 +11,7 @@
                 <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
-                Add New Data Source
+                New Data Source
             </li>
         </ol>
     </nav>
@@ -35,7 +35,7 @@
             </div>
 
             <div class="col-sm-9">
-                <div id="encryptedDocsToggle" style="display: none;">
+                <div id="encryptedDocsToggle">
                     {% bootstrap_field form.encrypted_docs_url %}
                 </div>
             </div>
@@ -44,13 +44,17 @@
                 const checkboxEncrypted = document.getElementById("id_is_encrypted");
                 const divEncryptedToggle = document.getElementById("encryptedDocsToggle");
 
-                checkboxEncrypted.addEventListener("change", function () {
-                    if (this.checked) {
+                function setupEncryptedToggle() {
+                    if (checkboxEncrypted.checked) {
                         divEncryptedToggle.style.display = "block";
                     } else {
                         divEncryptedToggle.style.display = "none";
                     }
-                })
+                }
+
+                checkboxEncrypted.addEventListener("change", setupEncryptedToggle);
+
+                setupEncryptedToggle();
             </script>
         </div>
 
