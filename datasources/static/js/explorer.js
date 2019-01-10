@@ -246,9 +246,15 @@ function selectDataset(datasetId) {
 function toggleExpandPanel(e) {
     "use strict";
     const button = e.target;
+    const panel = document.querySelector(button.dataset.target);
+
+    if (panel === null) {
+        // Happens in MS Edge when a span receives the click event before the button it belongs to
+        return;
+    }
+
     const iconPlus = button.querySelector(".toggle-icon-plus");
     const iconMinus = button.querySelector(".toggle-icon-minus");
-    const panel = document.querySelector(button.dataset.target);
 
     if ("expanded" in panel.dataset) {
         panel.style.height = "30vh";
