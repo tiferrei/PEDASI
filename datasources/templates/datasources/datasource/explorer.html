@@ -135,7 +135,16 @@
             <h5>Query Builder</h5>
 
             <form class="form-inline" onsubmit="return addParam();">
-                <input type="text" class="form-control mb-2 mr-sm-2" id="inputParam" placeholder="Parameter">
+                {% if data_query_params %}
+                    <select class="form-control mb-2 mr-sm-2" id="inputParam">
+                        {% for param in data_query_params %}
+                            <option value="{{ param }}">{{ param }}</option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <input type="text" class="form-control mb-2 mr-sm-2" id="inputParam" placeholder="Parameter">
+                {% endif %}
+
                 <input type="text" class="form-control mb-2 mr-sm-2" id="inputValue" placeholder="Parameter value">
 
                 <button type="submit" class="btn btn-secondary mb-2 mr-sm-2">Add to Query</button>

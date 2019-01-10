@@ -113,11 +113,11 @@
                 }
             }
 
-            function putMetadata() {
+            function postMetadata() {
                 fetch(
                     "{% url 'datasources:datasource.metadata' pk=datasource.pk %}",
                     {
-                        method: "PUT",
+                        method: "POST",
                         body: JSON.stringify({
                             field: document.getElementById("id_field").value,
                             value: document.getElementById("id_value").value
@@ -132,20 +132,11 @@
                     response => response.json()
                 ).then(
                     function (response) {
-                        const table = document.getElementById("tableMetadata");
-                        const field = response.data.field;
-                        const value = response.data.value;
+                        if (response.status === "success") {
+                            const table = document.getElementById("tableMetadata");
+                            const field = response.data.field;
+                            const value = response.data.value;
 
-                        let present = false;
-
-                        for (const row of table.rows) {
-                            if (row.cells[0].textContent === field) {
-                                row.cells[1].textContent = value;
-                                present = true;
-                            }
-                        }
-
-                        if (!present) {
                             appendRow(table, [field, value]);
                         }
                     }
@@ -157,7 +148,7 @@
             }
         </script>
 
-        <form id="formMetadata" class="form" action="javascript:putMetadata();">
+        <form id="formMetadata" class="form" action="javascript:postMetadata();">
             {% csrf_token %}
 
             <div class="row">

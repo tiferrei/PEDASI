@@ -63,7 +63,7 @@ class MetadataItem(models.Model):
                                    blank=False, null=False)
 
     class Meta:
-        unique_together = (('field', 'datasource'),)
+        unique_together = (('field', 'datasource', 'value'),)
 
     def __str__(self):
         return self.value
