@@ -11,7 +11,7 @@ from django.urls import reverse
 import requests
 import requests.exceptions
 
-from core.models import BaseAppDataModel, MAX_LENGTH_API_KEY, MAX_LENGTH_NAME, MAX_LENGTH_PATH
+from core.models import BaseAppDataModel, MAX_LENGTH_API_KEY, MAX_LENGTH_NAME, MAX_LENGTH_PATH, SoftDeletionManager
 from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_AUTH_FUNCTIONS
 
 #: Length of request reason field - must include brief description of project
@@ -132,6 +132,8 @@ class DataSource(BaseAppDataModel):
     * Track provenance of the data source itself
     * Track provenance of data accesses
     """
+    objects = SoftDeletionManager()
+
     #: User who has responsibility for this data source
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               limit_choices_to={
@@ -194,9 +196,20 @@ class DataSource(BaseAppDataModel):
     external_requests = models.PositiveIntegerField(default=0,
                                                     editable=False, blank=False, null=False)
 
+    #: Has this object been soft deleted?
+    is_deleted = models.BooleanField(default=False,
+                                     editable=False, blank=False, null=False)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data_connector = None
+
+    def delete(self, using=None, keep_parents=False):
+        """
+        Soft delete this object.
+        """
+        self.is_deleted = True
+        self.save()
 
     def has_view_permission(self, user: settings.AUTH_USER_MODEL) -> bool:
         """

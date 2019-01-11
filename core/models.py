@@ -15,6 +15,14 @@ MAX_LENGTH_API_KEY = 127
 MAX_LENGTH_PATH = 255
 
 
+class SoftDeletionManager(models.Manager):
+    """
+    Manager for soft-deletable objects.  Filters out objects which have `is_deleted` set.
+    """
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+
+
 class BaseAppDataModel(models.Model):
     """
     The parent class of the Application and DataSource models - providing common functionality.

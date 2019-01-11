@@ -1,8 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpResponse
+from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
 from rest_framework.response import Response
@@ -68,6 +69,14 @@ class DataSourceUpdateView(UpdateView):
     context_object_name = 'datasource'
 
     form_class = forms.DataSourceForm
+
+
+class DataSourceDeleteView(DeleteView):
+    model = models.DataSource
+    template_name = 'datasources/datasource/delete.html'
+    context_object_name = 'datasource'
+
+    success_url = reverse_lazy('datasources:datasource.list')
 
 
 class DataSourceDataSetSearchView(HasPermissionLevelMixin, DetailView):
