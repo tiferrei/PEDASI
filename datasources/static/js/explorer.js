@@ -6,13 +6,25 @@ let datasourceUrl = null;
 let selectedDataset = null;
 
 
+/**
+ * Set the root URL at which the data source may be accessed in the PEDASI API.
+ *
+ * @param url PEDASI API data source URL
+ */
 function setDatasourceUrl(url) {
     "use strict";
     datasourceUrl = url;
 }
 
 
+/**
+ * Append a row of text cells to a table.
+ *
+ * @param table Table to which row should be appended
+ * @param values Iterable of strings to append as new cells
+ */
 function tableAppendRow(table, values) {
+    "use strict";
     const row = table.insertRow(-1);
 
     for (const value of values) {
@@ -20,6 +32,8 @@ function tableAppendRow(table, values) {
         const text = document.createTextNode(value);
         cell.appendChild(text);
     }
+
+    return row;
 }
 
 
@@ -53,15 +67,7 @@ function renderParams() {
     }
 
     params.forEach(function (value, key, map) {
-        const row = table.insertRow();
-
-        const cellParam = row.insertCell();
-        const textParam = document.createTextNode(key);
-        cellParam.appendChild(textParam);
-
-        const cellValue = row.insertCell();
-        const textValue = document.createTextNode(value);
-        cellValue.appendChild(textValue);
+        tableAppendRow(table, [key, value]);
     });
 }
 
@@ -178,32 +184,23 @@ function populateMetadata() {
 
     /* Clear the table */
     while (table.rows.length > 0) {
-        table.deleteRow();
+        table.deleteRow(-1);
     }
 
     const url = getBaseURL() + "metadata/";
 
-    fetch(url).then(function (response) {
-        if (response.ok) {
-            return response.json();
-        }
-        throw new Error("Metadata request failed.");
-    }).then(function (data) {
+    fetch(url).then(
+        response => response.json()
+    ).then(function (data) {
         if (data.status === "success") {
             data.data.forEach(function (item) {
-                const row = table.insertRow();
-                const cell = row.insertCell();
-                const text = document.createTextNode(JSON.stringify(item));
-
-                cell.appendChild(text);
+                tableAppendRow(table, [JSON.stringify(item)]);
             });
+        } else if (data.message) {
+            tableAppendRow(table, [data.message]);
         }
-    }).catch(function (error) {
-        const row = table.insertRow();
-        const cell = row.insertCell();
-        const text = document.createTextNode(error.toString());
-
-        cell.appendChild(text);
+    }).catch(function (e) {
+        tableAppendRow(table, [e.toString()]);
     });
 }
 
@@ -213,44 +210,42 @@ function populateMetadata() {
  */
 function populateDatasets() {
     "use strict";
+    function rowAppendButton (row, item) {
+        const buttonCell = row.insertCell();
+        const button = document.createElement("button");
+
+        button.id = "btn-" + item;
+        button.classList.add("btn", "btn-secondary", "btn-dataset");
+        button.addEventListener(
+            "click",
+            function () {
+                selectDataset(item);
+            }
+        );
+        button.textContent = "Select";
+        buttonCell.appendChild(button);
+        row.appendChild(buttonCell);
+    }
 
     const url = getBaseURL() + "datasets/";
     const table = document.getElementById("datasets");
 
-    fetch(url).then(function (response) {
-        if (response.ok) {
-            return response.json();
-        }
-        throw new Error("Datasets request failed.");
-    }).then(function (data) {
+    fetch(url).then(
+        response => response.json()
+    ).then(function (data) {
         if (data.status === "success") {
+            const row = tableAppendRow(table, ["Root"]);
+            rowAppendButton(row, null);
+
             data.data.forEach(function (item) {
-                const row = table.insertRow();
-                const nameCell = row.insertCell();
-                const buttonCell = row.insertCell();
-
-                const nameText = document.createTextNode(item);
-                nameCell.appendChild(nameText);
-
-                const button = document.createElement("button");
-                button.id = "btn-" + item;
-                button.classList.add("btn", "btn-secondary", "btn-dataset");
-                button.addEventListener(
-                    "click",
-                    function () {
-                        selectDataset(item);
-                    }
-                );
-                button.textContent = "Select";
-                buttonCell.appendChild(button);
+                const row = tableAppendRow(table, [item]);
+                rowAppendButton(row, item)
             });
+        } else if (data.message) {
+            tableAppendRow(table, [data.message]);
         }
-    }).catch(function (error) {
-        const row = table.insertRow();
-        const nameCell = row.insertCell();
-
-        const nameText = document.createTextNode(error.toString());
-        nameCell.appendChild(nameText);
+    }).catch(function (e) {
+        tableAppendRow(table, [e.toString()]);
     });
 }
 
@@ -263,7 +258,7 @@ function populateDatasets() {
 function selectDataset(datasetId) {
     "use strict";
     selectedDataset = datasetId;
-    document.getElementById("selectedDataset").textContent = selectedDataset;
+    document.getElementById("selectedDataset").textContent = selectedDataset === null ? "None" : selectedDataset;
 
     populateMetadata();
 
