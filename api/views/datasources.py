@@ -17,7 +17,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
     /api/datasources/
       List all :class:`DataSource`s
 
-    /api/datasource/<int>/
+    /api/datasources/<int>/
       Retrieve a single :class:`DataSource`
 
     /api/datasources/<int>/prov/

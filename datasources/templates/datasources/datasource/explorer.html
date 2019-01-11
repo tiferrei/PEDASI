@@ -127,7 +127,8 @@
         <div class="row">
             <div class="col-md">
                 <div class="alert alert-warning">
-                    <span id="selectedDataset"></span>
+                    <h5>Active data set</h5>
+                    <span id="selectedDataset">None</span>
                 </div>
             </div>
         </div>
@@ -138,7 +139,16 @@
             <h5>Query Builder</h5>
 
             <form class="form-inline" onsubmit="return addParam();">
-                <input type="text" class="form-control mb-2 mr-sm-2" id="inputParam" placeholder="Parameter">
+                {% if data_query_params %}
+                    <select class="form-control mb-2 mr-sm-2" id="inputParam">
+                        {% for param in data_query_params %}
+                            <option value="{{ param }}">{{ param }}</option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <input type="text" class="form-control mb-2 mr-sm-2" id="inputParam" placeholder="Parameter">
+                {% endif %}
+
                 <input type="text" class="form-control mb-2 mr-sm-2" id="inputValue" placeholder="Parameter value">
 
                 <button type="submit" class="btn btn-secondary mb-2 mr-sm-2">Add to Query</button>
@@ -169,22 +179,22 @@
 
     <div class="row">
         <div class="col-md">
-            <h5>
+            <h5 class="mb-3">
                 Metadata
-                <button class="btn btn-sm btn-info mt-1 mb-2"
-                        onclick="toggleExpandPanel(event)" data-target="#metadataPanel">Expand</button>
+                <button class="btn btn-sm btn-default float-right"
+                        onclick="toggleExpandPanel(event)" data-target="#metadataPanel">
+                    <span class="toggle-icon-plus fas fa-plus fa-lg" style="pointer-events: none;"></span>
+                    <span class="toggle-icon-minus fas fa-minus fa-lg" style="display: none; pointer-events: none;"></span>
+                </button>
             </h5>
 
             <div id="metadataPanel" style="overflow-y: auto; height: 30vh;">
                 <h6>Metadata from PEDASI</h6>
 
-                <table class="table">
-                    {% for metadata_item in datasource.metadata_items.all %}
-                        <tr>
-                            <td>{{ metadata_item.field.name }}</td>
-                            <td>{{ metadata_item.value }}</td>
-                        </tr>
-                    {% endfor %}
+                <table id="metadataInternal" class="table">
+                    <script type="application/javascript">
+                        document.addEventListener("DOMContentLoaded", populateMetadataInternal);
+                    </script>
                 </table>
 
                 <h6>Metadata from source</h6>
@@ -199,23 +209,20 @@
         </div>
 
         <div class="col-md">
-            <h5>
+            <h5 class="mb-3">
                 Datasets
-                <button class="btn btn-sm btn-info mt-1 mb-2"
-                        onclick="toggleExpandPanel(event);" data-target="#datasetsPanel">Expand</button>
+                <button class="btn btn-sm btn-default float-right"
+                        onclick="toggleExpandPanel(event);" data-target="#datasetsPanel">
+                    <span class="toggle-icon-plus fas fa-plus fa-lg" style="pointer-events: none;"></span>
+                    <span class="toggle-icon-minus fas fa-minus fa-lg" style="display: none; pointer-events: none;"></span>
+                </button>
             </h5>
 
             <div id="datasetsPanel" style="overflow-y: auto; height: 30vh;">
                 <table id="datasets" class="table">
-                    {% if datasource.is_catalogue %}
-                        <script type="application/javascript">
-                            document.addEventListener("DOMContentLoaded", populateDatasets)
-                        </script>
-                    {% else %}
-                        <tr>
-                            <td>Data source does not contain datasets.</td>
-                        </tr>
-                    {% endif %}
+                    <script type="application/javascript">
+                        document.addEventListener("DOMContentLoaded", populateDatasets)
+                    </script>
                 </table>
             </div>
         </div>

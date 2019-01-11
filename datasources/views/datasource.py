@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpResponse
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView
@@ -112,45 +113,67 @@ class DataSourceDataSetSearchView(HasPermissionLevelMixin, DetailView):
         return context
 
 
-class DataSourceMetadataAjaxView(APIView):
+class DataSourceMetadataAjaxView(UserPassesTestMixin, APIView):
     model = models.DataSource
+
+    # Don't redirect to login page if unauthorised
+    raise_exception = True
 
     class MetadataSerializer(serializers.ModelSerializer):
         class Meta:
             model = models.MetadataItem
             fields = '__all__'
 
+    def test_func(self) -> bool:
+        return self.get_object(pk=self.kwargs['pk']).has_edit_permission(self.request.user)
+
     def get_object(self, pk):
         return self.model.objects.get(pk=pk)
 
-    def put(self, request, pk, format=None):
+    def post(self, request, pk, format=None):
+        """
+        Create a new MetadataItem associated with this DataSource.
+        """
         datasource = self.get_object(pk)
         if 'datasource' not in request.data:
             request.data['datasource'] = datasource.pk
 
-        try:
-            instance = models.MetadataItem.objects.get(
-                datasource=datasource,
-                field=request.data['field'],
-            )
-
-        except models.MetadataItem.DoesNotExist:
-            instance = None
-
-        serializer = self.MetadataSerializer(instance=instance, data=request.data)
+        serializer = self.MetadataSerializer(data=request.data)
 
         if serializer.is_valid():
             obj = serializer.save()
+
             return Response({
-                "status": "success",
-                "data": {
-                    "datasource": datasource.pk,
-                    "field": obj.field.name,
-                    "value": obj.value,
+                'status': 'success',
+                'data': {
+                    'datasource': datasource.pk,
+                    'field': obj.field.name,
+                    'field_short': obj.field.short_name,
+                    'value': obj.value,
                 }
             })
 
-        return Response({"status": "failure"})
+        return Response({'status': 'failure'}, status=400)
+
+    def delete(self, request, pk, format=None):
+        """
+        Delete a MetadataItem associated with this DataSource.
+        """
+        datasource = self.get_object(pk)
+        if 'datasource' not in request.data:
+            request.data['datasource'] = datasource.pk
+
+        metadata_item = models.MetadataItem.objects.get(
+            datasource=datasource,
+            field__short_name=self.request.data['field'],
+            value=self.request.data['value']
+        )
+
+        metadata_item.delete()
+
+        return Response({
+            'status': 'success'
+        })
 
 
 class DataSourceExplorerView(HasPermissionLevelMixin, DetailView):
@@ -159,3 +182,12 @@ class DataSourceExplorerView(HasPermissionLevelMixin, DetailView):
     context_object_name = 'datasource'
 
     permission_level = models.UserPermissionLevels.DATA
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+
+        context['data_query_params'] = self.object.metadata_items.filter(
+            field__short_name='data_query_param'
+        ).values_list('value', flat=True)
+
+        return context
