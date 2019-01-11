@@ -211,7 +211,7 @@ function populateMetadata() {
 function populateDatasets() {
     "use strict";
     function rowAppendButton (row, item) {
-        const buttonCell = row.insertCell();
+        const buttonCell = row.insertCell(-1);
         const button = document.createElement("button");
 
         button.id = "btn-" + item;

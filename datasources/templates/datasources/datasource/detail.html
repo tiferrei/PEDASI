@@ -79,91 +79,157 @@
         </tbody>
     </table>
 
-    <table id="tableMetadata" class="table">
-        <thead>
-        <th scope="col" class="w-25 border-0">Metadata key</th>
-        <th scope="col" class="border-0"></th>
-        </thead>
+    <div class="card">
+        <div class="card-header" data-toggle="collapse" data-target="#collapseMetadata">
+            <h6>Metadata</h6>
+        </div>
 
-        <tbody>
-        {% for metadata_item in datasource.metadata_items.all %}
-            <tr>
-                <td>{{ metadata_item.field.name }}</td>
-                <td>{{ metadata_item.value }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+        <div id="collapseMetadata" class="card-body collapse show">
+            <table id="tableMetadata" class="table">
+                <thead>
+                <th scope="col" class="w-25 border-0"></th>
+                <th scope="col" class="border-0"></th>
+                <th scope="col" class="w-25 border-0"></th>
+                </thead>
 
-    {% if metadata_field_form %}
-        <script type="application/javascript">
-            function getCookie(name) {
-                const re = new RegExp("(^| )" + name + "=([^;]+)");
-                const match = document.cookie.match(re);
-                if (match) return match[2];
-            }
+                <tbody>
+                {% for metadata_item in datasource.metadata_items.all %}
+                    <tr id="metadata-row-{{ metadata_item.field.short_name }}-{{ metadata_item.value }}">
+                        <td>{{ metadata_item.field.name }}</td>
+                        <td>{{ metadata_item.value }}</td>
+                        <td>
+                            <button role="button"
+                                    onclick="deleteMetadata('{{ metadata_item.field.short_name }}','{{ metadata_item.value }}')"
+                                    class="btn btn-sm btn-danger float-right">Delete</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
 
-            function appendRow(table, values) {
-                const row = table.insertRow(-1);
+            {% if metadata_field_form %}
+                <script type="application/javascript">
+                    function getCookie(name) {
+                        const re = new RegExp("(^| )" + name + "=([^;]+)");
+                        const match = document.cookie.match(re);
+                        if (match) return match[2];
+                    }
 
-                for (const value of values) {
-                    const cell = row.insertCell(-1);
-                    const text = document.createTextNode(value);
-                    cell.appendChild(text);
-                }
-            }
-
-            function postMetadata() {
-                fetch(
-                    "{% url 'datasources:datasource.metadata' pk=datasource.pk %}",
-                    {
-                        method: "POST",
-                        body: JSON.stringify({
-                            field: document.getElementById("id_field").value,
-                            value: document.getElementById("id_value").value
-                         }),
-                        headers: {
-                            "Accept": "application/json",
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": getCookie("csrftoken")
+                    function tableAppendRow(table, values, id=null) {
+                        const row = table.insertRow(-1);
+                        if (id !== null) {
+                            row.id = id;
                         }
-                    }
-                ).then(
-                    response => response.json()
-                ).then(
-                    function (response) {
-                        if (response.status === "success") {
-                            const table = document.getElementById("tableMetadata");
-                            const field = response.data.field;
-                            const value = response.data.value;
 
-                            appendRow(table, [field, value]);
+                        for (const value of values) {
+                            const cell = row.insertCell(-1);
+                            const text = document.createTextNode(value);
+                            cell.appendChild(text);
                         }
-                    }
-                ).catch(
-                    function (e) {
-                        console.log(e);
-                    }
-                )
-            }
-        </script>
 
-        <form id="formMetadata" class="form" action="javascript:postMetadata();">
-            {% csrf_token %}
+                        return row;
+                    }
 
-            <div class="row">
-                <div class="col-3">
-                    {% bootstrap_field metadata_field_form.field layout='inline' %}
-                </div>
-                <div class="col-7">
-                    {% bootstrap_field metadata_field_form.value layout='inline' %}
-                </div>
-                <div class="col-2">
-                    <button type="submit" class="btn btn-block btn-success">Add</button>
-                </div>
-            </div>
-        </form>
-    {% endif %}
+                    function postMetadata() {
+                        fetch(
+                            "{% url 'datasources:datasource.metadata' pk=datasource.pk %}",
+                            {
+                                method: "POST",
+                                body: JSON.stringify({
+                                    field: document.getElementById("id_field").value,
+                                    value: document.getElementById("id_value").value
+                                }),
+                                headers: {
+                                    "Accept": "application/json",
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": getCookie("csrftoken")
+                                }
+                            }
+                        ).then(
+                            response => response.json()
+                        ).then(
+                            function (response) {
+                                if (response.status === "success") {
+                                    const table = document.getElementById("tableMetadata");
+                                    const field = response.data.field;
+                                    const value = response.data.value;
+
+                                    const row = tableAppendRow(
+                                        table,
+                                        [field, value],
+                                        'metadata-row-' + response.data.field_short + '-' + value
+                                    );
+
+                                    const buttonCell = row.insertCell(-1);
+                                    const button = document.createElement("button");
+
+                                    button.id = "btn-" + field + "-" + value;
+                                    button.classList.add("btn", "btn-sm", "btn-danger", "float-right");
+                                    button.addEventListener(
+                                        "click",
+                                        function () {
+                                            deleteMetadata(field, value);
+                                        }
+                                    );
+                                    button.textContent = "Delete";
+                                    buttonCell.appendChild(button);
+                                    row.appendChild(buttonCell);
+                                }
+                            }
+                        ).catch(
+                            function (e) {
+                                console.log(e);
+                            }
+                        )
+                    }
+
+                    function deleteMetadata(field, value) {
+                        fetch(
+                            "{% url 'datasources:datasource.metadata' pk=datasource.pk %}",
+                            {
+                                method: "DELETE",
+                                body: JSON.stringify({
+                                    field: field,
+                                    value: value
+                                }),
+                                headers: {
+                                    "Accept": "application/json",
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": getCookie("csrftoken")
+                                }
+                            }
+                        ).then(
+                            response => response.json()
+                        ).then(function (response) {
+                            console.log(response);
+
+                            if (response.status === "success") {
+                                const row = document.getElementById("metadata-row-" + field + "-" + value);
+                                row.parentNode.removeChild(row);
+                            }
+
+                        })
+                    }
+                </script>
+
+                <form id="formMetadata" class="form" action="javascript:postMetadata();">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-3">
+                            {% bootstrap_field metadata_field_form.field layout='inline' %}
+                        </div>
+                        <div class="col-6">
+                            {% bootstrap_field metadata_field_form.value layout='inline' %}
+                        </div>
+                        <div class="col-3">
+                            <button type="submit" class="btn btn-block btn-success">Add</button>
+                        </div>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
 
     <hr>
 

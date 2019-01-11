@@ -98,6 +98,9 @@ class DataSourceMetadataAjaxView(APIView):
         return self.model.objects.get(pk=pk)
 
     def post(self, request, pk, format=None):
+        """
+        Create a new MetadataItem associated with this DataSource.
+        """
         datasource = self.get_object(pk)
         if 'datasource' not in request.data:
             request.data['datasource'] = datasource.pk
@@ -112,11 +115,32 @@ class DataSourceMetadataAjaxView(APIView):
                 'data': {
                     'datasource': datasource.pk,
                     'field': obj.field.name,
+                    'field_short': obj.field.short_name,
                     'value': obj.value,
                 }
             })
 
         return Response({'status': 'failure'}, status=400)
+
+    def delete(self, request, pk, format=None):
+        """
+        Delete a MetadataItem associated with this DataSource.
+        """
+        datasource = self.get_object(pk)
+        if 'datasource' not in request.data:
+            request.data['datasource'] = datasource.pk
+
+        metadata_item = models.MetadataItem.objects.get(
+            datasource=datasource,
+            field__short_name=self.request.data['field'],
+            value=self.request.data['value']
+        )
+
+        metadata_item.delete()
+
+        return Response({
+            'status': 'success'
+        })
 
 
 class DataSourceExplorerView(HasPermissionLevelMixin, DetailView):
