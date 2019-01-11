@@ -12,6 +12,17 @@ function setDatasourceUrl(url) {
 }
 
 
+function tableAppendRow(table, values) {
+    const row = table.insertRow(-1);
+
+    for (const value of values) {
+        const cell = row.insertCell(-1);
+        const text = document.createTextNode(value);
+        cell.appendChild(text);
+    }
+}
+
+
 /**
  * Get the base URL to use for requests to PEDASI API.
  *
@@ -128,6 +139,31 @@ function submitQuery() {
         }
     }).catch(function (error) {
         results.textContent = error.toString();
+    });
+}
+
+
+/**
+ * Query the PEDASI API for data source internal metadata and render it into the 'metadataInternal' panel.
+ */
+function populateMetadataInternal() {
+    "use strict";
+
+    const table = document.getElementById("metadataInternal");
+
+    const url = getBaseURL();
+
+    fetch(url).then(function (response) {
+        if (response.ok) {
+            return response.json();
+        }
+        throw new Error("Internal metadata request failed.");
+    }).then(function (data) {
+        data.metadata_items.forEach(function (item) {
+            tableAppendRow(table, [item.field.name, item.value]);
+        });
+    }).catch(function (e) {
+        tableAppendRow(table, e.toString());
     });
 }
 
