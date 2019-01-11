@@ -21,6 +21,10 @@ urlpatterns = [
          views.ApplicationUpdateView.as_view(),
          name='application.edit'),
 
+    path('<int:pk>/delete',
+         views.ApplicationDeleteView.as_view(),
+         name='application.delete'),
+
     path('<int:pk>/manage-access',
          views.ApplicationManageAccessView.as_view(),
          name='application.manage-access'),

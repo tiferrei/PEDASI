@@ -1,5 +1,6 @@
+from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
 from rest_framework.authtoken.models import Token
@@ -37,6 +38,14 @@ class ApplicationUpdateView(UpdateView):
     context_object_name = 'application'
 
     fields = '__all__'
+
+
+class ApplicationDeleteView(DeleteView):
+    model = models.Application
+    template_name = 'applications/application/delete.html'
+    context_object_name = 'application'
+
+    success_url = reverse_lazy('applications:application.list')
 
 
 class ApplicationDetailView(DetailView):

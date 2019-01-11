@@ -10,8 +10,11 @@
             <li class="breadcrumb-item" aria-current="page">
                 <a href="{% url 'applications:application.list' %}">Applications</a>
             </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'applications:application.detail' pk=application.pk %}">{{ application.name }}</a>
+            </li>
             <li class="breadcrumb-item active" aria-current="page">
-                {{ application.name }}
+                Delete
             </li>
         </ol>
     </nav>
@@ -22,21 +25,6 @@
 
             {% if application.description %}
                 {{ application.description|linebreaks }}
-            {% endif %}
-        </div>
-
-        <div class="col-md-2 col-sm-4">
-            {% if application.access_control %}
-                <a href="{% url 'applications:application.manage-access' pk=application.pk %}"
-                   class="btn btn-block btn-primary" role="button">Manage Access</a>
-            {% endif %}
-
-            {% if has_edit_permission %}
-                <a href="{% url 'applications:application.edit' pk=application.pk %}"
-                   class="btn btn-block btn-success" role="button">Edit</a>
-
-                <a href="{% url 'applications:application.delete' pk=application.pk %}"
-                   class="btn btn-block btn-danger" role="button">Delete</a>
             {% endif %}
         </div>
     </div>
@@ -67,4 +55,16 @@
         </tbody>
     </table>
 
+    <div class="alert alert-danger">
+        <p><b>Are you sure you want to delete this application?</b></p>
+
+        <form class="form" method="post">
+            {% csrf_token %}
+
+            <input type="submit" role="button" class="btn btn-danger" value="Delete">
+
+            <a role="button" class="btn btn-info"
+               href="{% url 'applications:application.detail' pk=application.pk %}">Cancel</a>
+        </form>
+    </div>
 {% endblock %}
