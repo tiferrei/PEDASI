@@ -233,6 +233,15 @@ class DataSource(BaseAppDataModel):
 
         return permission.granted >= level
 
+    def has_edit_permission(self, user: settings.AUTH_USER_MODEL) -> bool:
+        """
+        Does a given user have permission to edit this data source?
+
+        :param user: User to check
+        :return: User has permission to edit?
+        """
+        return user.is_superuser or user == self.owner
+
     @property
     def is_catalogue(self) -> bool:
         return self.data_connector_class.is_catalogue

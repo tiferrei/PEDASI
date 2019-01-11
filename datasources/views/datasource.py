@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpResponse
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
@@ -86,13 +87,19 @@ class DataSourceDataSetSearchView(HasPermissionLevelMixin, DetailView):
         return context
 
 
-class DataSourceMetadataAjaxView(APIView):
+class DataSourceMetadataAjaxView(UserPassesTestMixin, APIView):
     model = models.DataSource
+
+    # Don't redirect to login page if unauthorised
+    raise_exception = True
 
     class MetadataSerializer(serializers.ModelSerializer):
         class Meta:
             model = models.MetadataItem
             fields = '__all__'
+
+    def test_func(self) -> bool:
+        return self.get_object(pk=self.kwargs['pk']).has_edit_permission(self.request.user)
 
     def get_object(self, pk):
         return self.model.objects.get(pk=pk)
