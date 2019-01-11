@@ -7,7 +7,7 @@ from django.utils.text import slugify
 
 from rest_framework.authtoken.models import Token
 
-from core.models import BaseAppDataModel
+from core.models import BaseAppDataModel, SoftDeletionManager
 
 
 class Application(BaseAppDataModel):
@@ -19,6 +19,8 @@ class Application(BaseAppDataModel):
     * A data / metadata visualisation tool
     * A data / metadata analysis pipeline
     """
+    objects = SoftDeletionManager()
+
     #: User who has responsibility for this application
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               limit_choices_to={
@@ -53,6 +55,17 @@ class Application(BaseAppDataModel):
     #: Do users require explicit permission to use this application?
     access_control = models.BooleanField(default=False,
                                          blank=False, null=False)
+
+    #: Has this object been soft deleted?
+    is_deleted = models.BooleanField(default=False,
+                                     editable=False, blank=False, null=False)
+
+    def delete(self, using=None, keep_parents=False):
+        """
+        Soft delete this object.
+        """
+        self.is_deleted = True
+        self.save()
 
     @property
     def _access_group_name(self):

@@ -13,11 +13,12 @@ class DataSourceForm(forms.ModelForm):
     """
     Form class for creating / updating DataSource.
     """
-    plugin_name = forms.ChoiceField(choices=connectors.BaseDataConnector.plugin_choices)
+    plugin_name = forms.ChoiceField(choices=connectors.BaseDataConnector.plugin_choices,
+                                    initial='DataSetConnector')
 
     class Meta:
         model = models.DataSource
-        exclude = ['auth_method', 'owner']
+        exclude = ['auth_method', 'owner', 'users']
 
     def clean(self):
         cleaned_data = super().clean()

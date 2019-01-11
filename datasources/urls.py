@@ -9,9 +9,21 @@ urlpatterns = [
          views.datasource.DataSourceListView.as_view(),
          name='datasource.list'),
 
+    path('add',
+         views.datasource.DataSourceCreateView.as_view(),
+         name='datasource.add'),
+
     path('<int:pk>/',
          views.datasource.DataSourceDetailView.as_view(),
          name='datasource.detail'),
+
+    path('<int:pk>/edit',
+         views.datasource.DataSourceUpdateView.as_view(),
+         name='datasource.edit'),
+
+    path('<int:pk>/delete',
+         views.datasource.DataSourceDeleteView.as_view(),
+         name='datasource.delete'),
 
     path('<int:pk>/metadata',
          views.datasource.DataSourceMetadataAjaxView.as_view(),
