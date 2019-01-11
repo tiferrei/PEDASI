@@ -102,8 +102,11 @@
             <li class="breadcrumb-item" aria-current="page">
                 <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
             </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}">{{ datasource.name }}</a>
+            </li>
             <li class="breadcrumb-item active" aria-current="page">
-                {{ datasource.name }}
+                API Explorer
             </li>
         </ol>
     </nav>
@@ -124,7 +127,8 @@
         <div class="row">
             <div class="col-md">
                 <div class="alert alert-warning">
-                    <span id="selectedDataset"></span>
+                    <h5>Active data set</h5>
+                    <span id="selectedDataset">None</span>
                 </div>
             </div>
         </div>
@@ -135,7 +139,16 @@
             <h5>Query Builder</h5>
 
             <form class="form-inline" onsubmit="return addParam();">
-                <input type="text" class="form-control mb-2 mr-sm-2" id="inputParam" placeholder="Parameter">
+                {% if data_query_params %}
+                    <select class="form-control mb-2 mr-sm-2" id="inputParam">
+                        {% for param in data_query_params %}
+                            <option value="{{ param }}">{{ param }}</option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <input type="text" class="form-control mb-2 mr-sm-2" id="inputParam" placeholder="Parameter">
+                {% endif %}
+
                 <input type="text" class="form-control mb-2 mr-sm-2" id="inputValue" placeholder="Parameter value">
 
                 <button type="submit" class="btn btn-secondary mb-2 mr-sm-2">Add to Query</button>
@@ -176,18 +189,13 @@
             </h5>
 
             <div id="metadataPanel" style="overflow-y: auto; height: 30vh;">
-                {% if datasource.metadata_items.count %}
-                    <h6>Metadata from PEDASI</h6>
+                <h6>Metadata from PEDASI</h6>
 
-                    <table class="table">
-                        {% for metadata_item in datasource.metadata_items.all %}
-                            <tr>
-                                <td>{{ metadata_item.field.name }}</td>
-                                <td>{{ metadata_item.value }}</td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                {% endif %}
+                <table id="metadataInternal" class="table">
+                    <script type="application/javascript">
+                        document.addEventListener("DOMContentLoaded", populateMetadataInternal);
+                    </script>
+                </table>
 
                 <h6>Metadata from source</h6>
 
@@ -212,15 +220,9 @@
 
             <div id="datasetsPanel" style="overflow-y: auto; height: 30vh;">
                 <table id="datasets" class="table">
-                    {% if datasource.is_catalogue %}
-                        <script type="application/javascript">
-                            document.addEventListener("DOMContentLoaded", populateDatasets)
-                        </script>
-                    {% else %}
-                        <tr>
-                            <td>Data source does not contain datasets.</td>
-                        </tr>
-                    {% endif %}
+                    <script type="application/javascript">
+                        document.addEventListener("DOMContentLoaded", populateDatasets)
+                    </script>
                 </table>
             </div>
         </div>
