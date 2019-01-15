@@ -72,6 +72,24 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
             # No logged in user - but has passed permission checks - data source must be public
             pass
 
+    def _filter_by_metadata(self, queryset):
+        """
+        Query filter to filter data sources by variable metadata.
+
+        Query parameters are key value pairs of the metadata field short name and the metadata value.
+
+        :return: Filtered queryset
+        """
+        for key, value in self.request.query_params.items():
+            # The key 'search' is used to activate filters.SearchFilter - don't interfere with it
+            if key == 'search':
+                continue
+
+            queryset = queryset.filter(metadata_items__field__short_name=key,
+                                       metadata_items__value=value)
+
+        return queryset
+
     def try_passthrough_response(self,
                                  map_response: typing.Callable[..., HttpResponse],
                                  error_message: str,
@@ -100,6 +118,20 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
                     'message': error_message,
                 }
                 return response.Response(data, status=400)
+
+    def list(self, request, *args, **kwargs):
+        """
+        List the queryset after filtering by request query parameters for data source metadata.
+        """
+        queryset = self._filter_by_metadata(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return response.Response(serializer.data)
 
     @decorators.action(detail=True, permission_classes=[permissions.ProvPermission])
     def prov(self, request, pk=None):
