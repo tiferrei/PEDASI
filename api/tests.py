@@ -1,7 +1,6 @@
 import typing
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.test import Client, TestCase
 
 from rest_framework.authtoken.models import Token
@@ -148,6 +147,87 @@ class DataSourceApiTest(TestCase):
 
         datasource = response.json()
         self._assert_datasource_correct(datasource)
+
+
+class DataSourceApiFilterTest(TestCase):
+    datasources = []
+
+    @classmethod
+    def setUpTestData(cls):
+        owner = get_user_model().objects.create_user('Test API Owner')
+        cls.client = APIClient()
+        cls.client.force_login(owner)
+
+        cls.test_name = 'Filter'
+        test_url = 'https://api.iotuk.org.uk/iotOrganisation'
+
+        metadata_field = models.MetadataField.objects.create(
+            name='Filter field',
+            short_name='filter_field'
+        )
+
+        cls.datasources.append(
+            models.DataSource.objects.create(
+                name=cls.test_name,
+                owner=owner,
+                url=test_url
+            )
+        )
+        cls.datasources.append(
+            models.DataSource.objects.create(
+                name=cls.test_name + '-yes',
+                owner=owner,
+                url=test_url
+            )
+        )
+        cls.datasources.append(
+            models.DataSource.objects.create(
+                name=cls.test_name + '-no',
+                owner=owner,
+                url=test_url
+            )
+        )
+
+        cls.datasources[1].metadata_items.create(
+            field=metadata_field,
+            value='yes'
+        )
+
+        cls.datasources[2].metadata_items.create(
+            field=metadata_field,
+            value='no'
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        for datasource in cls.datasources:
+            try:
+                datasource.delete()
+            except models.DataSource.DoesNotExist:
+                pass
+
+    def test_no_filter(self):
+        response = self.client.get('/api/datasources/')
+        self.assertEqual(response.status_code, 200)
+
+        contents = response.json()
+        self.assertEqual(len(contents), 3)
+
+    def test_filter_yes(self):
+        response = self.client.get('/api/datasources/?filter_field=yes')
+        self.assertEqual(response.status_code, 200)
+
+        contents = response.json()
+        self.assertEqual(len(contents), 1)
+        self.assertEqual(self.test_name + '-yes', contents[0]['name'])
+
+    def test_filter_no(self):
+        response = self.client.get('/api/datasources/?filter_field=no')
+        self.assertEqual(response.status_code, 200)
+
+        contents = response.json()
+        self.assertEqual(len(contents), 1)
+        self.assertEqual(self.test_name + '-no', contents[0]['name'])
 
 
 class DataSourceApiPermissionsTest(TestCase):
