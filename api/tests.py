@@ -166,27 +166,23 @@ class DataSourceApiFilterTest(TestCase):
             short_name='filter_field'
         )
 
-        cls.datasources.append(
+        cls.datasources = [
             models.DataSource.objects.create(
                 name=cls.test_name,
                 owner=owner,
                 url=test_url
-            )
-        )
-        cls.datasources.append(
+            ),
             models.DataSource.objects.create(
                 name=cls.test_name + '-yes',
                 owner=owner,
                 url=test_url
-            )
-        )
-        cls.datasources.append(
+            ),
             models.DataSource.objects.create(
                 name=cls.test_name + '-no',
                 owner=owner,
                 url=test_url
             )
-        )
+        ]
 
         cls.datasources[1].metadata_items.create(
             field=metadata_field,
@@ -197,14 +193,6 @@ class DataSourceApiFilterTest(TestCase):
             field=metadata_field,
             value='no'
         )
-
-    @classmethod
-    def tearDownClass(cls):
-        for datasource in cls.datasources:
-            try:
-                datasource.delete()
-            except models.DataSource.DoesNotExist:
-                pass
 
     def test_no_filter(self):
         response = self.client.get('/api/datasources/')
