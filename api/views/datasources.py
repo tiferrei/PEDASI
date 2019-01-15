@@ -3,34 +3,11 @@ import typing
 
 from django.db.models import ObjectDoesNotExist
 from django.http import HttpResponse
-from rest_framework import decorators, filters, response, viewsets
+from rest_framework import decorators, response, viewsets
 
 from .. import permissions
 from datasources import models, serializers
 from provenance import models as prov_models
-
-
-class DataSourceMetadataFilter(filters.BaseFilterBackend):
-    """
-    Query filter to filter data sources by variable metadata.
-
-    Query parameters are key value pairs of the metadata field short name and the metadata value.
-    """
-    def filter_queryset(self, request, queryset, view):
-        """
-        Filter the queryset using query parameters from the request.
-
-        :return: Filtered queryset
-        """
-        for key, value in request.query_params.items():
-            # The key 'search' is used to activate filters.SearchFilter - don't interfere with it
-            if key == 'search':
-                continue
-
-            queryset = queryset.filter(metadata_items__field__short_name=key,
-                                       metadata_items__value=value)
-
-        return queryset
 
 
 class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
@@ -65,10 +42,6 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.DataSourceSerializer
     permission_classes = [permissions.ViewPermission]
 
-    # Allow filtering by dynamic metadata and searching by name
-    filter_backends = [DataSourceMetadataFilter, filters.SearchFilter]
-    search_fields = ['name']
-
     def _create_prov_entry(self, instance: models.DataSource) -> None:
         """
         Create a PROV entry linking the data source and the authenticated user.
@@ -99,6 +72,24 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
             # No logged in user - but has passed permission checks - data source must be public
             pass
 
+    def _filter_by_metadata(self, queryset):
+        """
+        Query filter to filter data sources by variable metadata.
+
+        Query parameters are key value pairs of the metadata field short name and the metadata value.
+
+        :return: Filtered queryset
+        """
+        for key, value in self.request.query_params.items():
+            # The key 'search' is used to activate filters.SearchFilter - don't interfere with it
+            if key == 'search':
+                continue
+
+            queryset = queryset.filter(metadata_items__field__short_name=key,
+                                       metadata_items__value=value)
+
+        return queryset
+
     def try_passthrough_response(self,
                                  map_response: typing.Callable[..., HttpResponse],
                                  error_message: str,
@@ -127,6 +118,20 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
                     'message': error_message,
                 }
                 return response.Response(data, status=400)
+
+    def list(self, request, *args, **kwargs):
+        """
+        List the queryset after filtering by request query parameters for data source metadata.
+        """
+        queryset = self._filter_by_metadata(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return response.Response(serializer.data)
 
     @decorators.action(detail=True, permission_classes=[permissions.ProvPermission])
     def prov(self, request, pk=None):
