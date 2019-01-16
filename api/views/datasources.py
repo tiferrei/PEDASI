@@ -1,9 +1,10 @@
+import csv
 import json
 import typing
 
 from django.db.models import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
-from rest_framework import decorators, response, viewsets
+from rest_framework import decorators, request, response, viewsets
 
 from .. import permissions
 from datasources import models, serializers
@@ -191,16 +192,22 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
                                              'Data source does not provide data')
 
     @data.mapping.post
-    def post_data(self, request, pk=None):
+    def post_data(self, request: request.Request, pk=None):
         instance = self.get_object()
 
         with instance.data_connector as data_connector:
-            # Are there any query params to pass on?
-            params = self.request.query_params
-            if not params:
-                params = None
+            if request.FILES:
+                for filename, f in request.FILES.items():
+                    # TODO read in chunks
+                    # TODO don't assume utf-8
+                    data = f.read().decode('utf-8').splitlines()
+                    reader = csv.DictReader(data)
 
-            data_connector.post_data(request.data)
+                    for row in reader:
+                        data_connector.post_data(row)
+
+            else:
+                data_connector.post_data(request.data)
 
             # Record this action in PROV
             if not instance.prov_exempt:

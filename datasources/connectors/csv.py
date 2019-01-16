@@ -81,6 +81,17 @@ class CsvRow(mongoengine.DynamicDocument):
 
 class CsvToMongoConnector(DataSetConnector):
     @staticmethod
+    def _type_convert(val):
+        for t in (int, float):
+            try:
+                return t(val)
+
+            except TypeError:
+                pass
+
+        return val
+
+    @staticmethod
     def _flatten_params(params: typing.Optional[typing.Mapping[str, typing.List[str]]]):
         result = {}
 
@@ -91,16 +102,7 @@ class CsvToMongoConnector(DataSetConnector):
             if len(val_list) != 1:
                 raise ValueError('A query parameter was provided twice')
 
-            val = val_list[0]
-            try:
-                result[key] = int(val)
-
-            except ValueError:
-                try:
-                    result[key] = float(val)
-
-                except ValueError:
-                    result[key] = val
+            result[key] = CsvToMongoConnector._type_convert(val_list[0])
 
         return result
 
@@ -108,6 +110,13 @@ class CsvToMongoConnector(DataSetConnector):
         # Put data in collection belonging to this data source
         with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
             try:
+                # TODO make id column more general
+                for k, v in data.items():
+                    data[k] = self._type_convert(v)
+
+                if 'id' in data:
+                    data['x_id'] = data.pop('id')
+
                 CsvRowCollection(**data).save()
 
             except TypeError:
@@ -121,9 +130,15 @@ class CsvToMongoConnector(DataSetConnector):
 
             # TODO accept parameters provided twice as an inclusive OR
             params = self._flatten_params(params)
-            data = data(**params)
+            records = data(**params)
+            data = json.loads(records.exclude('_id').to_json())
+
+            # TODO make id column more general
+            for item in data:
+                if 'x_id' in item:
+                    item['id'] = item.pop('x_id')
 
             return JsonResponse({
                 'status': 'success',
-                'data': json.loads(data.exclude('_id').to_json()),
+                'data': data,
             })
