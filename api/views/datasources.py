@@ -2,7 +2,7 @@ import json
 import typing
 
 from django.db.models import ObjectDoesNotExist
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework import decorators, response, viewsets
 
 from .. import permissions
@@ -170,7 +170,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         return self.try_passthrough_response(map_response,
                                              'Data source does not provide metadata')
 
-    @decorators.action(detail=True, permission_classes=[permissions.DataPermission])
+    @decorators.action(detail=True, methods=['GET'], permission_classes=[permissions.DataPermission])
     def data(self, request, pk=None):
         """
         View for /api/datasources/<int>/data/
@@ -189,6 +189,27 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
         return self.try_passthrough_response(map_response,
                                              'Data source does not provide data')
+
+    @data.mapping.post
+    def post_data(self, request, pk=None):
+        instance = self.get_object()
+
+        with instance.data_connector as data_connector:
+            # Are there any query params to pass on?
+            params = self.request.query_params
+            if not params:
+                params = None
+
+            data_connector.post_data(request.data)
+
+            # Record this action in PROV
+            if not instance.prov_exempt:
+                self._create_prov_entry(instance)
+
+            return JsonResponse({
+                'status': 'success',
+                'data': None,
+            })
 
     @decorators.action(detail=True, permission_classes=[permissions.MetadataPermission])
     def datasets(self, request, pk=None):
