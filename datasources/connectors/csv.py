@@ -79,39 +79,24 @@ class CsvRow(mongoengine.DynamicDocument):
     pass
 
 
+def _type_convert(val):
+    """
+    Attempt to convert a value into a numeric type.
+
+    :param val: Value to attempt to convert
+    :return: Converted value or unmodified value if conversion was not possible
+    """
+    for t in (int, float):
+        try:
+            return t(val)
+
+        except ValueError:
+            pass
+
+    return val
+
+
 class CsvToMongoConnector(DataSetConnector):
-    @staticmethod
-    def _type_convert(val):
-        """
-        Attempt to convert a value into a numeric type.
-
-        :param val: Value to attempt to convert
-        :return: Converted value or unmodified value if conversion was not possible
-        """
-        for t in (int, float):
-            try:
-                return t(val)
-
-            except ValueError:
-                pass
-
-        return val
-
-    @staticmethod
-    def _flatten_params(params: typing.Optional[typing.Mapping[str, typing.List[str]]]):
-        result = {}
-
-        if params is None:
-            return result
-
-        for key, val_list in params.items():
-            # TODO resolve duplicate param check
-            if isinstance(val_list, list):
-                raise ValueError('A query parameter was provided twice')
-
-            result[key] = CsvToMongoConnector._type_convert(val_list[0])
-
-        return result
 
     def clear(self):
         with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
@@ -119,35 +104,36 @@ class CsvToMongoConnector(DataSetConnector):
 
     def post_data(self, data: typing.Union[typing.MutableMapping[str, str],
                                            typing.List[typing.MutableMapping[str, str]]]):
-        def add_row(row: typing.MutableMapping[str, str]):
-            for k, v in row.items():
-                row[k] = self._type_convert(v)
+        def create_document(row: typing.MutableMapping[str, str]):
+            kwargs = {key: _type_convert(val) for key, val in row.items()}
 
-            if 'id' in row:
-                row['x_id'] = row.pop('id')
+            # TODO make id column more general
+            if 'id' in kwargs:
+                kwargs['x_id'] = kwargs.pop('id')
 
-            CsvRowCollection(**row).save()
+            # Profiles at ~60% of runtime
+            return CsvRowCollection(**kwargs)
 
         # Put data in collection belonging to this data source
         with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
             try:
                 # Data is a dictionary - a single row
-                # TODO make id column more general
-                add_row(data)
+                create_document(data).save()
 
             except AttributeError:
                 # Data is a list of dictionaries - multiple rows
-                for row in data:
-                    add_row(row)
+                documents = [create_document(row) for row in data]
+
+                # Profiles at ~30% of runtime
+                CsvRowCollection.objects.insert(documents, load_bulk=False)
 
     def get_response(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
-        with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
-            data = CsvRowCollection.objects
+        # TODO accept parameters provided twice as an inclusive OR
+        params = {key: _type_convert(val) for key, val in params.items()}
 
-            # TODO accept parameters provided twice as an inclusive OR
-            params = self._flatten_params(params)
-            records = data(**params)
+        with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
+            records = CsvRowCollection.objects(**params)
             data = json.loads(records.exclude('_id').to_json())
 
             # TODO make id column more general
