@@ -82,11 +82,17 @@ class CsvRow(mongoengine.DynamicDocument):
 class CsvToMongoConnector(DataSetConnector):
     @staticmethod
     def _type_convert(val):
+        """
+        Attempt to convert a value into a numeric type.
+
+        :param val: Value to attempt to convert
+        :return: Converted value or unmodified value if conversion was not possible
+        """
         for t in (int, float):
             try:
                 return t(val)
 
-            except TypeError:
+            except ValueError:
                 pass
 
         return val
@@ -99,29 +105,40 @@ class CsvToMongoConnector(DataSetConnector):
             return result
 
         for key, val_list in params.items():
-            if len(val_list) != 1:
+            # TODO resolve duplicate param check
+            if isinstance(val_list, list):
                 raise ValueError('A query parameter was provided twice')
 
             result[key] = CsvToMongoConnector._type_convert(val_list[0])
 
         return result
 
-    def post_data(self, data: typing.Union[typing.Mapping, typing.List[typing.Mapping]]):
+    def clear(self):
+        with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
+            CsvRowCollection.objects.delete()
+
+    def post_data(self, data: typing.Union[typing.MutableMapping[str, str],
+                                           typing.List[typing.MutableMapping[str, str]]]):
+        def add_row(row: typing.MutableMapping[str, str]):
+            for k, v in row.items():
+                row[k] = self._type_convert(v)
+
+            if 'id' in row:
+                row['x_id'] = row.pop('id')
+
+            CsvRowCollection(**row).save()
+
         # Put data in collection belonging to this data source
         with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
             try:
+                # Data is a dictionary - a single row
                 # TODO make id column more general
-                for k, v in data.items():
-                    data[k] = self._type_convert(v)
+                add_row(data)
 
-                if 'id' in data:
-                    data['x_id'] = data.pop('id')
-
-                CsvRowCollection(**data).save()
-
-            except TypeError:
+            except AttributeError:
+                # Data is a list of dictionaries - multiple rows
                 for row in data:
-                    CsvRowCollection(**row).save()
+                    add_row(row)
 
     def get_response(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):

@@ -195,6 +195,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
     def post_data(self, request: request.Request, pk=None):
         instance = self.get_object()
 
+        # TODO too slow with big CSV files - e.g. UK postcodes 1.7M rows - approx 40 min
         with instance.data_connector as data_connector:
             if request.FILES:
                 for filename, f in request.FILES.items():
@@ -203,8 +204,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
                     data = f.read().decode('utf-8').splitlines()
                     reader = csv.DictReader(data)
 
-                    for row in reader:
-                        data_connector.post_data(row)
+                    data_connector.post_data(reader)
 
             else:
                 data_connector.post_data(request.data)
@@ -217,6 +217,16 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
                 'status': 'success',
                 'data': None,
             })
+
+    @data.mapping.put
+    def put_data(self, request: request.Request, pk=None):
+        instance = self.get_object()
+
+        with instance.data_connector as data_connector:
+            # Remove all existing data
+            data_connector.clear()
+
+        return self.post_data(request, pk)
 
     @decorators.action(detail=True, permission_classes=[permissions.MetadataPermission])
     def datasets(self, request, pk=None):
