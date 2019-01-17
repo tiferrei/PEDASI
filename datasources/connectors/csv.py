@@ -97,7 +97,6 @@ def _type_convert(val):
 
 
 class CsvToMongoConnector(DataSetConnector):
-
     def clear(self):
         with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
             CsvRowCollection.objects.delete()
@@ -111,21 +110,20 @@ class CsvToMongoConnector(DataSetConnector):
             if 'id' in kwargs:
                 kwargs['x_id'] = kwargs.pop('id')
 
-            # Profiles at ~60% of runtime
-            return CsvRowCollection(**kwargs)
+            return kwargs
 
         # Put data in collection belonging to this data source
         with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
+            collection = CsvRowCollection._get_collection()
+
             try:
                 # Data is a dictionary - a single row
-                create_document(data).save()
+                collection.insert_one(create_document(data))
 
             except AttributeError:
                 # Data is a list of dictionaries - multiple rows
-                documents = [create_document(row) for row in data]
-
-                # Profiles at ~30% of runtime
-                CsvRowCollection.objects.insert(documents, load_bulk=False)
+                documents = (create_document(row) for row in data)
+                collection.insert_many(documents)
 
     def get_response(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
@@ -133,9 +131,9 @@ class CsvToMongoConnector(DataSetConnector):
         params = {key: _type_convert(val) for key, val in params.items()}
 
         with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
-            records = CsvRowCollection.objects(**params)
-            data = json.loads(records.exclude('_id').to_json())
+            records = CsvRowCollection.objects.filter(**params)
 
+            data = json.loads(records.exclude('_id').to_json())
             # TODO make id column more general
             for item in data:
                 if 'x_id' in item:
