@@ -21,12 +21,16 @@ MAX_LENGTH_REASON = 511
 class MetadataField(models.Model):
     """
     A metadata field that can be dynamically added to a data source.
+
+    Operational MetadataFields are those which have some associated code within PEDASI.
+    They should be present within any deployment of PEDASI.
     """
     #: Name of the field
     name = models.CharField(max_length=MAX_LENGTH_NAME,
                             unique=True,
                             blank=False, null=False)
 
+    #: Short text identifier for the field
     short_name = models.CharField(max_length=MAX_LENGTH_NAME,
                                   validators=[
                                       validators.RegexValidator(
@@ -37,6 +41,11 @@ class MetadataField(models.Model):
                                   ],
                                   unique=True,
                                   blank=False, null=False)
+
+    # TODO create all operational fields if missing
+    #: Does the field have an operational effect within PEDASI?
+    operational = models.BooleanField(default=False,
+                                      blank=False, null=False)
 
     def __str__(self):
         return self.name

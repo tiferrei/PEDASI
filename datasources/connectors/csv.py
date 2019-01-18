@@ -7,7 +7,7 @@ from django.http import JsonResponse
 import mongoengine
 from mongoengine import context_managers
 
-from .base import DataSetConnector
+from .base import DataSetConnector, InternalDataConnector
 
 
 class CsvConnector(DataSetConnector):
@@ -75,8 +75,13 @@ class CsvConnector(DataSetConnector):
 class CsvRow(mongoengine.DynamicDocument):
     """
     MongoDB dynamic document to store CSV data.
+
+    Store in own database - distinct from PROV data.
+    Collection must be changed manually when managing CsvRows since all connectors use the same backing model.
     """
-    pass
+    meta = {
+        'db_alias': 'internal_data',
+    }
 
 
 def _type_convert(val):
@@ -96,8 +101,30 @@ def _type_convert(val):
     return val
 
 
-class CsvToMongoConnector(DataSetConnector):
-    def clear(self):
+class CsvToMongoConnector(InternalDataConnector, DataSetConnector):
+    """
+    Data connector representing an internally hosted data source, backed by MongoDB.
+
+    This connector allows data to be pushed as well as retrieved.
+    """
+    id_field_alias = '__id'
+
+    def clean_data(self, **kwargs):
+        index_fields = kwargs.get('index_fields', None)
+
+        if index_fields is None:
+            return
+        elif isinstance(index_fields, str):
+            index_fields = [index_fields]
+
+        with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
+            for index_field in index_fields:
+                CsvRowCollection.create_index(index_field, background=True)
+
+    def clear_data(self):
+        """
+        Clear all data from this data source.
+        """
         with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
             CsvRowCollection.objects.delete()
 
@@ -106,9 +133,9 @@ class CsvToMongoConnector(DataSetConnector):
         def create_document(row: typing.MutableMapping[str, str]):
             kwargs = {key: _type_convert(val) for key, val in row.items()}
 
-            # TODO make id column more general
+            # Can't store field 'id' in document - rename it
             if 'id' in kwargs:
-                kwargs['x_id'] = kwargs.pop('id')
+                kwargs[self.id_field_alias] = kwargs.pop('id')
 
             return kwargs
 
@@ -128,16 +155,20 @@ class CsvToMongoConnector(DataSetConnector):
     def get_response(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
         # TODO accept parameters provided twice as an inclusive OR
+        if params is None:
+            params = {}
         params = {key: _type_convert(val) for key, val in params.items()}
 
         with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
             records = CsvRowCollection.objects.filter(**params)
 
+            # To get dictionary from MongoEngine records we need to go via JSON string
             data = json.loads(records.exclude('_id').to_json())
-            # TODO make id column more general
+
+            # Couldn't store field 'id' in document - recover it
             for item in data:
-                if 'x_id' in item:
-                    item['id'] = item.pop('x_id')
+                if self.id_field_alias in item:
+                    item['id'] = item.pop(self.id_field_alias)
 
             return JsonResponse({
                 'status': 'success',

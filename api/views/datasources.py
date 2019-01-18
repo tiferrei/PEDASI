@@ -193,30 +193,47 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
     @data.mapping.post
     def post_data(self, request: request.Request, pk=None):
+        """
+        Add data to this data source.  Only applicable to internal data sources.
+
+        Data can be added either as JSON body text or as a POSTed CSV file.
+        """
         instance = self.get_object()
 
-        # TODO too slow with big CSV files - e.g. UK postcodes 1.7M rows - approx 40 min
-        with instance.data_connector as data_connector:
-            if request.FILES:
-                for filename, f in request.FILES.items():
-                    # TODO read in chunks
-                    # TODO don't assume utf-8
-                    data = f.read().decode('utf-8').splitlines()
-                    reader = csv.DictReader(data)
+        try:
+            with instance.data_connector as data_connector:
+                if request.FILES:
+                    for filename, f in request.FILES.items():
+                        # TODO read in chunks
+                        # TODO don't assume utf-8
+                        data = f.read().decode('utf-8').splitlines()
+                        reader = csv.DictReader(data)
 
-                    data_connector.post_data(reader)
+                        data_connector.post_data(reader)
 
-            else:
-                data_connector.post_data(request.data)
+                else:
+                    data_connector.post_data(request.data)
 
-            # Record this action in PROV
-            if not instance.prov_exempt:
-                self._create_prov_entry(instance)
+                # Rebuild index
+                index_fields = instance.metadata_items.filter(field__short_name='indexed_field').values_list('value')
+                if index_fields:
+                    data_connector.clean_data(index_fields=index_fields)
 
+                # Record this action in PROV
+                if not instance.prov_exempt:
+                    self._create_prov_entry(instance)
+
+        except AttributeError:
+            # Connector has no 'post_data' method
             return JsonResponse({
-                'status': 'success',
-                'data': None,
-            })
+                'status': 'error',
+                'message': 'Data source does not support writing of data'
+            }, status=405)
+
+        return JsonResponse({
+            'status': 'success',
+            'data': None,
+        })
 
     @data.mapping.put
     def put_data(self, request: request.Request, pk=None):
@@ -224,7 +241,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
         with instance.data_connector as data_connector:
             # Remove all existing data
-            data_connector.clear()
+            data_connector.clear_data()
 
         return self.post_data(request, pk)
 
