@@ -236,8 +236,8 @@ SOCIAL_AUTH_PIPELINE = [
     # 'social_core.pipeline.social_auth.associate_by_email',
 
     # Create a user account if we haven't found one yet.
-    # 'social_core.pipeline.user.create_user',
-    'profiles.social_auth.create_user_disabled',
+    'social_core.pipeline.user.create_user',
+    # 'profiles.social_auth.create_user_disabled',
 
     # Create the record that associates the social account with the user.
     'social_core.pipeline.social_auth.associate_user',
