@@ -150,6 +150,14 @@ mongoengine.register_connection(
     alias='default'
 )
 
+mongoengine.register_connection(
+    host=config(
+        'INTERNAL_DATABASE_URL',
+        default='mongodb://localhost/internal_data'
+    ),
+    alias='internal_data',
+)
+
 
 # Search backend
 

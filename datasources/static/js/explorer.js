@@ -81,7 +81,7 @@ function getQueryParamString() {
     "use strict";
     const encodedParams = new URLSearchParams();
     params.forEach(function (value, key, map) {
-        encodedParams.set(key, value);
+        encodedParams.set(key.trim(), value.trim());
     });
 
     return encodedParams.toString();

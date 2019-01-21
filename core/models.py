@@ -36,9 +36,6 @@ class BaseAppDataModel(models.Model):
     #: A brief description
     description = models.TextField(blank=True, null=False)
 
-    #: Address at which the API may be accessed
-    url = models.URLField(blank=True, null=False)
-
     # TODO replace this with an admin group
     @property
     @abc.abstractmethod

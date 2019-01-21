@@ -21,6 +21,9 @@ class Application(BaseAppDataModel):
     """
     objects = SoftDeletionManager()
 
+    #: Address at which the API may be accessed
+    url = models.URLField(blank=True, null=False)
+
     #: User who has responsibility for this application
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               limit_choices_to={

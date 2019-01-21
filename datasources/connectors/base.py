@@ -139,6 +139,19 @@ class BaseDataConnector(metaclass=plugin.Plugin):
                             **kwargs)
 
 
+class InternalDataConnector(abc.ABC):
+    """
+    Abstract mixin representing a connector for an internally hosted data source.
+    """
+    @abc.abstractmethod
+    def clean_data(self, **kwargs):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def clear_data(self):
+        raise NotImplementedError
+
+
 class DataCatalogueConnector(BaseDataConnector, collections_abc.Mapping):
     """
     Base class of data connectors which provide access to a data catalogue.
