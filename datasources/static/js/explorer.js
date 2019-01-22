@@ -264,6 +264,13 @@ function selectDataset(datasetId) {
     selectedDataset = datasetId;
     document.getElementById("selectedDataset").textContent = selectedDataset === null ? "None" : selectedDataset;
 
+    const urlComponentSpan = document.getElementById("datasetUrlSpan");
+    if (selectedDataset == null) {
+        urlComponentSpan.textContent = "";
+    } else {
+        urlComponentSpan.textContent = "datasets/" + selectedDataset + "/";
+    }
+
     populateMetadata();
 
     // Have to use for ... of ... loop since collection is live (updates with changes to DOM)
