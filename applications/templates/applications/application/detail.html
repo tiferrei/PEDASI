@@ -67,4 +67,17 @@
         </tbody>
     </table>
 
+    <div class="row justify-content-center pt-5">
+        <div class="col-4">
+            <script type="application/javascript">
+                function launchApp() {
+                    const win = window.open("{{ application.url }}", "_blank");
+                    win.focus();
+                }
+            </script>
+
+            <button role="button" onclick="launchApp();" class="btn btn-info btn-lg btn-block">Launch App</button>
+        </div>
+    </div>
+
 {% endblock %}
