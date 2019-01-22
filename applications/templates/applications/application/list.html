@@ -49,12 +49,14 @@
                 </td>
                 <td class="align-middle">
                     {% if application.owner == request.user %}
-                        <i class="fas fa-user" aria-hidden="true"></i>
+                        <i class="fas fa-user" aria-hidden="true"
+                           data-toggle="tooltip" data-placement="top" title="My application"></i>
                     {% endif %}
                 </td>
                 <td class="align-middle">
                     {% if application.access_control %}
-                        <i class="fas fa-lock fa-lg"></i>
+                        <i class="fas fa-lock fa-lg"
+                           data-toggle="tooltip" data-placement="top" title="Application has access controls"></i>
                     {% endif %}
                 </td>
                 <td class="align-middle">
@@ -69,4 +71,12 @@
             {% endfor %}
         </tbody>
     </table>
+{% endblock %}
+
+{% block extra_body %}
+    <script type="application/javascript">
+        $(function () {
+            $("[data-toggle='tooltip']").tooltip()
+        })
+    </script>
 {% endblock %}
