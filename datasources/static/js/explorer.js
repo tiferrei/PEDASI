@@ -188,9 +188,18 @@ function populateMetadata() {
         response => response.json()
     ).then(function (data) {
         if (data.status === "success") {
-            data.data.forEach(function (item) {
-                tableAppendRow(table, [JSON.stringify(item)]);
-            });
+            try{
+                data.data.forEach(function (item) {
+                    tableAppendRow(table, [JSON.stringify(item, null, 4)]);
+                });
+            } catch (e) {
+                for (const key in data.data) {
+                    tableAppendRow(table, [
+                        key,
+                        JSON.stringify(data.data[key], null, 4)
+                    ]);
+                }
+            }
         } else if (data.message) {
             tableAppendRow(table, [data.message]);
         }
