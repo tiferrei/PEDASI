@@ -42,7 +42,7 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
             return JsonResponse({
                 'status': 'fail',
                 'data': {
-                    'postcode': 'postcode is a required field',
+                    'postcode': 'Field \'postcode\' is a required field',
                 },
             }, status=400)
 
@@ -60,7 +60,7 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
             return JsonResponse({
                 'status': 'fail',
                 'data': {
-                    'postcode': 'no record matching postcode \'{0}\' found'.format(params['postcode']),
+                    'postcode': 'No record matching postcode \'{0}\' found'.format(params['postcode']),
                 },
             }, status=404)
 

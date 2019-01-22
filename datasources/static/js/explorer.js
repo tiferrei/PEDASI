@@ -128,23 +128,18 @@ function submitQuery() {
     const query = getBaseURL() + "data/?" + getQueryParamString();
 
     fetch(query).then(function (response) {
-        if (response.ok) {
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                return response.json();
-            } else {
-                return response.text();
-            }
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            return response.json();
+        } else {
+            return response.text();
         }
-        throw new Error("Request failed.");
     }).then(function (data) {
         if (typeof data === "string") {
             results.textContent = data;
         } else {
             results.textContent = JSON.stringify(data, null, 4);
         }
-    }).catch(function (error) {
-        results.textContent = error.toString();
     });
 }
 
