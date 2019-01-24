@@ -139,16 +139,37 @@ class BaseDataConnector(metaclass=plugin.Plugin):
                             **kwargs)
 
 
-class InternalDataConnector(abc.ABC):
+class ReadOnlyInternalDataConnector(abc.ABC):
     """
-    Abstract mixin representing a connector for an internally hosted data source.
+    Abstract mixin representing a connector for an internally hosted data source which is read only.
     """
     @abc.abstractmethod
     def clean_data(self, **kwargs):
+        """
+        Clean, validate or otherwise structure the data contained within this data source.
+        """
+        raise NotImplementedError
+
+
+class InternalDataConnector(ReadOnlyInternalDataConnector):
+    """
+    Abstract mixin representing a connector for an internally hosted data source which is able to be written to.
+    """
+    @abc.abstractmethod
+    def clear_data(self):
+        """
+        Clear all data from this data source.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def clear_data(self):
+    def post_data(self, data: typing.Union[typing.MutableMapping[str, str],
+                                           typing.List[typing.MutableMapping[str, str]]]):
+        """
+        Add data to this data source.
+
+        :param data: Data to add
+        """
         raise NotImplementedError
 
 

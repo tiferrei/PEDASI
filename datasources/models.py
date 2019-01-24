@@ -24,6 +24,10 @@ class MetadataField(models.Model):
 
     Operational MetadataFields are those which have some associated code within PEDASI.
     They should be present within any deployment of PEDASI.
+
+    Current operational metadata fields are (by short_name):
+    - data_query_param
+    - indexed_field
     """
     #: Name of the field
     name = models.CharField(max_length=MAX_LENGTH_NAME,

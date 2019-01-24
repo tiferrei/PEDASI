@@ -1,3 +1,7 @@
+"""
+Connectors for handling CSV data.
+"""
+
 import csv
 import json
 import typing
@@ -91,9 +95,9 @@ def _type_convert(val):
     :param val: Value to attempt to convert
     :return: Converted value or unmodified value if conversion was not possible
     """
-    for t in (int, float):
+    for conv in (int, float):
         try:
-            return t(val)
+            return conv(val)
 
         except ValueError:
             pass
@@ -114,19 +118,17 @@ class CsvToMongoConnector(InternalDataConnector, DataSetConnector):
 
         if index_fields is None:
             return
-        elif isinstance(index_fields, str):
+
+        if isinstance(index_fields, str):
             index_fields = [index_fields]
 
-        with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
+        with context_managers.switch_collection(CsvRow, self.location) as collection:
             for index_field in index_fields:
-                CsvRowCollection.create_index(index_field, background=True)
+                collection.create_index(index_field, background=True)
 
     def clear_data(self):
-        """
-        Clear all data from this data source.
-        """
-        with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
-            CsvRowCollection.objects.delete()
+        with context_managers.switch_collection(CsvRow, self.location) as collection:
+            collection.objects.delete()
 
     def post_data(self, data: typing.Union[typing.MutableMapping[str, str],
                                            typing.List[typing.MutableMapping[str, str]]]):
@@ -140,8 +142,8 @@ class CsvToMongoConnector(InternalDataConnector, DataSetConnector):
             return kwargs
 
         # Put data in collection belonging to this data source
-        with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
-            collection = CsvRowCollection._get_collection()
+        with context_managers.switch_collection(CsvRow, self.location) as collection:
+            collection = collection._get_collection()
 
             try:
                 # Data is a dictionary - a single row
@@ -159,8 +161,8 @@ class CsvToMongoConnector(InternalDataConnector, DataSetConnector):
             params = {}
         params = {key: _type_convert(val) for key, val in params.items()}
 
-        with context_managers.switch_collection(CsvRow, self.location) as CsvRowCollection:
-            records = CsvRowCollection.objects.filter(**params)
+        with context_managers.switch_collection(CsvRow, self.location) as collection:
+            records = collection.objects.filter(**params)
 
             # To get dictionary from MongoEngine records we need to go via JSON string
             data = json.loads(records.exclude('_id').to_json())

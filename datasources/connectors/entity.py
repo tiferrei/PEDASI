@@ -1,3 +1,7 @@
+"""
+This module contains connectors for receiving data via Cisco's Entity API.
+"""
+
 import typing
 
 from .base import BaseDataConnector, DataCatalogueConnector, DataSetConnector
@@ -52,7 +56,7 @@ class CiscoEntityConnector(DataCatalogueConnector):
         # Use cached response if we have one
         response = self._get_response(params)
 
-        d = {
+        connector_dict = {
             item['uri']: self.dataset_connector_class(item['uri'], self.api_key,
                                                       auth=self.auth,
                                                       metadata=item)
@@ -60,7 +64,7 @@ class CiscoEntityConnector(DataCatalogueConnector):
             for item in response
         }
 
-        return d.items()
+        return connector_dict.items()
 
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
@@ -117,4 +121,3 @@ class CiscoEntityConnector(DataCatalogueConnector):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
-

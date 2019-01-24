@@ -1,5 +1,5 @@
 """
-Postcode connector.
+This module contains a connector for UK postcode lookup.
 
 Run as module with --import <csv file> to import a postcode database CSV.
 """
@@ -19,6 +19,9 @@ from .base import DataSetConnector
 
 
 class OnsPostcodeDirectoryConnector(DataSetConnector):
+    """
+    Connector for UK postcode lookup, backed by an SQL table.
+    """
     _table_name = 'connector_postcode'
 
     def __init__(self, location: str,
@@ -33,8 +36,8 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
             self._table_meta = sqlalchemy.MetaData(self._engine)
             self._table = sqlalchemy.Table(self._table_name, self._table_meta, autoload=True)
 
-        except NoSuchTableError as e:
-            raise FileNotFoundError('Postcode table is not present') from e
+        except NoSuchTableError as exc:
+            raise FileNotFoundError('Postcode table is not present') from exc
 
     def get_response(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
@@ -89,7 +92,9 @@ class OnsPostcodeDirectoryConnector(DataSetConnector):
 
             # TODO this fails if any row already exists - but checking each row in turn is slow - find solution
             conn.execute(postcodes.insert(), [
-                {'postcode': row['pcds'].replace(' ', '').upper(), 'lat': row['lat'], 'long': row['long']} for row in reader
+                {'postcode': row['pcds'].replace(' ', '').upper(),
+                 'lat': row['lat'],
+                 'long': row['long']} for row in reader
             ])
 
 
