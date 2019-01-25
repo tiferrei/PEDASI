@@ -55,7 +55,7 @@ class PermissionRequestForm(forms.ModelForm):
             'reason': forms.Textarea
         }
         help_texts = {
-            'user': 'You may request permission'
+            'user': 'You may request permission for yourself or on behalf of any applications for which you are responsible.'
         }
 
     def __init__(self, *args, **kwargs):
