@@ -133,6 +133,9 @@ class UserPermissionLink(models.Model):
     reason = models.CharField(max_length=MAX_LENGTH_REASON,
                               blank=True, null=False)
 
+    class Meta:
+        unique_together = (('user', 'datasource'),)
+
 
 class DataSource(BaseAppDataModel):
     """

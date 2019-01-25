@@ -138,12 +138,41 @@ class DataSourceAccessRequestView(LoginRequiredMixin, UpdateView):
             except ObjectDoesNotExist:
                 pass
 
-        obj, created = self.model.objects.get_or_create(
-            user=user,
-            datasource=self.datasource
-        )
+        try:
+            # Is there an existing record?
+            obj = self.model.objects.get(
+                user=user,
+                datasource=self.datasource
+            )
+
+        except self.model.DoesNotExist:
+            # Don't save to DB - only temporary
+            obj = self.model(
+                user=user,
+                datasource=self.datasource
+            )
 
         return obj
+
+    def get_form(self, form_class=None):
+        """
+        Get form with choices and default value set for user field.
+        """
+        # Authenticated user and any applications for which they are responsible
+        user_choices = [(self.request.user.pk, self.request.user.username)]
+        user_choices += [(app.proxy_user.pk, 'App: ' + app.name) for app in self.request.user.applications.all()]
+
+        user_field_hidden = len(user_choices) <= 1
+
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        return form_class(
+            user_choices=user_choices,
+            user_initial=self.request.user,
+            user_field_hidden=user_field_hidden,
+            **self.get_form_kwargs()
+        )
 
     def form_valid(self, form):
         """
@@ -156,12 +185,12 @@ class DataSourceAccessRequestView(LoginRequiredMixin, UpdateView):
 
         else:
             if (
-                    self.request.user == self.datasource.owner or self.request.user.is_superuser or
+                    (self.request.user == self.datasource.owner or self.request.user.is_superuser) or
                     form.instance.granted > form.instance.requested
             ):
                 form.instance.granted = form.instance.requested
 
-            form.instance.save()
+            form.save()
 
         return HttpResponseRedirect(self.get_success_url())
 

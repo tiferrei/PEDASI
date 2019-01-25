@@ -50,7 +50,42 @@ class DataSourceForm(forms.ModelForm):
 class PermissionRequestForm(forms.ModelForm):
     class Meta:
         model = models.UserPermissionLink
-        fields = ['requested', 'reason']
+        fields = ['user', 'requested', 'reason']
+        widgets = {
+            'reason': forms.Textarea
+        }
+        help_texts = {
+            'user': 'You may request permission'
+        }
+
+    def __init__(self, *args, **kwargs):
+        user_choices = kwargs.pop('user_choices')
+        user_initial = kwargs.pop('user_initial')
+        user_field_hidden = kwargs.pop('user_field_hidden')
+
+        super().__init__(*args, **kwargs)
+
+        self.fields['user'].choices = user_choices
+        self.fields['user'].initial = user_initial
+
+        if user_field_hidden:
+            self.fields['user'].widget = forms.HiddenInput()
+
+    def save(self, commit=True):
+        """
+        Save this permission request.
+
+        Because (user, datasource) are unique, if the user is changed we need to get the corresponding record.
+        """
+        record, created = models.UserPermissionLink.objects.get_or_create(
+            user=self.instance.user,
+            datasource=self.instance.datasource
+        )
+
+        record.requested = self.instance.requested
+        record.reason = self.instance.reason
+
+        record.save()
 
 
 class PermissionGrantForm(forms.ModelForm):
