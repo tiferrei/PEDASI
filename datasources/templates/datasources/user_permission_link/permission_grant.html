@@ -47,6 +47,10 @@
 
     {{ permission.user.username }} requests {{ permission.get_requested_display }} permission on this data source
 
+    {% if permission.push_requested %}
+        and permission to push data
+    {% endif %}
+
     {% if permission.reason %}
         <div class="alert alert-secondary" role="note">
             <p>
@@ -60,7 +64,7 @@
         {% bootstrap_form form %}
 
         {% buttons %}
-            <input type="submit" class="btn btn-success" value="Request">
+            <input type="submit" class="btn btn-success" value="Grant">
              <button onclick="window.history.back();" class="btn btn-default" type="button">Cancel</button>
         {% endbuttons %}
     </form>

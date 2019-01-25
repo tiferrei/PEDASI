@@ -35,6 +35,7 @@
                 <th>Username</th>
                 <th>Requested</th>
                 <th>Current</th>
+                <th>Push?</th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -57,7 +58,13 @@
                     <td>{{ permission.get_requested_display }}</td>
                     <td>{{ permission.get_granted_display }}</td>
                     <td>
-                        <button onclick="userGrantAccess({{ permission.user.pk }}, {{ permission.requested }})"
+                        {% if permission.push_requested %}
+                            <i class="fas fa-upload fa-lg"
+                               data-toggle="tooltip" data-placement="top" title="Permission to push data"></i>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button onclick="userGrantAccess({{ permission.user.pk }}, {{ permission.requested }}, {{ permission.push_requested|yesno:'true,false' }})"
                                 class="btn btn-success"
                                 role="button">Approve</button>
                     </td>
@@ -67,7 +74,7 @@
                            role="button">Edit</a>
                     </td>
                     <td>
-                        <button onclick="userGrantAccess({{ permission.user.pk }}, {{ permission.granted }})"
+                        <button onclick="userGrantAccess({{ permission.user.pk }}, {{ permission.granted }}, {{ permission.push_granted|yesno:'true,false' }})"
                                 class="btn btn-danger"
                                 role="button">Reject</button>
                     </td>
@@ -88,6 +95,7 @@
             <th>Username</th>
             <th>Requested</th>
             <th>Current</th>
+            <th>Push?</th>
             <th></th>
             <th></th>
             <th></th>
@@ -100,6 +108,12 @@
                 <td>{{ permission.user.username }}</td>
                 <td>{{ permission.get_requested_display }}</td>
                 <td>{{ permission.get_granted_display }}</td>
+                <td>
+                    {% if permission.push_granted %}
+                        <i class="fas fa-upload fa-lg"
+                           data-toggle="tooltip" data-placement="top" title="Permission to push data"></i>
+                    {% endif %}
+                </td>
                 <td>
                     <a href="{% url 'datasources:datasource.access.grant' pk=datasource.pk %}?user={{ permission.user_id }}"
                        class="btn btn-info"
@@ -118,13 +132,15 @@
     </table>
 
     <script type="application/javascript">
-        function userGrantAccess(userPk, level){
+        function userGrantAccess(userPk, level, push){
             $.post({
                 url: '{% url 'datasources:datasource.access.grant' pk=datasource.pk %}',
                 data: {
                     'user': userPk,
                     'granted': level,
-                    'requested': level
+                    'requested': level,
+                    'push_granted': push,
+                    'push_requested': push
                 },
                 headers: {
                     'X-CSRFToken': Cookies.get('csrftoken')

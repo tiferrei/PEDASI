@@ -129,6 +129,12 @@ class UserPermissionLink(models.Model):
                                     default=UserPermissionLevels.NONE,
                                     blank=False, null=False)
 
+    #: Have permission to push data?
+    push_granted = models.BooleanField(default=False)
+
+    #: Also require permission to push data?
+    push_requested = models.BooleanField(default=False)
+
     #: Reason the permission was requested
     reason = models.CharField(max_length=MAX_LENGTH_REASON,
                               blank=True, null=False)

@@ -50,12 +50,13 @@ class DataSourceForm(forms.ModelForm):
 class PermissionRequestForm(forms.ModelForm):
     class Meta:
         model = models.UserPermissionLink
-        fields = ['user', 'requested', 'reason']
+        fields = ['user', 'requested', 'push_requested', 'reason']
         widgets = {
             'reason': forms.Textarea
         }
         help_texts = {
-            'user': 'You may request permission for yourself or on behalf of any applications for which you are responsible.'
+            'user': 'You may request permission for yourself or on behalf of any applications for which you are responsible.',
+            'push_requested': 'Do you also require permission to push data?',
         }
 
     def __init__(self, *args, **kwargs):
@@ -83,6 +84,7 @@ class PermissionRequestForm(forms.ModelForm):
         )
 
         record.requested = self.instance.requested
+        record.push_requested = self.instance.push_requested
         record.reason = self.instance.reason
 
         record.save()
@@ -91,7 +93,7 @@ class PermissionRequestForm(forms.ModelForm):
 class PermissionGrantForm(forms.ModelForm):
     class Meta:
         model = models.UserPermissionLink
-        fields = ['granted']
+        fields = ['granted', 'push_granted']
 
 
 class MetadataFieldForm(forms.ModelForm):

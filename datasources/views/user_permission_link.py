@@ -25,12 +25,18 @@ class DataSourceAccessManageView(OwnerPermissionRequiredMixin, DetailView):
         context['permissions_requested'] = models.UserPermissionLink.objects.filter(
             datasource=self.object,
             requested__gt=F('granted')
+        ).union(
+            models.UserPermissionLink.objects.filter(
+                datasource=self.object,
+            ).exclude(
+                push_requested=F('push_granted')
+            )
         )
 
         context['permissions_granted'] = models.UserPermissionLink.objects.filter(
             datasource=self.object,
             requested__lte=F('granted'),
-            # granted__gt=models.UserPermissionLevels.NONE
+            push_requested=F('push_granted')
         )
 
         return context
@@ -77,6 +83,7 @@ class DataSourceAccessGrantView(LoginRequiredMixin, UpdateView):
 
         # Set default value to approve request - but do not automatically save this
         obj.granted = obj.requested
+        obj.push_granted = obj.push_requested
 
         return obj
 
@@ -87,8 +94,9 @@ class DataSourceAccessGrantView(LoginRequiredMixin, UpdateView):
             - Requests for a reduction in permission level
         """
         form.instance.requested = form.instance.granted
+        form.instance.push_requested = form.instance.push_granted
 
-        if form.instance.requested == models.UserPermissionLevels.NONE:
+        if form.instance.requested == models.UserPermissionLevels.NONE and not form.instance.push_requested:
             form.instance.delete()
 
         else:
