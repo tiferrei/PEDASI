@@ -171,7 +171,8 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         return self.try_passthrough_response(map_response,
                                              'Data source does not provide metadata')
 
-    @decorators.action(detail=True, methods=['GET'], permission_classes=[permissions.DataPermission])
+    @decorators.action(detail=True, methods=['GET'],
+                       permission_classes=[permissions.DataPermission, permissions.DataPushPermission])
     def data(self, request, pk=None):
         """
         View for /api/datasources/<int>/data/

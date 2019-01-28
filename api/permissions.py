@@ -29,3 +29,31 @@ class DataPermission(BaseUserPermission):
 class ProvPermission(BaseUserPermission):
     message = 'You do not have permission to access the prov data of this resource.'
     permission_level = models.UserPermissionLevels.PROV
+
+
+class DataPushPermission(permissions.BasePermission):
+    """
+    Permission mixin to prevent access to POST and PUT methods by users who do not have the correct permission flag.
+    """
+    message = 'You do not have permission to push data to this resource.'
+
+    def has_object_permission(self, request, view, obj):
+        # Bypass if not pushing data
+        if request.method not in {'POST', 'PUT'}:
+            return True
+
+        # Owner always has permission
+        if request.user == obj.owner:
+            return True
+
+        try:
+            permission = models.UserPermissionLink.objects.get(
+                user=request.user,
+                datasource=obj
+            )
+
+            return permission.push_granted
+
+        except models.UserPermissionLink.DoesNotExist:
+            # Permission must have been granted explicitly
+            return False
