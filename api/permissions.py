@@ -1,9 +1,16 @@
+"""
+Permission check classes to be used with djangorestframework API.
+"""
+
 from rest_framework import permissions
 
 from datasources import models
 
 
 class BaseUserPermission(permissions.BasePermission):
+    """
+    Base permission check.  Permissions should override the `permission_level` property.
+    """
     message = 'You do not have permission to access this resource.'
     permission_level = models.UserPermissionLevels.NONE
 
@@ -12,21 +19,33 @@ class BaseUserPermission(permissions.BasePermission):
 
 
 class ViewPermission(BaseUserPermission):
+    """
+    Assert that a user has the :class:`models.UserPermissionLevels.VIEW` permission.
+    """
     message = 'You do not have permission to access this resource.'
     permission_level = models.UserPermissionLevels.VIEW
 
 
 class MetadataPermission(BaseUserPermission):
+    """
+    Assert that a user has the :class:`models.UserPermissionLevels.META` permission.
+    """
     message = 'You do not have permission to access the metadata of this resource.'
     permission_level = models.UserPermissionLevels.META
 
 
 class DataPermission(BaseUserPermission):
+    """
+    Assert that a user has the :class:`models.UserPermissionLevels.DATA` permission.
+    """
     message = 'You do not have permission to access the data of this resource.'
     permission_level = models.UserPermissionLevels.DATA
 
 
 class ProvPermission(BaseUserPermission):
+    """
+    Assert that a user has the :class:`models.UserPermissionLevels.PROV` permission.
+    """
     message = 'You do not have permission to access the prov data of this resource.'
     permission_level = models.UserPermissionLevels.PROV
 

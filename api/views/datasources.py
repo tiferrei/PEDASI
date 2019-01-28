@@ -1,3 +1,7 @@
+"""
+This module contains the API endpoint viewset defining the PEDASI Application API.
+"""
+
 import csv
 import json
 import typing
@@ -95,6 +99,16 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
                                  map_response: typing.Callable[..., HttpResponse],
                                  error_message: str,
                                  dataset: str = None) -> HttpResponse:
+        """
+        Attempt to pass a response from the data connector using the function `map_response`.
+
+        If the data connectors raises an error (AttributeError or NotImplementedError) then return an error response.
+
+        :param map_response: Function to get response from data connector - must return HttpResponse
+        :param error_message: Error message in case data connector raises an error
+        :param dataset: Dataset to access within data source
+        :return: HttpResponse from data connector or error response
+        """
         instance = self.get_object()
 
         with instance.data_connector as data_connector:
