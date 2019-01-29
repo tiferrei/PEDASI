@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -16,12 +17,13 @@ class ApplicationListView(ListView):
     context_object_name = 'applications'
 
 
-class ApplicationCreateView(CreateView):
+class ApplicationCreateView(PermissionRequiredMixin, CreateView):
     model = models.Application
     template_name = 'applications/application/create.html'
     context_object_name = 'application'
 
     fields = '__all__'
+    permission_required = 'applications.add_application'
 
     def form_valid(self, form):
         try:

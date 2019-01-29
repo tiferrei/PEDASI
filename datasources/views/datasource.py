@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
@@ -47,12 +47,13 @@ class DataSourceDetailView(DetailView):
         return context
 
 
-class DataSourceCreateView(CreateView):
+class DataSourceCreateView(PermissionRequiredMixin, CreateView):
     model = models.DataSource
     template_name = 'datasources/datasource/create.html'
     context_object_name = 'datasource'
 
     form_class = forms.DataSourceForm
+    permission_required = 'datasources.add_datasource'
 
     def form_valid(self, form):
         try:

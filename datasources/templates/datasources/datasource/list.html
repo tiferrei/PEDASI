@@ -15,12 +15,14 @@
 
     <h2>Data Sources</h2>
 
+    {% if perms.datasources.add_datasource %}
     <div class="row">
         <div class="col-md-6 mx-auto">
             <a href="{% url 'datasources:datasource.add' %}"
                class="btn btn-block btn-success" role="button">New Data Source</a>
         </div>
     </div>
+    {% endif %}
 
     <div class="mt-3"></div>
 
