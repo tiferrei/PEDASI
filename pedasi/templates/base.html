@@ -55,6 +55,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'datasources:datasource.list' %}">Data Sources</a>
                     </li>
+                    {% if request.user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
+                        </li>
+                    {% endif %}
                 </ul>
 
                 <ul class="navbar-nav">
