@@ -6,6 +6,7 @@ from django.views.generic.list import ListView
 from rest_framework.authtoken.models import Token
 
 from . import models
+from core.permissions import OwnerPermissionMixin
 from core.views import ManageAccessView
 
 
@@ -32,7 +33,7 @@ class ApplicationCreateView(CreateView):
         return super().form_valid(form)
 
 
-class ApplicationUpdateView(UpdateView):
+class ApplicationUpdateView(OwnerPermissionMixin, UpdateView):
     model = models.Application
     template_name = 'applications/application/update.html'
     context_object_name = 'application'
@@ -40,7 +41,7 @@ class ApplicationUpdateView(UpdateView):
     fields = '__all__'
 
 
-class ApplicationDeleteView(DeleteView):
+class ApplicationDeleteView(OwnerPermissionMixin, DeleteView):
     model = models.Application
     template_name = 'applications/application/delete.html'
     context_object_name = 'application'
@@ -69,7 +70,7 @@ class ApplicationDetailView(DetailView):
         return context
 
 
-class ApplicationManageAccessView(ManageAccessView):
+class ApplicationManageAccessView(OwnerPermissionMixin, ManageAccessView):
     """
     Manage a user's access to a Application.
 

@@ -11,6 +11,7 @@ from rest_framework import serializers
 from rest_framework.views import APIView
 import requests.exceptions
 
+from core.permissions import OwnerPermissionMixin
 from datasources import forms, models
 from datasources.permissions import HasPermissionLevelMixin
 
@@ -63,7 +64,7 @@ class DataSourceCreateView(CreateView):
         return super().form_valid(form)
 
 
-class DataSourceUpdateView(UpdateView):
+class DataSourceUpdateView(OwnerPermissionMixin, UpdateView):
     model = models.DataSource
     template_name = 'datasources/datasource/update.html'
     context_object_name = 'datasource'
@@ -71,7 +72,7 @@ class DataSourceUpdateView(UpdateView):
     form_class = forms.DataSourceForm
 
 
-class DataSourceDeleteView(DeleteView):
+class DataSourceDeleteView(OwnerPermissionMixin, DeleteView):
     model = models.DataSource
     template_name = 'datasources/datasource/delete.html'
     context_object_name = 'datasource'
@@ -122,7 +123,7 @@ class DataSourceDataSetSearchView(HasPermissionLevelMixin, DetailView):
         return context
 
 
-class DataSourceMetadataAjaxView(UserPassesTestMixin, APIView):
+class DataSourceMetadataAjaxView(OwnerPermissionMixin, APIView):
     model = models.DataSource
 
     # Don't redirect to login page if unauthorised
@@ -132,9 +133,6 @@ class DataSourceMetadataAjaxView(UserPassesTestMixin, APIView):
         class Meta:
             model = models.MetadataItem
             fields = '__all__'
-
-    def test_func(self) -> bool:
-        return self.get_object(pk=self.kwargs['pk']).has_edit_permission(self.request.user)
 
     def get_object(self, pk):
         return self.model.objects.get(pk=pk)
@@ -190,7 +188,7 @@ class DataSourceExplorerView(HasPermissionLevelMixin, DetailView):
     template_name = 'datasources/datasource/explorer.html'
     context_object_name = 'datasource'
 
-    permission_level = models.UserPermissionLevels.DATA
+    permission_level = models.UserPermissionLevels.META
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
