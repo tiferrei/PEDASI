@@ -34,7 +34,11 @@
                 {{ datasource.name }}
                 {% if datasource.licence %}
                     <small>
-                        <span class="badge badge-info">{{ datasource.licence.short_name }}</span>
+                        <a href="{% url 'datasources:licence.detail' pk=datasource.licence.pk %}"
+                           class="badge badge-info"
+                           data-toggle="tooltip" data-placement="bottom" title="{{ datasource.licence.name }}">
+                            {{ datasource.licence.short_name }}
+                        </a>
                     </small>
                 {% endif %}
             </h2>
