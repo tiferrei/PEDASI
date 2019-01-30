@@ -32,6 +32,7 @@
         <div class="col-md-10 col-sm-8">
             <h2>
                 {{ datasource.name }}
+                {# TODO make this a template tag #}
                 {% if datasource.licence %}
                     <small>
                         <a href="{% url 'datasources:licence.detail' pk=datasource.licence.pk %}"
@@ -39,6 +40,13 @@
                            data-toggle="tooltip" data-placement="bottom" title="{{ datasource.licence.name }}">
                             {{ datasource.licence.short_name }}
                         </a>
+                    </small>
+                {% else %}
+                    <small>
+                        <span class="badge badge-warning"
+                              data-toggle="tooltip" data-placement="bottom" title="No Licence">
+                            No Licence
+                        </span>
                     </small>
                 {% endif %}
             </h2>
