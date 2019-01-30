@@ -18,6 +18,33 @@ from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_A
 MAX_LENGTH_REASON = 511
 
 
+class License(models.Model):
+    """
+    Model representing a licence under which a data source is published e.g. Open Government License.
+    """
+    #: Name of the license - e.g. Open Government License
+    name = models.CharField(max_length=MAX_LENGTH_NAME,
+                            blank=False, null=False)
+
+    #: Short text identifier - e.g. OGL
+    short_name = models.CharField(max_length=MAX_LENGTH_NAME,
+                                  blank=True, null=False)
+
+    #: License version - e.g. v2.0
+    version = models.CharField(max_length=MAX_LENGTH_NAME,
+                               blank=False, null=False)
+
+    #: Address at which the API may be accessed
+    url = models.CharField(max_length=MAX_LENGTH_PATH,
+                           blank=True, null=False)
+
+    class Meta:
+        unique_together = (('name', 'version'),)
+
+    def get_absolute_url(self):
+        return reverse('datasources:licence.detail', kwargs={'pk', self.pk})
+
+
 class MetadataField(models.Model):
     """
     A metadata field that can be dynamically added to a data source.
@@ -213,6 +240,12 @@ class DataSource(BaseAppDataModel):
                                           'not of updates to the data source in PEDASI.'
                                       ),
                                       blank=False, null=False)
+
+    #: Which licence is this data published under
+    license = models.ForeignKey(License,
+                                related_name='datasources',
+                                on_delete=models.PROTECT,
+                                blank=True, null=True)
 
     #: Total number of requests sent to the external API
     external_requests_total = models.PositiveIntegerField(default=0,

@@ -37,6 +37,21 @@ urlpatterns = [
          views.datasource.DataSourceDataSetSearchView.as_view(),
          name='datasource.dataset.search'),
 
+    ##########
+    # Licences
+
+    path('licences',
+         views.licence.LicenceListView.as_view(),
+         name='licence.list'),
+
+    path('licences/add',
+         views.licence.LicenceCreateView.as_view(),
+         name='licence.add'),
+
+    path('licences/<int:pk>/',
+         views.licence.LicenceDetailView.as_view(),
+         name='licence.detail'),
+
     #######################
     # Permission management
 

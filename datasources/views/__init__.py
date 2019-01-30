@@ -1,1 +1,1 @@
-from . import datasource, user_permission_link
+from . import datasource, licence, user_permission_link
