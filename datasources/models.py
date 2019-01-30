@@ -18,6 +18,46 @@ from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_A
 MAX_LENGTH_REASON = 511
 
 
+class Licence(models.Model):
+    """
+    Model representing a licence under which a data source is published e.g. Open Government Licence.
+    """
+
+    #: User who has responsibility for this licence
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              limit_choices_to={
+                                  'groups__name': 'Data providers'
+                              },
+                              on_delete=models.PROTECT,
+                              related_name='licences',
+                              blank=False, null=False)
+
+    #: Name of the licence - e.g. Open Government License
+    name = models.CharField(max_length=MAX_LENGTH_NAME,
+                            blank=False, null=False)
+
+    #: Short text identifier - e.g. OGL
+    short_name = models.CharField(max_length=MAX_LENGTH_NAME,
+                                  blank=True, null=False)
+
+    #: Licence version - e.g. v2.0
+    version = models.CharField(max_length=MAX_LENGTH_NAME,
+                               blank=False, null=False)
+
+    #: Address at which the licence text may be accessed
+    url = models.CharField(max_length=MAX_LENGTH_PATH,
+                           blank=True, null=False)
+
+    class Meta:
+        unique_together = (('name', 'version'),)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('datasources:licence.detail', kwargs={'pk': self.pk})
+
+
 class MetadataField(models.Model):
     """
     A metadata field that can be dynamically added to a data source.
@@ -213,6 +253,12 @@ class DataSource(BaseAppDataModel):
                                           'not of updates to the data source in PEDASI.'
                                       ),
                                       blank=False, null=False)
+
+    #: Which licence is this data published under
+    licence = models.ForeignKey(Licence,
+                                related_name='datasources',
+                                on_delete=models.PROTECT,
+                                blank=True, null=True)
 
     #: Total number of requests sent to the external API
     external_requests_total = models.PositiveIntegerField(default=0,
