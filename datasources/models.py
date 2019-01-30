@@ -22,6 +22,16 @@ class License(models.Model):
     """
     Model representing a licence under which a data source is published e.g. Open Government License.
     """
+
+    #: User who has responsibility for this licence
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              limit_choices_to={
+                                  'groups__name': 'Data providers'
+                              },
+                              on_delete=models.PROTECT,
+                              related_name='licences',
+                              blank=False, null=False)
+
     #: Name of the license - e.g. Open Government License
     name = models.CharField(max_length=MAX_LENGTH_NAME,
                             blank=False, null=False)
@@ -42,7 +52,7 @@ class License(models.Model):
         unique_together = (('name', 'version'),)
 
     def get_absolute_url(self):
-        return reverse('datasources:licence.detail', kwargs={'pk', self.pk})
+        return reverse('datasources:licence.detail', kwargs={'pk': self.pk})
 
 
 class MetadataField(models.Model):

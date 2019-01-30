@@ -25,13 +25,13 @@
         </div>
 
         <div class="col-md-2 col-sm-4">
-{#            {% if has_edit_permission %}#}
-{#                <a href="{% url 'datasources:datasource.edit' datasource.id %}"#}
-{#                   class="btn btn-block btn-success" role="button">Edit</a>#}
+            {% if has_edit_permission %}
+                <a href="{% url 'datasources:licence.edit' pk=licence.id %}"
+                   class="btn btn-block btn-success" role="button">Edit</a>
 
-{#                <a href="{% url 'datasources:datasource.delete' datasource.id %}"#}
-{#                   class="btn btn-block btn-danger" role="button">Delete</a>#}
-{#            {% endif %}#}
+                <a href="{% url 'datasources:licence.delete' pk=licence.id %}"
+                   class="btn btn-block btn-danger" role="button">Delete</a>
+            {% endif %}
         </div>
     </div>
 

@@ -100,3 +100,9 @@ class MetadataFieldForm(forms.ModelForm):
     class Meta:
         model = models.MetadataItem
         fields = ['field', 'value']
+
+
+class LicenceForm(forms.ModelForm):
+    class Meta:
+        model = models.License
+        exclude = ['owner']

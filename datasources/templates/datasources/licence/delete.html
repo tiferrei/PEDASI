@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:licence.list' %}">Licences</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:licence.detail' pk=licence.pk %}">{{ licence.name }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Delete
+            </li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-10 col-sm-8">
+            <h2>{{ licence.name }}</h2>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+        <th scope="col" class="w-25 border-0"></th>
+        <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td>Short Name</td>
+            <td>{{ licence.short_name }}</td>
+        </tr>
+        <tr>
+            <td>Version</td>
+            <td>{{ licence.version }}</td>
+        </tr>
+        <tr>
+            <td>URL</td>
+            <td>
+                <a href="{{ licence.url }}">{{ licence.url }}</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="alert alert-danger">
+        <p><b>Are you sure you want to delete this licence?</b></p>
+
+        <form class="form" method="post">
+            {% csrf_token %}
+
+            <input type="submit" role="button" class="btn btn-danger" value="Delete">
+
+            <a role="button" class="btn btn-info"
+               href="{% url 'datasources:licence.detail' pk=licence.pk %}">Cancel</a>
+        </form>
+    </div>
+{% endblock %}

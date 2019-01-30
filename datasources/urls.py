@@ -52,6 +52,14 @@ urlpatterns = [
          views.licence.LicenceDetailView.as_view(),
          name='licence.detail'),
 
+    path('licences/<int:pk>/edit',
+         views.licence.LicenceUpdateView.as_view(),
+         name='licence.edit'),
+
+    path('licences/<int:pk>/delete',
+         views.licence.LicenceDeleteView.as_view(),
+         name='licence.delete'),
+
     #######################
     # Permission management
 
