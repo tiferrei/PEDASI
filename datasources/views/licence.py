@@ -1,7 +1,9 @@
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from .. import forms, models
+from core.permissions import OwnerPermissionMixin
 
 
 class LicenceListView(ListView):
@@ -10,12 +12,13 @@ class LicenceListView(ListView):
     context_object_name = 'licences'
 
 
-class LicenceCreateView(CreateView):
+class LicenceCreateView(PermissionRequiredMixin, CreateView):
     model = models.Licence
     template_name = 'datasources/licence/create.html'
     context_object_name = 'licence'
 
     form_class = forms.LicenceForm
+    permission_required = 'datasources.add_licence'
 
     def form_valid(self, form):
         try:
@@ -40,7 +43,7 @@ class LicenceDetailView(DetailView):
         return context
 
 
-class LicenceUpdateView(UpdateView):
+class LicenceUpdateView(OwnerPermissionMixin, UpdateView):
     model = models.Licence
     template_name = 'datasources/licence/update.html'
     context_object_name = 'licence'
@@ -57,7 +60,7 @@ class LicenceUpdateView(UpdateView):
         return super().form_valid(form)
 
 
-class LicenceDeleteView(DeleteView):
+class LicenceDeleteView(OwnerPermissionMixin, DeleteView):
     model = models.Licence
     template_name = 'datasources/licence/delete.html'
     context_object_name = 'licence'
