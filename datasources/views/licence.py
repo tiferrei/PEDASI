@@ -5,13 +5,13 @@ from .. import forms, models
 
 
 class LicenceListView(ListView):
-    model = models.License
+    model = models.Licence
     template_name = 'datasources/licence/list.html'
     context_object_name = 'licences'
 
 
 class LicenceCreateView(CreateView):
-    model = models.License
+    model = models.Licence
     template_name = 'datasources/licence/create.html'
     context_object_name = 'licence'
 
@@ -21,14 +21,14 @@ class LicenceCreateView(CreateView):
         try:
             owner = form.instance.owner
 
-        except models.License.owner.RelatedObjectDoesNotExist:
+        except models.Licence.owner.RelatedObjectDoesNotExist:
             form.instance.owner = self.request.user
 
         return super().form_valid(form)
 
 
 class LicenceDetailView(DetailView):
-    model = models.License
+    model = models.Licence
     template_name = 'datasources/licence/detail.html'
     context_object_name = 'licence'
 
@@ -41,7 +41,7 @@ class LicenceDetailView(DetailView):
 
 
 class LicenceUpdateView(UpdateView):
-    model = models.License
+    model = models.Licence
     template_name = 'datasources/licence/update.html'
     context_object_name = 'licence'
 
@@ -51,14 +51,14 @@ class LicenceUpdateView(UpdateView):
         try:
             owner = form.instance.owner
 
-        except models.License.owner.RelatedObjectDoesNotExist:
+        except models.Licence.owner.RelatedObjectDoesNotExist:
             form.instance.owner = self.request.user
 
         return super().form_valid(form)
 
 
 class LicenceDeleteView(DeleteView):
-    model = models.License
+    model = models.Licence
     template_name = 'datasources/licence/delete.html'
     context_object_name = 'licence'
 

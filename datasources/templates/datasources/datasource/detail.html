@@ -30,7 +30,14 @@
 
     <div class="row">
         <div class="col-md-10 col-sm-8">
-            <h2>{{ datasource.name }}</h2>
+            <h2>
+                {{ datasource.name }}
+                {% if datasource.licence %}
+                    <small>
+                        <span class="badge badge-info">{{ datasource.licence.short_name }}</span>
+                    </small>
+                {% endif %}
+            </h2>
 
             {% if datasource.description %}
                 {{ datasource.description|linebreaks }}

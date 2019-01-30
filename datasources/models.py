@@ -18,9 +18,9 @@ from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_A
 MAX_LENGTH_REASON = 511
 
 
-class License(models.Model):
+class Licence(models.Model):
     """
-    Model representing a licence under which a data source is published e.g. Open Government License.
+    Model representing a licence under which a data source is published e.g. Open Government Licence.
     """
 
     #: User who has responsibility for this licence
@@ -32,7 +32,7 @@ class License(models.Model):
                               related_name='licences',
                               blank=False, null=False)
 
-    #: Name of the license - e.g. Open Government License
+    #: Name of the licence - e.g. Open Government License
     name = models.CharField(max_length=MAX_LENGTH_NAME,
                             blank=False, null=False)
 
@@ -40,16 +40,19 @@ class License(models.Model):
     short_name = models.CharField(max_length=MAX_LENGTH_NAME,
                                   blank=True, null=False)
 
-    #: License version - e.g. v2.0
+    #: Licence version - e.g. v2.0
     version = models.CharField(max_length=MAX_LENGTH_NAME,
                                blank=False, null=False)
 
-    #: Address at which the API may be accessed
+    #: Address at which the licence text may be accessed
     url = models.CharField(max_length=MAX_LENGTH_PATH,
                            blank=True, null=False)
 
     class Meta:
         unique_together = (('name', 'version'),)
+
+    def __str__(self):
+        return self.name
 
     def get_absolute_url(self):
         return reverse('datasources:licence.detail', kwargs={'pk': self.pk})
@@ -252,7 +255,7 @@ class DataSource(BaseAppDataModel):
                                       blank=False, null=False)
 
     #: Which licence is this data published under
-    license = models.ForeignKey(License,
+    licence = models.ForeignKey(Licence,
                                 related_name='datasources',
                                 on_delete=models.PROTECT,
                                 blank=True, null=True)

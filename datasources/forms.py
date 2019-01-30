@@ -104,5 +104,5 @@ class MetadataFieldForm(forms.ModelForm):
 
 class LicenceForm(forms.ModelForm):
     class Meta:
-        model = models.License
+        model = models.Licence
         exclude = ['owner']
