@@ -8,7 +8,7 @@
 
 {% block pre_content %}
     <header class="container-fluid masthead text-white text-left"
-            style="background-image: url('https://via.placeholder.com/350x200')">
+            style="background-image: url('{% static 'img/pedasi-hero.jpg' %}')">
         <div class="overlay"></div>
 
         <div class="row">
@@ -18,10 +18,56 @@
             </div>
         </div>
     </header>
+
+    <div class="bg-secondary py-3">
+        <div class="container text-white">
+            <h2>
+                A platform for research in data sharing
+            </h2>
+        </div>
+    </div>
+
+    <div class="bg-light py-2">
+        <div class="container">
+            <div class="row">
+
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h2>Find Data Sources</h2>
+
+                            <span class="fas fa-5x fa-atlas"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h2>Access Data</h2>
+
+                            <span class="fas fa-5x fa-cloud-download-alt"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h2>Share Results</h2>
+
+                            <span class="fas fa-5x fa-tablet-alt"></span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <div class="container">
+    <div class="container pb-3">
         <div class="row align-items-center">
             <div class="col-sm-8">
                 <h2 class="pb-2">About PEDASI</h2>
@@ -34,16 +80,15 @@
                 </p>
 
                 <p>
-                    This activity work in
-                    synergy with existing initiatives within the Web Science and Internet Science communities. It will provide for
-                    accessing IoT datasets already available on the Web and it will aim to host datasets from the experiments of the
-                    PETRAS project providing a vehicle for community engagement for the development of analytics and visualisations
-                    on those datasets across the PETRAS community and beyond.
+                    This activity works in synergy with existing initiatives within the Web Science and Internet Science communities.
+                    It will provide for accessing IoT datasets already available on the Web and it will aim to host datasets from the
+                    experiments of the PETRAS project providing a vehicle for community engagement for the development of analytics
+                    and visualisations on those datasets across the PETRAS community and beyond.
                 </p>
             </div>
 
-            <div class="col-sm-4 pb-3">
-                <img class="img-fluid" src="{% static 'img/IoT_observatory.png' %}">
+            <div class="col-sm-4">
+                <img class="img-fluid py-3" src="{% static 'img/IoT_observatory.png' %}">
             </div>
         </div>
     </div>
