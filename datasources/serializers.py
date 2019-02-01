@@ -3,6 +3,12 @@ from rest_framework import serializers
 from . import models
 
 
+class LicenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Licence
+        fields = ['name', 'short_name', 'version', 'url']
+
+
 class MetadataFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.MetadataField
@@ -19,6 +25,7 @@ class MetadataItemSerializer(serializers.ModelSerializer):
 
 class DataSourceSerializer(serializers.ModelSerializer):
     metadata_items = MetadataItemSerializer(many=True, read_only=True)
+    licence = LicenceSerializer(many=False, read_only=True)
 
     class Meta:
         model = models.DataSource
@@ -28,9 +35,8 @@ class DataSourceSerializer(serializers.ModelSerializer):
             'description',
             'url',
             'plugin_name',
+            'licence',
             'is_encrypted',
             'encrypted_docs_url',
-            'public_permission_level',
-            'prov_exempt',
             'metadata_items'
         ]
