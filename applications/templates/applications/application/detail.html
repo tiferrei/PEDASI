@@ -16,19 +16,68 @@
         </ol>
     </nav>
 
-    <h2>View Application - {{ application.name }}</h2>
+    <div class="row">
+        <div class="col-md-10 col-sm-8">
+            <h2>{{ application.name }}</h2>
 
-    <p>
-        Owner: <a href="#" role="link">{{ application.owner }}</a>
-    </p>
+            {% if application.description %}
+                {{ application.description|linebreaks }}
+            {% endif %}
+        </div>
 
-    {% if application.description %}
-        <p>{{ application.description }}</p>
-    {% endif %}
+        <div class="col-md-2 col-sm-4">
+            {% if application.access_control %}
+                <a href="{% url 'applications:application.manage-access' pk=application.pk %}"
+                   class="btn btn-block btn-primary" role="button">Manage Access</a>
+            {% endif %}
 
-    <a href="{% url 'admin:applications_application_change' application.id %}"
-       class="btn btn-success" role="button">Edit</a>
-    <a href="{% url 'admin:applications_application_delete' application.id %}"
-       class="btn btn-danger" role="button">Delete</a>
+            {% if has_edit_permission %}
+                <a href="{% url 'applications:application.edit' pk=application.pk %}"
+                   class="btn btn-block btn-success" role="button">Edit</a>
+
+                <a href="{% url 'applications:application.delete' pk=application.pk %}"
+                   class="btn btn-block btn-danger" role="button">Delete</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <th scope="col" class="w-25 border-0"></th>
+            <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td>Owner</td>
+                <td>
+                    {{ application.owner }}
+                </td>
+            </tr>
+            <tr>
+                <td>URL</td>
+                <td>{{ application.url }}</td>
+            </tr>
+            {% if api_key %}
+                <tr>
+                    <td>API Key</td>
+                    <td>{{ api_key }}</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="row justify-content-center pt-5">
+        <div class="col-4">
+            <script type="application/javascript">
+                function launchApp() {
+                    const win = window.open("{{ application.url }}", "_blank");
+                    win.focus();
+                }
+            </script>
+
+            <button role="button" onclick="launchApp();" class="btn btn-info btn-lg btn-block">Launch App</button>
+        </div>
+    </div>
 
 {% endblock %}

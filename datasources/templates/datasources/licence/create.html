@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:licence.list' %}">Licences</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                New Licence
+            </li>
+        </ol>
+    </nav>
+
+    <h2 class="pb-3">New Licence</h2>
+
+    <form class="form" method="post" action="">
+        {% csrf_token %}
+
+        {% bootstrap_form form %}
+
+        <input type="submit" class="btn btn-success" value="Create">
+    </form>
+
+{% endblock %}

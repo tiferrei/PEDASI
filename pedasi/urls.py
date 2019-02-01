@@ -18,6 +18,7 @@ from django.urls import include, path
 
 from profiles.views import IndexView
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 
@@ -39,4 +40,15 @@ urlpatterns = [
          include('datasources.urls',
                  namespace='datasources')
          ),
+
+    path('api/',
+         include('api.urls',
+                 namespace='api')),
+
+    path('search/',
+         include('haystack.urls')),
+
+    path('social/',
+         include('social_django.urls',
+                 namespace='social')),
 ]

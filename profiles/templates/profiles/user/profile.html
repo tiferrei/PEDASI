@@ -15,4 +15,40 @@
 
     <h2>My Profile</h2>
 
+    <table class="table">
+        <thead>
+        <th scope="col" class="w-25 border-0"></th>
+        <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td>API Token</td>
+            <td>
+                <span id="spanApiToken">
+                    {% if user == request.user and user.auth_token %}
+                        {{ user.auth_token }}
+
+                    {% else %}
+                        <script type="application/javascript">
+                            function getToken() {
+                                $.ajax({
+                                    dataType: "json",
+                                    url: "{% url 'profiles:token' %}",
+                                    data: null,
+                                    success: function (data) {
+                                        $('#spanApiToken').text(data.data.token.key);
+                                    }
+                                });
+                            }
+                        </script>
+
+                        <button onclick="getToken();" class="btn btn-default" role="button">Generate an API Token</button>
+                    {% endif %}
+                </span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
 {% endblock %}

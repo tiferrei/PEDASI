@@ -1,81 +1,104 @@
+"""
+This module contains data connector classes for retrieving data from HyperCat catalogues.
+"""
+
 import typing
 
-import requests
-import requests.auth
-
-from datasources.connectors.base import BaseDataConnector, DataConnectorContainsDatasets, DataConnectorHasMetadata
+from .base import BaseDataConnector, DataCatalogueConnector, DataSetConnector
 
 
-class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseDataConnector):
+class HyperCat(DataCatalogueConnector):
+    """
+    Data connector for retrieving data or metadata from a HyperCat catalogue.
+    """
+    dataset_connector_class = DataSetConnector
+
     def __init__(self, location: str,
-                 api_key: typing.Optional[str] = None):
-        super().__init__(location, api_key=api_key)
+                 api_key: typing.Optional[str] = None,
+                 auth: typing.Optional[typing.Callable] = None):
+        super().__init__(location, api_key=api_key, auth=auth)
 
         self._response = None
 
-    def get_data(self,
-                 dataset: typing.Optional[str] = None,
-                 query_params: typing.Optional[typing.Mapping[str, str]] = None):
-        if dataset is None:
-            raise ValueError('When requesting data from a HyperCat catalogue you must provide a dataset href.')
+    def __getitem__(self, item: str) -> BaseDataConnector:
+        params = {
+            'href': item
+        }
 
-        location = dataset
-        r = requests.get(location,
-                         params=query_params,
-                         auth=requests.auth.HTTPBasicAuth(self.api_key, ''))
-        return r.text
+        response = self._get_response(params)
+
+        dataset_item = self._get_item_by_key_value(
+            response['items'],
+            'href',
+            item
+        )
+        metadata = dataset_item['item-metadata']
+
+        try:
+            try:
+                content_type = self._get_item_by_key_value(
+                    metadata,
+                    'rel',
+                    'urn:X-hypercat:rels:isContentType'
+                )['val']
+
+            except KeyError:
+                content_type = self._get_item_by_key_value(
+                    metadata,
+                    'rel',
+                    'urn:X-hypercat:rels:containsContentType'
+                )['val']
+
+            if content_type == 'application/vnd.hypercat.catalogue+json':
+                return type(self)(location=item,
+                                  api_key=self.api_key,
+                                  auth=self.auth)
+
+        except (KeyError, ValueError):
+            # Has no or multiple values for content type - is not a catalogue
+            pass
+
+        return self.dataset_connector_class(item, self.api_key,
+                                            auth=self.auth,
+                                            metadata=metadata)
+
+    def items(self,
+              params=None) -> typing.ItemsView:
+        """
+        Get key-value pairs of dataset ID to dataset connector for datasets contained within this catalogue.
+
+        :param params: Query parameters to be passed through to the data source API
+        :return: Dictionary ItemsView over datasets
+        """
+        response = self._get_response(params)
+
+        return {
+            item['href']: self.dataset_connector_class(item['href'], self.api_key,
+                                                       auth=self.auth,
+                                                       metadata=item['item-metadata'])
+            for item in response['items']
+        }.items()
+
+    # TODO this gets the entire HyperCat contents so is slow on the BT HyperCat API - ~1s
+    def get_metadata(self,
+                     params: typing.Optional[typing.Mapping[str, str]] = None):
+        response = self._get_response(params)
+
+        return response['catalogue-metadata']
 
     def get_datasets(self,
-                     query_params: typing.Optional[typing.Mapping[str, str]] = None):
-        response = self._response
-        if response is None:
-            response = self._get_response(query_params)
+                     params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.List[str]:
+        response = self._get_response(params=params)
 
-        return [item['href'] for item in response['items']]
+        datasets = []
+        for item in response['items']:
+            datasets.append(item['href'])
 
-    # TODO should this be able to return metadata for multiple datasets at once?
-    # TODO should there be a different method for getting catalogue metadata?
-    def get_metadata(self,
-                     dataset: typing.Optional[str] = None,
-                     query_params: typing.Optional[typing.Mapping[str, str]] = None):
-        if query_params is None:
-            query_params = {}
-
-        if dataset is not None:
-            # Copy so we can update without side effect
-            query_params = dict(query_params)
-            query_params['href'] = dataset
-
-        # Use cached response if we have one
-        response = self._response
-        if response is None:
-            response = self._get_response(query_params)
-
-        if dataset is None:
-            metadata = response['catalogue-metadata']
-
-        else:
-            dataset_item = self._get_item_by_key_value(
-                response['items'],
-                'href',
-                dataset
-            )
-            metadata = dataset_item['item-metadata']
-
-        metadata_dict = {}
-        for item in metadata:
-            relation = item['rel']
-            value = item['val']
-
-            if relation not in metadata_dict:
-                metadata_dict[relation] = []
-            metadata_dict[relation].append(value)
-
-        return metadata_dict
+        return datasets
 
     @staticmethod
     def _get_item_by_key_value(collection: typing.Iterable[typing.Mapping],
-                                key: str, value) -> typing.Mapping:
+                               key: str, value: typing.Any) -> typing.Mapping:
         matches = [item for item in collection if item[key] == value]
 
         if not matches:
@@ -85,39 +108,21 @@ class HyperCat(DataConnectorContainsDatasets, DataConnectorHasMetadata, BaseData
 
         return matches[0]
 
-    def _get_response(self, query_params: typing.Optional[typing.Mapping[str, str]] = None):
-        # r = requests.get(self.location, params=query_params)
-        r = self._get_auth_request(self.location,
-                                   query_params=query_params)
-        return r.json()
-
-    def _get_auth_request(self, url, **kwargs):
-        return requests.get(url,
-                            auth=requests.auth.HTTPBasicAuth(self.api_key, ''),
-                            **kwargs)
+    def _get_response(self, params: typing.Optional[typing.Mapping[str, str]] = None) -> typing.Mapping:
+        # Use cached response if we have one
+        # TODO should we use cached responses?
+        if self._response is not None and params is None:
+            # Ignore params - they only filter - we already have everything
+            response = self._response
+        else:
+            response = self._get_auth_request(self.location,
+                                              params=params)
+        response.raise_for_status()
+        return response.json()
 
     def __enter__(self):
-        self._response = self._get_response()
+        self._response = self._get_auth_request(self.location)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
-
-
-class HyperCatCisco(HyperCat):
-    def __init__(self, location: str,
-                 api_key: typing.Optional[str] = None,
-                 entity_url: str = None):
-        super().__init__(location, api_key=api_key)
-
-        self.entity_url = entity_url
-
-    def get_entities(self):
-        r = self._get_auth_request(self.entity_url)
-        return r.json()
-
-    def _get_auth_request(self, url, **kwargs):
-        return requests.get(url,
-                            # Doesn't accept HttpBasicAuth
-                            headers={'Authorization': self.api_key},
-                            **kwargs)

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.detail' pk=datasource.pk %}">{{ datasource.name }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Edit
+            </li>
+        </ol>
+    </nav>
+
+    <h2 class="pb-3">Edit Data Source</h2>
+
+    <form class="form" method="post" action="">
+        {% csrf_token %}
+
+        {% bootstrap_field form.name %}
+        {% bootstrap_field form.description %}
+        {% bootstrap_field form.url %}
+        {% bootstrap_field form.api_key %}
+        {% bootstrap_field form.plugin_name %}
+        {% bootstrap_field form.licence %}
+
+        <hr>
+
+        <div class="row">
+            <div class="col-sm-3">
+                {% bootstrap_field form.is_encrypted %}
+            </div>
+
+            <div class="col-sm-9">
+                <div id="encryptedDocsToggle">
+                    {% bootstrap_field form.encrypted_docs_url %}
+                </div>
+            </div>
+
+            <script type="application/javascript">
+                const checkboxEncrypted = document.getElementById("id_is_encrypted");
+                const divEncryptedToggle = document.getElementById("encryptedDocsToggle");
+
+                function setupEncryptedToggle() {
+                    if (checkboxEncrypted.checked) {
+                        divEncryptedToggle.style.display = "block";
+                    } else {
+                        divEncryptedToggle.style.display = "none";
+                    }
+                }
+
+                checkboxEncrypted.addEventListener("change", setupEncryptedToggle);
+
+                setupEncryptedToggle();
+            </script>
+        </div>
+
+        {% bootstrap_field form.public_permission_level %}
+        {% bootstrap_field form.prov_exempt %}
+
+        <input type="submit" class="btn btn-success" value="Update">
+    </form>
+
+{% endblock %}

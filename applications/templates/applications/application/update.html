@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'applications:application.list' %}">Applications</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'applications:application.detail' pk=application.pk %}">{{ application.name }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Edit Application
+            </li>
+        </ol>
+    </nav>
+
+    <h2 class="pb-3">Edit Application</h2>
+
+    <form class="form" method="post" action="">
+        {% csrf_token %}
+
+        {% bootstrap_form form %}
+
+        <input type="submit" class="btn btn-success" value="Update">
+    </form>
+
+{% endblock %}

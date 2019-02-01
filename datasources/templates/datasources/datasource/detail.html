@@ -1,6 +1,18 @@
 {% extends "base.html" %}
 {% load bootstrap4 %}
 
+{% block extra_head %}
+    {% if metadata_field_form %}
+        {% load static %}
+
+        <script type="application/javascript" src="{% static 'js/metadata.js' %}"></script>
+
+        <script type="application/javascript">
+            setMetadataUrl("/datasources/{{ datasource.pk }}/metadata");
+        </script>
+    {% endif %}
+{% endblock %}
+
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -16,28 +28,204 @@
         </ol>
     </nav>
 
-    <h2>View Data Source - {{ datasource.name }}</h2>
+    <div class="row">
+        <div class="col-md-10 col-sm-8">
+            <h2>
+                {{ datasource.name }}
+                {# TODO make this a template tag #}
+                {% if datasource.licence %}
+                    <small>
+                        <a href="{% url 'datasources:licence.detail' pk=datasource.licence.pk %}"
+                           class="badge badge-info"
+                           data-toggle="tooltip" data-placement="bottom" title="{{ datasource.licence.name }}">
+                            {{ datasource.licence.short_name }}
+                        </a>
+                    </small>
+                {% else %}
+                    <small>
+                        <span class="badge badge-warning"
+                              data-toggle="tooltip" data-placement="bottom" title="No Licence">
+                            No Licence
+                        </span>
+                    </small>
+                {% endif %}
+            </h2>
 
-    <p>
-        Owner: <a href="#" role="link">{{ datasource.owner }}</a>
-    </p>
+            {% if datasource.description %}
+                {{ datasource.description|linebreaks }}
+            {% endif %}
+        </div>
 
-    {% if datasource.description %}
-        <p>{{ datasource.description }}</p>
+        <div class="col-md-2 col-sm-4">
+            <a href="{% url 'datasources:datasource.explorer' pk=datasource.id %}"
+               class="btn btn-block btn-info" role="button">API Explorer</a>
+
+            {% if request.user != datasource.owner and not request.user.is_superuser %}
+                <a href="{% url 'datasources:datasource.access.request' pk=datasource.id %}"
+                   class="btn btn-block btn-secondary" role="button">Manage My Access</a>
+            {% endif %}
+
+            {% if has_edit_permission %}
+                <a href="{% url 'datasources:datasource.access.manage' pk=datasource.pk %}"
+                   class="btn btn-block btn-primary" role="button">Manage Access</a>
+
+                <a href="{% url 'datasources:datasource.edit' datasource.id %}"
+                   class="btn btn-block btn-success" role="button">Edit</a>
+
+                <a href="{% url 'datasources:datasource.delete' datasource.id %}"
+                   class="btn btn-block btn-danger" role="button">Delete</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if datasource.is_encrypted %}
+        <div class="alert alert-warning mt-3">
+            <p>
+                This data source contains encrypted data.
+            </p>
+
+            {% if datasource.encrypted_docs_url %}
+                For guidance on how to process this data please see <a href="{{ datasource.encrypted_docs_url }}">{{ datasource.encrypted_docs_url }}</a>.
+            {% endif %}
+        </div>
     {% endif %}
 
-    <a href="{% url 'datasources:datasource.query' pk=datasource.id %}"
-       class="btn btn-success" role="link">Query</a>
-    <a href="{% url 'datasources:datasource.metadata' pk=datasource.id %}"
-       class="btn btn-success" role="link">Metadata</a>
+    <table class="table">
+        <thead>
+            <th scope="col" class="w-25 border-0"></th>
+            <th scope="col" class="border-0"></th>
+        </thead>
 
-    <a href="{% url 'admin:datasources_datasource_change' datasource.id %}"
-       class="btn btn-success" role="button">Edit</a>
-    <a href="{% url 'admin:datasources_datasource_delete' datasource.id %}"
-       class="btn btn-danger" role="button">Delete</a>
-    {% if datasource.access_control %}
-        <a href="{% url 'datasources:datasource.manage-access' pk=datasource.pk %}"
-           class="btn btn-primary" role="button">Manage Access</a>
+        <tbody>
+            <tr>
+                <td>Owner</td>
+                <td>
+                    {{ datasource.owner }}
+                </td>
+            </tr>
+            <tr>
+                <td>URL</td>
+                <td>{{ datasource.url }}</td>
+            </tr>
+            <tr>
+                <td>Licence</td>
+                <td>{{ datasource.licence.name }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="card">
+        <div class="card-header" data-toggle="collapse" data-target="#collapseMetadata">
+            <h6>Metadata</h6>
+        </div>
+
+        <div id="collapseMetadata" class="card-body collapse show">
+            <table id="tableMetadata" class="table">
+                <thead>
+                <th scope="col" class="w-25 border-0"></th>
+                <th scope="col" class="border-0"></th>
+                {% if metadata_field_form %}
+                    <th scope="col" class="w-25 border-0"></th>
+                {% endif %}
+                </thead>
+
+                <tbody>
+                {% for metadata_item in datasource.metadata_items.all %}
+                    <tr id="metadata-row-{{ metadata_item.field.short_name }}-{{ metadata_item.value }}">
+                        <td>{{ metadata_item.field.name }}</td>
+                        <td>{{ metadata_item.value }}</td>
+
+                        {% if metadata_field_form %}
+                            <td>
+                                <button role="button"
+                                        onclick="deleteMetadata('{{ metadata_item.field.short_name }}','{{ metadata_item.value }}')"
+                                        class="btn btn-sm btn-danger float-right">Delete</button>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            {% if metadata_field_form %}
+                <form id="formMetadata" class="form" action="javascript:postMetadata();">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-3">
+                            {% bootstrap_field metadata_field_form.field layout='inline' %}
+                        </div>
+                        <div class="col-6">
+                            {% bootstrap_field metadata_field_form.value layout='inline' %}
+                        </div>
+                        <div class="col-3">
+                            <button type="submit" class="btn btn-block btn-success">Add</button>
+                        </div>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr>
+
+    {% if is_catalogue %}
+        <h2 class="mt-3">Data Sets</h2>
+
+        <script type="application/javascript">
+            function search() {
+                // Give the user a visual cue that a search is happening
+                $('#btn-search-rest').hide();
+                $('#btn-search-active').show();
+
+                const endpoint = "search?q=" + $("#id_query").val();
+
+                // Load HTML response into element
+                $('#dataset-results').load(endpoint, function(response, status, xhr) {
+                    if (status === "error") {
+                        const msg = "There was an error: ";
+                        console.log(msg + xhr.status + " " + xhr.statusText);
+                    }
+
+                    // Reset the button
+                    $('#btn-search-rest').show();
+                    $('#btn-search-active').hide();
+                });
+            }
+
+            function clearResults() {
+                $('#dataset-results').empty();
+            }
+        </script>
+
+        <form class="form-inline" action="javascript:search();">
+            <div class="input-group">
+                <input type="search" class="form-control" id="id_query"
+                       aria-label="search" placeholder="Search">
+
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i id="btn-search-rest" class="fas fa-search"></i>
+                        <i id="btn-search-active" class="fas fa-spinner fa-pulse" style="display: none"></i>
+                    </button>
+                </div>
+
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-outline-primary" onclick="clearResults();"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        </form>
+
+        <div id="dataset-results" class="row px-2">
+        </div>
     {% endif %}
 
+{% endblock %}
+
+{% block extra_body %}
+    <script type="application/javascript">
+        $(function () {
+            $("[data-toggle='tooltip']").tooltip()
+        })
+    </script>
 {% endblock %}

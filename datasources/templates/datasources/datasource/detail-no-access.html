@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load bootstrap4 %}
 
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.0/src/js.cookie.min.js"></script>
+{% endblock %}
+
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -16,17 +20,71 @@
         </ol>
     </nav>
 
-    <h2>View Data Source - {{ datasource.name }}</h2>
+
+    <div class="row">
+        <div class="col-md-10 col-sm-8">
+            <h2>
+                {{ datasource.name }}
+                {% if datasource.licence %}
+                    <small>
+                        <a href="{% url 'datasources:licence.detail' pk=datasource.licence.pk %}"
+                           class="badge badge-info"
+                           data-toggle="tooltip" data-placement="bottom" title="{{ datasource.licence.name }}">
+                            {{ datasource.licence.short_name }}
+                        </a>
+                    </small>
+                {% else %}
+                    <small>
+                        <span class="badge badge-warning"
+                              data-toggle="tooltip" data-placement="bottom" title="No Licence">
+                            No Licence
+                        </span>
+                    </small>
+                {% endif %}
+            </h2>
+
+            {% if datasource.description %}
+                {{ datasource.description|linebreaks }}
+            {% endif %}
+        </div>
+
+        <div class="col-md-2 col-sm-4">
+            {% if request.user != datasource.owner and not request.user.is_superuser %}
+                <a href="{% url 'datasources:datasource.access.request' pk=datasource.id %}"
+                   class="btn btn-block btn-secondary" role="button">Manage My Access</a>
+            {% endif %}
+        </div>
+    </div>
 
     <div class="alert alert-warning">
         You do not have permission to access this resource.
 
-        <a href="#"
-           class="btn btn-primary" role="button">Request Access</a>
+        {% if request.user in datasource.users.all %}
+            Please wait for your request to be approved.
+
+        {% else %}
+            You may request access using the 'Manage My Access' button.
+        {% endif %}
     </div>
 
-    {% if datasource.description %}
-        <p>{{ datasource.description }}</p>
-    {% endif %}
+    <table class="table">
+        <thead>
+        <th scope="col" class="w-25 border-0"></th>
+        <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td>Owner</td>
+            <td>
+                {{ datasource.owner }}
+            </td>
+        </tr>
+        <tr>
+            <td>URL</td>
+            <td>{{ datasource.url }}</td>
+        </tr>
+        </tbody>
+    </table>
 
 {% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:datasource.list' %}">Data Sources</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'datasources:licence.list' %}">Licences</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ licence.name }}
+            </li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-10 col-sm-8">
+            <h2>{{ licence.name }}</h2>
+        </div>
+
+        <div class="col-md-2 col-sm-4">
+            {% if has_edit_permission %}
+                <a href="{% url 'datasources:licence.edit' pk=licence.id %}"
+                   class="btn btn-block btn-success" role="button">Edit</a>
+
+                <a href="{% url 'datasources:licence.delete' pk=licence.id %}"
+                   class="btn btn-block btn-danger" role="button">Delete</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <th scope="col" class="w-25 border-0"></th>
+            <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td>Short Name</td>
+                <td>{{ licence.short_name }}</td>
+            </tr>
+            <tr>
+                <td>Version</td>
+                <td>{{ licence.version }}</td>
+            </tr>
+            <tr>
+                <td>URL</td>
+                <td>
+                    <a href="{{ licence.url }}">{{ licence.url }}</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+{% endblock %}

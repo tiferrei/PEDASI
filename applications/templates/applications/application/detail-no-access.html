@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.0/src/js.cookie.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'applications:application.list' %}">Applications</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ application.name }}
+            </li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-10 col-sm-8">
+            <h2>{{ application.name }}</h2>
+
+            {% if application.description %}
+                {{ application.description|linebreaks }}
+            {% endif %}
+        </div>
+
+        <div class="col-md-2 col-sm-4">
+            {% if application.users_group_requested in request.user.groups.all %}
+                <button id="btn-request-access" disabled
+                        class="btn btn-block btn-primary" role="button">Access Requested</button>
+
+            {% elif not request.user.is_authenticated %}
+                You must be logged in to request access.
+
+            {% else %}
+                <button id="btn-request-access" onclick="requestAccess()"
+                        class="btn btn-block btn-primary" role="button">Request Access</button>
+
+                <script type="application/javascript">
+                    function requestAccess(){
+                        $.ajax({
+                            url: '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=request.user.pk %}',
+                            headers: {
+                                'X-CSRFToken': Cookies.get('csrftoken')
+                            },
+                            method: 'PUT',
+                            success: function(result, status, xhr){
+                                const btn = document.getElementById('btn-request-access');
+                                btn.textContent = 'Access Requested';
+                                btn.disabled = true;
+                            }
+                        })
+                    }
+                </script>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="alert alert-warning">
+        You do not have permission to access this resource.
+
+        {% if not request.user.is_authenticated %}
+            You must be logged in to request access.
+
+        {% elif request.user in application.users_group_requested.user_set.all %}
+            Please wait for your request to be approved.
+
+        {% else %}
+            You may request access using the 'Request Access' button.
+        {% endif %}
+    </div>
+
+    <table class="table">
+        <thead>
+        <th scope="col" class="w-25 border-0"></th>
+        <th scope="col" class="border-0"></th>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td>Owner</td>
+            <td>
+                {{ application.owner }}
+            </td>
+        </tr>
+        <tr>
+            <td>URL</td>
+            <td>{{ application.url }}</td>
+        </tr>
+        </tbody>
+    </table>
+
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.0/src/js.cookie.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'index' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'applications:application.list' %}">Applications</a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a href="{% url 'applications:application.detail' pk=application.pk %}">{{ application.name }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Manage Access
+            </li>
+        </ol>
+    </nav>
+
+    <h2>{{ application.name }}</h2>
+
+    {% if application.description %}
+        <p>{{ application.description }}</p>
+    {% endif %}
+
+    <hr/>
+
+    <h2>Requests for Access</h2>
+
+    <table id="requested-user-table" class="table">
+        <thead class="thead">
+            <tr>
+                <th>Username</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for user in application.users_group_requested.user_set.all %}
+                <tr id="requested-user-{{ user.pk }}">
+                    <td>{{ user.username }}</td>
+                    <td>
+                        <button onclick="userGrantAccess(
+                                            '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=user.pk %}',
+                                            {{ user.pk }}
+                                )"
+                                class="btn btn-success"
+                                role="button">Approve</button>
+                    </td>
+                    <td>
+                        <button onclick="userRemoveAccess(
+                                    '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=user.pk %}',
+                                    {{ user.pk }}
+                                )"
+                                class="btn btn-danger"
+                                role="button">Reject</button>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td>No requests</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr/>
+
+    <h2>Approved Users</h2>
+
+    <table id="approved-user-table" class="table">
+        <thead class="thead">
+        <tr>
+            <th>Username</th>
+            <th></th>
+            <th></th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for user in application.users_group.user_set.all %}
+            <tr id="approved-user-{{ user.pk }}">
+                <td>{{ user.username }}</td>
+                <td></td>
+                <td>
+                    <button onclick="userRemoveAccess(
+                                '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=user.pk %}',
+                                {{ user.pk }}
+                            )"
+                            class="btn btn-danger"
+                            role="button">Remove</button>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td>No approved users</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <script type="application/javascript">
+        function userGrantAccess(url, userPk){
+            $.ajax({
+                {#url: '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=request.user.pk %}',#}
+                url: url,
+                headers: {
+                    'X-CSRFToken': Cookies.get('csrftoken')
+                },
+                method: 'PUT',
+                success: function(result, status, xhr){
+                    document.getElementById('requested-user-' + userPk.toString()).remove();
+
+                    // TODO if table is empty add 'table is empty' row
+                }
+            })
+        }
+
+        function userRemoveAccess(url, userPk){
+            $.ajax({
+                {#url: '{% url 'applications:application.manage-access.user' pk=application.pk user_pk=request.user.pk %}',#}
+                url: url,
+                headers: {
+                    'X-CSRFToken': Cookies.get('csrftoken')
+                },
+                method: 'DELETE',
+                success: function(result, status, xhr){
+                    try {
+                        document.getElementById('approved-user-' + userPk.toString()).remove();
+                    } catch (err) {}
+
+                    try {
+                        document.getElementById('requested-user-' + userPk.toString()).remove();
+                    } catch (err) {}
+                }
+
+                // TODO if table is empty add 'table is empty' row
+            })
+        }
+    </script>
+
+{% endblock %}

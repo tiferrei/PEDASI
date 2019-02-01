@@ -43,6 +43,7 @@ from django.urls import reverse_lazy
 
 from decouple import config
 import dj_database_url
+import mongoengine
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -53,7 +54,16 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+if DEBUG:
+    ALLOWED_HOSTS = [
+        '*',
+    ]
+
+else:
+    ALLOWED_HOSTS = [
+        'localhost',
+        'pedasi-dev.eastus.cloudapp.azure.com',
+    ]
 
 
 # Application definition
@@ -68,20 +78,28 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    'corsheaders',
     'bootstrap4',
+    'haystack',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'social_django',
 ]
 
 CUSTOM_APPS = [
-    'profiles',
+    'profiles.apps.ProfilesConfig',  # Refer to AppConfig directly since we override the .ready() method
     'applications',
     'datasources',
-    'prov',
+    'provenance',
+    'core',
+    'api',
 ]
 
 # Custom apps have to be listed before Django apps so they override default templates
 INSTALLED_APPS = CUSTOM_APPS + THIRD_PARTY_APPS + DJANGO_APPS
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -104,6 +122,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
             ],
         },
     },
@@ -121,21 +140,35 @@ DATABASES = {
         default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
         cast=dj_database_url.parse
     ),
-    # Separate PROV models into their own MongoDB database
-    'prov': {
-        'ENGINE': 'djongo',
-        'NAME': config(
-            'PROV_DATABASE_NAME',
-            default='prov'
-        )
+}
+
+mongoengine.register_connection(
+    host=config(
+        'PROV_DATABASE_URL',
+        default='mongodb://localhost/prov',
+    ),
+    alias='default'
+)
+
+mongoengine.register_connection(
+    host=config(
+        'INTERNAL_DATABASE_URL',
+        default='mongodb://localhost/internal_data'
+    ),
+    alias='internal_data',
+)
+
+
+# Search backend
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
     }
 }
 
-# Database routers direct models into the correct database
-DATABASE_ROUTERS = [
-    'prov.routers.ProvRouter',
-    'pedasi.routers.DefaultRouter',
-]
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 
 # Password validation
@@ -156,6 +189,72 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+# Social auth app configuration
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY', default=None)
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET', default=None)
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+if SOCIAL_AUTH_GOOGLE_OAUTH2_KEY is not None and SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET is not None:
+    AUTHENTICATION_BACKENDS += [
+        'social_core.backends.google.GoogleOAuth2',
+    ]
+
+SOCIAL_AUTH_PIPELINE = [
+    # Get the information we can about the user and return it in a simple
+    # format to create the user instance later. On some cases the details are
+    # already part of the auth response from the provider, but sometimes this
+    # could hit a provider API.
+    'social_core.pipeline.social_auth.social_details',
+
+    # Get the social uid from whichever service we're authing thru. The uid is
+    # the unique identifier of the given user in the provider.
+    'social_core.pipeline.social_auth.social_uid',
+
+    # Verifies that the current auth process is valid within the current
+    # project, this is where emails and domains whitelists are applied (if
+    # defined).
+    'social_core.pipeline.social_auth.auth_allowed',
+
+    # Checks if the current social-account is already associated in the site.
+    'social_core.pipeline.social_auth.social_user',
+
+    # Make up a username for this person, appends a random string at the end if
+    # there's any collision.
+    'social_core.pipeline.user.get_username',
+
+    # Send a validation email to the user to verify its email address.
+    # Disabled by default.
+    # 'social_core.pipeline.mail.mail_validation',
+
+    # Associates the current social details with another user account with
+    # a similar email address. Disabled by default.
+    # 'social_core.pipeline.social_auth.associate_by_email',
+
+    # Create a user account if we haven't found one yet.
+    'social_core.pipeline.user.create_user',
+    # 'profiles.social_auth.create_user_disabled',
+
+    # Create the record that associates the social account with the user.
+    'social_core.pipeline.social_auth.associate_user',
+
+    # Populate the extra_data field in the social record with the values
+    # specified by settings (and the default ones like access_token, etc).
+    'social_core.pipeline.social_auth.load_extra_data',
+
+    # Update the user record with any changed info from the auth service.
+    'social_core.pipeline.user.user_details',
+]
+
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = reverse_lazy('index')
+LOGIN_REDIRECT_URL = reverse_lazy('index')
+SOCIAL_AUTH_INACTIVE_USER_URL = reverse_lazy('profiles:inactive')
+
+
 # Use Argon2 as hashing algorithm for new passwords
 
 PASSWORD_HASHERS = [
@@ -170,6 +269,26 @@ PASSWORD_HASHERS = [
 AUTH_USER_MODEL = 'profiles.User'
 
 LOGIN_URL = reverse_lazy('profiles:login')
+
+
+# Application API config
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # Authenticate using tokens for normal API use
+        'rest_framework.authentication.TokenAuthentication',
+        # Allow logged in users to explore the API through the PEDASI web interface
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
+# Add CORS exemption to API endpoints
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_URLS_REGEX = r'^/api/.*$'
 
 
 # Internationalization
@@ -193,5 +312,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'docs', 'build')
+    os.path.join(BASE_DIR, 'pedasi', 'static'),
+    os.path.join(BASE_DIR, 'docs', 'build'),
 ]

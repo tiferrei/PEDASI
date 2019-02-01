@@ -1,11 +1,17 @@
 from django.contrib import admin
 
-from . import models
+from . import forms, models
+
+
+@admin.register(models.MetadataField)
+class MetadataFieldAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(models.DataSource)
 class DataSourceAdmin(admin.ModelAdmin):
     readonly_fields = ['owner']
+    form = forms.DataSourceForm
 
     def has_change_permission(self, request, obj=None) -> bool:
         """
@@ -35,6 +41,7 @@ class DataSourceAdmin(admin.ModelAdmin):
         """
         try:
             owner = form.instance.owner
+
         except models.DataSource.owner.RelatedObjectDoesNotExist:
             form.instance.owner = request.user
 

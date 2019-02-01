@@ -4,11 +4,27 @@
 {% block content %}
     <h2>Login</h2>
 
-    {% if form.errors %}
-        <div>&nbsp;</div>
-    {% else %}
-         <div class="alert alert-warning">Please log in</div>
-    {%  endif %}
+    {% if 'google-oauth2' in backends.backends %}
+        <div class="alert alert-info mt-3">
+            <p>
+                The preferred method to log in to PEDASI is using your Google account.
+            </p>
+            <p>
+                If you do not have a Google account and wish to use PEDASI you should contact a
+                system administrator to create a PEDASI account for you.
+
+                Once your account has been created you may log in using the form below.
+            </p>
+        </div>
+
+        <div class="row justify-content-center">
+            <a class="btn btn-lg btn-success col-sm-4"
+               role="button" href="{% url 'social:begin' 'google-oauth2' %}">Google Login</a>
+
+        </div>
+   {% endif %}
+
+    <hr>
 
     <div>
         <form action="" method="post">
