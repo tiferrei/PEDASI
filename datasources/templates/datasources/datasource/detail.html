@@ -221,3 +221,11 @@
     {% endif %}
 
 {% endblock %}
+
+{% block extra_body %}
+    <script type="application/javascript">
+        $(function () {
+            $("[data-toggle='tooltip']").tooltip()
+        })
+    </script>
+{% endblock %}
