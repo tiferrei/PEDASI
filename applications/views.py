@@ -7,8 +7,8 @@ from django.views.generic.list import ListView
 from rest_framework.authtoken.models import Token
 
 from . import models
-from core.permissions import OwnerPermissionMixin
 from core.views import ManageAccessView
+from profiles.permissions import OwnerPermissionMixin
 
 
 class ApplicationListView(ListView):

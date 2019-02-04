@@ -11,9 +11,9 @@ from rest_framework import serializers
 from rest_framework.views import APIView
 import requests.exceptions
 
-from core.permissions import OwnerPermissionMixin
 from datasources import forms, models
 from datasources.permissions import HasPermissionLevelMixin
+from profiles.permissions import OwnerPermissionMixin
 
 
 class DataSourceListView(ListView):
