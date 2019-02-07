@@ -1,10 +1,13 @@
+"""
+This module contains the Django models necessary to manage the set of data sources.
+"""
+
 import contextlib
 import enum
 import json
 import typing
 
 from django.conf import settings
-from django.contrib.auth.models import Group
 from django.core import validators
 from django.db import models
 from django.urls import reverse
@@ -75,16 +78,18 @@ class MetadataField(models.Model):
                             blank=False, null=False)
 
     #: Short text identifier for the field
-    short_name = models.CharField(max_length=MAX_LENGTH_NAME,
-                                  validators=[
-                                      validators.RegexValidator(
-                                          '^[a-zA-Z][a-zA-Z0-9_]*\Z',
-                                          'Short name must begin with a letter and consist only of letters, numbers and underscores.',
-                                          'invalid'
-                                      )
-                                  ],
-                                  unique=True,
-                                  blank=False, null=False)
+    short_name = models.CharField(
+        max_length=MAX_LENGTH_NAME,
+        validators=[
+            validators.RegexValidator(
+                r'^[a-zA-Z][a-zA-Z0-9_]*\Z',
+                'Short name must begin with a letter and consist only of letters, numbers and underscores.',
+                'invalid'
+            )
+        ],
+        unique=True,
+        blank=False, null=False
+    )
 
     #: Does the field have an operational effect within PEDASI?
     operational = models.BooleanField(default=False,
@@ -348,10 +353,18 @@ class DataSource(BaseAppDataModel):
 
     @property
     def is_catalogue(self) -> bool:
+        """
+        Is this data source a data catalogue?
+        """
         return self.data_connector_class.is_catalogue
 
     @property
     def connector_string(self):
+        """
+        Get the string used to locate the resource associated with this data source.
+
+        e.g. URL, SQL table identifier, etc.
+        """
         if self._connector_string:
             return self._connector_string
         return self.url
@@ -368,11 +381,11 @@ class DataSource(BaseAppDataModel):
         try:
             plugin = BaseDataConnector.get_plugin(self.plugin_name)
 
-        except KeyError as e:
+        except KeyError as exc:
             if not self.plugin_name:
-                raise ValueError('Data source plugin is not set') from e
+                raise ValueError('Data source plugin is not set') from exc
 
-            raise KeyError('Data source plugin not found') from e
+            raise KeyError('Data source plugin not found') from exc
 
         return plugin
 
@@ -415,6 +428,11 @@ class DataSource(BaseAppDataModel):
 
     @property
     def search_representation(self) -> str:
+        """
+        Provide a text representation of this data source to be entered into a search index.
+
+        :return: Text representation of this data source
+        """
         lines = [
             self.name,
             self.owner.get_full_name(),
@@ -422,10 +440,11 @@ class DataSource(BaseAppDataModel):
         ]
 
         try:
-            lines.append(json.dumps(
-                self.data_connector.get_metadata(),
-                indent=4
-            ))
+            with self.data_connector as connector:
+                lines.append(json.dumps(
+                    connector.get_metadata(),
+                    indent=4
+                ))
 
         except (KeyError, NotImplementedError, ValueError):
             # KeyError: Plugin was not found
@@ -438,6 +457,15 @@ class DataSource(BaseAppDataModel):
 
     @staticmethod
     def determine_auth_method(url: str, api_key: str) -> AuthMethod:
+        """
+        Determine which authentication method to use to access the data source.
+
+        Test each known authentication method in turn until one succeeds.
+
+        :param url: URL to authenticate against
+        :param api_key: API key to use for authentication
+        :return: First successful authentication method
+        """
         # If not using an API key - can't require auth
         if not api_key:
             return AuthMethod.NONE
