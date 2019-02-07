@@ -86,13 +86,32 @@ class MetadataField(models.Model):
                                   unique=True,
                                   blank=False, null=False)
 
-    # TODO create all operational fields if missing
     #: Does the field have an operational effect within PEDASI?
     operational = models.BooleanField(default=False,
                                       blank=False, null=False)
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def load_inline_fixtures(cls):
+        """
+        Create any instances required for the functioning of PEDASI.
+
+        This is called from within the AppConfig.
+        """
+        fixtures = (
+            ('data_query_param', 'data_query_param', True),
+            ('indexed_field', 'indexed_field', True),
+        )
+
+        for name, short_name, operational in fixtures:
+            obj, created = cls.objects.get_or_create(
+                name=name,
+                short_name=short_name
+            )
+            obj.operational = operational
+            obj.save()
 
 
 class MetadataItem(models.Model):
@@ -408,7 +427,7 @@ class DataSource(BaseAppDataModel):
                 indent=4
             ))
 
-        except:
+        except (KeyError, NotImplementedError, ValueError):
             # KeyError: Plugin was not found
             # NotImplementedError: Plugin does not support metadata
             # ValueError: Plugin was not set
