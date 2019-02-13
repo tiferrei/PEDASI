@@ -4,7 +4,7 @@ import typing
 from django.test import TestCase
 from requests.auth import HTTPBasicAuth
 
-from datasources.connectors.base import BaseDataConnector, HttpHeaderAuth
+from datasources.connectors.base import AuthMethod, BaseDataConnector, HttpHeaderAuth
 
 
 def _get_item_by_key_value(collection: typing.Iterable[typing.Mapping],
@@ -181,6 +181,7 @@ class ConnectorHyperCatTest(TestCase):
 
 
 class ConnectorHyperCatCiscoTest(TestCase):
+    # TODO find working dataset
     url = 'https://api.cityverve.org.uk/v1/cat'
     subcatalogue = 'https://api.cityverve.org.uk/v1/cat/polling-station'
     dataset = 'https://api.cityverve.org.uk/v1/entity/polling-station/5'
@@ -211,6 +212,13 @@ class ConnectorHyperCatCiscoTest(TestCase):
         connection = self._get_connection()
 
         self.assertTrue(connection.is_catalogue)
+
+    def test_determine_auth(self):
+        connection = self._get_connection()
+
+        auth_method = connection.determine_auth_method(connection.location, connection.api_key)
+
+        self.assertEqual(AuthMethod.HEADER, auth_method)
 
     def test_plugin_get_catalogue_metadata(self):
         connection = self._get_connection()

@@ -100,6 +100,7 @@ class BaseDataConnector(metaclass=plugin.Plugin):
     def request_count(self):
         return self._request_counter.count()
 
+    # TODO make normal method
     @staticmethod
     def determine_auth_method(url: str, api_key: str) -> AuthMethod:
         """
