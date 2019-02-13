@@ -6,7 +6,7 @@ from django.test import Client, TestCase
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from datasources import models
+from datasources import connectors, models
 
 
 class RootApiTest(TestCase):
@@ -499,7 +499,7 @@ class DataSourceApiHyperCatTest(TestCase):
             url=cls.test_url,
             api_key=cls.api_key,
             plugin_name=cls.plugin_name,
-            auth_method=models.DataSource.determine_auth_method(cls.test_url, cls.api_key)
+            auth_method=connectors.BaseDataConnector.determine_auth_method(cls.test_url, cls.api_key)
         )
 
     def setUp(self):

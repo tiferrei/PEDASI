@@ -404,7 +404,7 @@ class DataSource(BaseAppDataModel):
             # Is the authentication method set?
             auth_method = AuthMethod(self.auth_method)
             if not auth_method:
-                auth_method = self.determine_auth_method(self.url, self.api_key)
+                auth_method = plugin.determine_auth_method(self.url, self.api_key)
 
             # Inject function to get authenticated request
             auth_class = REQUEST_AUTH_FUNCTIONS[auth_method]
@@ -474,40 +474,6 @@ class DataSource(BaseAppDataModel):
 
         result = '\n'.join(lines)
         return result
-
-    @staticmethod
-    def determine_auth_method(url: str, api_key: str) -> AuthMethod:
-        """
-        Determine which authentication method to use to access the data source.
-
-        Test each known authentication method in turn until one succeeds.
-
-        :param url: URL to authenticate against
-        :param api_key: API key to use for authentication
-        :return: First successful authentication method
-        """
-        # If not using an API key - can't require auth
-        if not api_key:
-            return AuthMethod.NONE
-
-        for auth_method_id, auth_function in REQUEST_AUTH_FUNCTIONS.items():
-            try:
-                # Can we get a response using this auth method?
-                if auth_function is None:
-                    response = requests.get(url)
-
-                else:
-                    response = requests.get(url,
-                                            auth=auth_function(api_key, ''))
-
-                response.raise_for_status()
-                return auth_method_id
-
-            except requests.exceptions.HTTPError:
-                pass
-
-        # None of the attempted authentication methods was successful
-        raise requests.exceptions.ConnectionError('Could not authenticate against external API')
 
     def get_absolute_url(self):
         return reverse('datasources:datasource.detail',

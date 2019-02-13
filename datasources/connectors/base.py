@@ -100,6 +100,40 @@ class BaseDataConnector(metaclass=plugin.Plugin):
     def request_count(self):
         return self._request_counter.count()
 
+    @staticmethod
+    def determine_auth_method(url: str, api_key: str) -> AuthMethod:
+        """
+        Determine which authentication method to use to access the data source.
+
+        Test each known authentication method in turn until one succeeds.
+
+        :param url: URL to authenticate against
+        :param api_key: API key to use for authentication
+        :return: First successful authentication method
+        """
+        # If not using an API key - can't require auth
+        if not api_key:
+            return AuthMethod.NONE
+
+        for auth_method_id, auth_function in REQUEST_AUTH_FUNCTIONS.items():
+            try:
+                # Can we get a response using this auth method?
+                if auth_function is None:
+                    response = requests.get(url)
+
+                else:
+                    response = requests.get(url,
+                                            auth=auth_function(api_key, ''))
+
+                response.raise_for_status()
+                return auth_method_id
+
+            except requests.exceptions.HTTPError:
+                pass
+
+        # None of the attempted authentication methods was successful
+        raise requests.exceptions.ConnectionError('Could not authenticate against external API')
+
     def get_metadata(self,
                      params: typing.Optional[typing.Mapping[str, str]] = None):
         """
