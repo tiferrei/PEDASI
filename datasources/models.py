@@ -389,31 +389,43 @@ class DataSource(BaseAppDataModel):
 
         return plugin
 
+    def _get_data_connector(self) -> BaseDataConnector:
+        """
+        Construct the data connector for this source.
+
+        :return: Data connector instance
+        """
+        plugin = self.data_connector_class
+
+        if not self.api_key:
+            data_connector = plugin(self.connector_string)
+
+        else:
+            # Is the authentication method set?
+            auth_method = AuthMethod(self.auth_method)
+            if not auth_method:
+                auth_method = self.determine_auth_method(self.url, self.api_key)
+
+            # Inject function to get authenticated request
+            auth_class = REQUEST_AUTH_FUNCTIONS[auth_method]
+
+            data_connector = plugin(self.connector_string, self.api_key,
+                                    auth=auth_class)
+
+        return data_connector
+
     @property
     @contextlib.contextmanager
     def data_connector(self) -> BaseDataConnector:
         """
         Context manager to construct the data connector for this source.
 
+        When the context manager is closed, the number of requests to the external API will be added to the total.
+
         :return: Data connector instance
         """
         if self._data_connector is None:
-            plugin = self.data_connector_class
-
-            if not self.api_key:
-                self._data_connector = plugin(self.connector_string)
-
-            else:
-                # Is the authentication method set?
-                auth_method = AuthMethod(self.auth_method)
-                if not auth_method:
-                    auth_method = self.determine_auth_method(self.url, self.api_key)
-
-                # Inject function to get authenticated request
-                auth_class = REQUEST_AUTH_FUNCTIONS[auth_method]
-
-                self._data_connector = plugin(self.connector_string, self.api_key,
-                                              auth=auth_class)
+            self._data_connector = self._get_data_connector()
 
         try:
             # Returns as context manager
@@ -440,11 +452,19 @@ class DataSource(BaseAppDataModel):
         ]
 
         try:
-            with self.data_connector as connector:
-                lines.append(json.dumps(
-                    connector.get_metadata(),
-                    indent=4
-                ))
+            # Using the data_connector context manager results in an infinite recursion:
+            #   1. Save data source
+            #   2. Get search representation (this function)
+            #   3. Close data connector context manager
+            #   4. Save data source -> ...
+
+            data_connector = self._get_data_connector()
+            metadata = data_connector.get_metadata()
+
+            lines.append(json.dumps(
+                metadata,
+                indent=4
+            ))
 
         except (KeyError, NotImplementedError, ValueError):
             # KeyError: Plugin was not found
