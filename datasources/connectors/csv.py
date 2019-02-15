@@ -3,7 +3,6 @@ Connectors for handling CSV data.
 """
 
 import csv
-import json
 import typing
 
 from django.http import JsonResponse
@@ -168,8 +167,11 @@ class CsvToMongoConnector(InternalDataConnector, DataSetConnector):
 
             # Couldn't store field 'id' in document - recover it
             for item in data:
-                if self.id_field_alias in item:
+                try:
                     item['id'] = item.pop(self.id_field_alias)
+
+                except KeyError:
+                    pass
 
             return JsonResponse({
                 'status': 'success',
