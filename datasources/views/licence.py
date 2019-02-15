@@ -3,7 +3,7 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from .. import forms, models
-from core.permissions import OwnerPermissionMixin
+from profiles.permissions import OwnerPermissionMixin
 
 
 class LicenceListView(ListView):

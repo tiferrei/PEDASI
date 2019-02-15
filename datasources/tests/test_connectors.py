@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from datasources.connectors.base import BaseDataConnector
+from datasources.connectors.base import AuthMethod, BaseDataConnector
 
 
 class ConnectorPluginTest(TestCase):
@@ -85,6 +85,13 @@ class ConnectorIoTUKTest(TestCase):
 
         self.assertIn('data', result)
         self.assertGreater(len(result['data']), 0)
+
+    def test_determine_auth(self):
+        connection = self._get_connection()
+
+        auth_method = connection.determine_auth_method(connection.location, connection.api_key)
+
+        self.assertEqual(AuthMethod.NONE, auth_method)
 
 
 class ConnectorRestApiTest(TestCase):

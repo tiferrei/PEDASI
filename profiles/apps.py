@@ -49,6 +49,7 @@ class ProfilesConfig(AppConfig):
         # Runs after app registry is populated - i.e. all models exist and are importable
         try:
             self.create_groups()
+            logging.info('Loaded inline Group fixtures')
 
         except ProgrammingError:
             logging.warning('Could not create Group fixtures, database has not been initialized')

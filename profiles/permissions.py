@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import UserPassesTestMixin, PermissionRequiredMixin
 
 
-class OwnerPermissionRequiredMixin(PermissionRequiredMixin):
+class OwnerPermissionMixin(PermissionRequiredMixin):
     """
     Mixin to require that a user has the relevant global permission and is the owner of the relevant object.
 

@@ -6,11 +6,11 @@ from django.shortcuts import reverse
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import UpdateView
 
-from profiles.permissions import OwnerPermissionRequiredMixin
+from profiles.permissions import OwnerPermissionMixin
 from datasources import forms, models
 
 
-class DataSourceAccessManageView(OwnerPermissionRequiredMixin, DetailView):
+class DataSourceAccessManageView(OwnerPermissionMixin, DetailView):
     model = models.DataSource
     template_name = 'datasources/datasource/manage_access.html'
     context_object_name = 'datasource'

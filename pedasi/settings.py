@@ -89,7 +89,7 @@ THIRD_PARTY_APPS = [
 CUSTOM_APPS = [
     'profiles.apps.ProfilesConfig',  # Refer to AppConfig directly since we override the .ready() method
     'applications',
-    'datasources',
+    'datasources.apps.DatasourcesConfig',
     'provenance',
     'core',
     'api',
