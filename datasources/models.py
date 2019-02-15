@@ -300,6 +300,12 @@ class DataSource(BaseAppDataModel):
         super().__init__(*args, **kwargs)
         self._data_connector = None
 
+    def save(self, *args, **kwargs):
+        # TODO avoid determining auth method if existing one still works
+        self.auth_method = self.data_connector_class.determine_auth_method(self.url, self.api_key)
+
+        return super().save(*args, **kwargs)
+
     def delete(self, using=None, keep_parents=False):
         """
         Soft delete this object.
@@ -403,7 +409,7 @@ class DataSource(BaseAppDataModel):
         else:
             # Is the authentication method set?
             auth_method = AuthMethod(self.auth_method)
-            if not auth_method:
+            if auth_method == AuthMethod.UNKNOWN:
                 auth_method = plugin.determine_auth_method(self.url, self.api_key)
 
             # Inject function to get authenticated request
