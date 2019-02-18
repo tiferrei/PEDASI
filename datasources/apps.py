@@ -1,7 +1,7 @@
 import logging
 
 from django.apps import AppConfig
-from django.db.utils import ProgrammingError
+from django.db.utils import OperationalError, ProgrammingError
 
 
 logger = logging.getLogger(__name__)
@@ -22,5 +22,5 @@ class DatasourcesConfig(AppConfig):
             self.create_operational_metadata()
             logging.info('Loaded inline MetadataField fixtures')
 
-        except ProgrammingError:
+        except (OperationalError, ProgrammingError):
             logging.warning('Could not create MetadataField fixtures, database has not been initialized')

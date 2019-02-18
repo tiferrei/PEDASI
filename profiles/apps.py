@@ -1,7 +1,7 @@
 import logging
 
 from django.apps import AppConfig
-from django.db.utils import ProgrammingError
+from django.db.utils import OperationalError, ProgrammingError
 
 
 logger = logging.getLogger(__name__)
@@ -51,5 +51,5 @@ class ProfilesConfig(AppConfig):
             self.create_groups()
             logging.info('Loaded inline Group fixtures')
 
-        except ProgrammingError:
+        except (OperationalError, ProgrammingError):
             logging.warning('Could not create Group fixtures, database has not been initialized')
