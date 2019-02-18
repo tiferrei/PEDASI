@@ -80,6 +80,7 @@ class ProvEntry(mongoengine.DynamicDocument):
         instance_type = ContentType.objects.get_for_model(instance)
 
         document = prov.model.ProvDocument(namespaces={
+            # TODO set PEDASI PROV namespace
             'piot': 'http://www.pedasi-iot.org/',
             'foaf': 'http://xmlns.com/foaf/0.1/',
             'xsd': 'http://www.w3.org/2001/XMLSchema#',
@@ -107,7 +108,7 @@ class ProvEntry(mongoengine.DynamicDocument):
             # Generate a UUID so we can lookup records belonging to a user
             # But not identify the user from a given record
             # TODO how strongly do we want to prevent user identification?
-            # See https://github.com/Southampton-RSG/PEDASI-IoT/issues/10
+            # See https://github.com/PEDASI/PEDASI/issues/10
             'piot:u-' + str(uuid.uuid5(uuid.NAMESPACE_URL, user_uri)),
             other_attributes={
                 prov.model.PROV_TYPE: 'prov:Person',

@@ -79,7 +79,7 @@
 
       - name: Clone / update dev branch from main repo
         git:
-          repo: 'ssh://git@github.com/Southampton-RSG/PEDASI-IoT.git'
+          repo: 'ssh://git@github.com/PEDASI/PEDASI.git'
           dest: '{{ project_dir }}'
           accept_hostkey: yes
           key_file: '~/.deployment-key'
@@ -106,7 +106,7 @@
 
       - name: Clone / update master branch
         git:
-          repo: 'ssh://git@github.com/Southampton-RSG/PEDASI-IoT.git'
+          repo: 'ssh://git@github.com/PEDASI/PEDASI.git'
           dest: '{{ project_dir }}'
           accept_hostkey: yes
           key_file: '~/.deployment-key'
