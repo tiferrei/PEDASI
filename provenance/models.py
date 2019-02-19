@@ -13,8 +13,7 @@ import uuid
 
 from django import apps
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import QuerySet, signals
-from django.dispatch import receiver
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -22,27 +21,29 @@ import mongoengine
 from mongoengine.queryset.visitor import Q
 import prov.model
 
-from applications.models import Application
 from core.models import BaseAppDataModel
-from datasources.models import DataSource
 
 MAX_LENGTH_NAME_FIELD = 100
 
 
-class PedasiDummyApplication:
+class ProvApplicationModel:
     """
     Dummy application model to fall back to when an action was performed via the PEDASI web interface.
-    """
-    name = 'PEDASI'
-    pk = 'pedasi'  # We convert pk to string anyway - so this is fine
 
-    @staticmethod
-    def get_absolute_url():
+    Also to be used as parent class of :class:`Application` to help with type hinting.
+    """
+    def __init__(self, *args, **kwargs):
+        self.pk = kwargs.get('pk', 'pedasi')
+        self.name = kwargs.get('name', 'PEDASI')
+
+        super().__init__(*args, **kwargs)
+
+    def get_absolute_url(self):
         """
         Return the URL at which PEDASI is hosted.
         """
         # TODO don't hardcode URL
-        return 'http://www.pedasi-iot.org/'
+        return 'https://dev.iotobservatory.io/'
 
 
 @enum.unique
@@ -66,7 +67,7 @@ class ProvEntry(mongoengine.DynamicDocument):
     def create_prov(cls,
                     instance: BaseAppDataModel,
                     user_uri: str,
-                    application: typing.Optional[Application] = None,
+                    application: typing.Optional[ProvApplicationModel] = None,
                     activity_type: typing.Optional[ProvActivity] = ProvActivity.UPDATE) -> 'ProvEntry':
         """
         Build a PROV document representing a particular activity within PEDASI.
@@ -116,7 +117,7 @@ class ProvEntry(mongoengine.DynamicDocument):
         )
 
         if application is None:
-            application = PedasiDummyApplication
+            application = ProvApplicationModel()
 
         agent_application = document.agent(
             'piot:app-' + str(application.pk),
@@ -217,7 +218,7 @@ class ProvWrapper(mongoengine.Document):
     def create_prov(cls,
                     instance: BaseAppDataModel,
                     user_uri: str,
-                    application: typing.Optional[Application] = None,
+                    application: typing.Optional[ProvApplicationModel] = None,
                     activity_type: typing.Optional[ProvActivity] = ProvActivity.UPDATE) -> ProvEntry:
         """
         Create a PROV record for a single action.
@@ -251,15 +252,34 @@ class ProvWrapper(mongoengine.Document):
         super().delete(signal_kwargs, **write_concern)
 
 
-@receiver(signals.post_save, sender=Application)
-@receiver(signals.post_save, sender=DataSource)
-def save_prov(sender, instance, **kwargs):
+class ProvAbleModel:
     """
-    Signal receiver to create a :class:`ProvEntry` when a PROV tracked model is saved.
+    Mixin for models which are capable of having updates tracked by PROV records.
+
+    Creates a new PROV record every time the object is modified and saved.
     """
-    ProvWrapper.create_prov(
-        instance,
-        # TODO what if an admin edits a model?
-        instance.owner.get_uri(),
-        activity_type=ProvActivity.UPDATE
-    )
+    def save(self, *args, **kwargs):
+        try:
+            # Have to read existing saved version from database
+            existing = type(self).objects.get(pk=self.pk)
+            changed = False
+
+            for field in self._meta.fields:
+                attr = field.attname
+
+                if getattr(existing, attr) != getattr(self, attr):
+                    changed = True
+                    break
+
+        except type(self).DoesNotExist:
+            # First time this object has been saved
+            changed = True
+
+        super().save(*args, **kwargs)
+
+        if changed:
+            ProvWrapper.create_prov(
+                self,
+                self.owner.get_uri(),
+                activity_type=ProvActivity.UPDATE
+            )

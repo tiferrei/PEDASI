@@ -8,9 +8,10 @@ from django.utils.text import slugify
 from rest_framework.authtoken.models import Token
 
 from core.models import BaseAppDataModel, SoftDeletionManager
+from provenance.models import ProvAbleModel, ProvApplicationModel
 
 
-class Application(BaseAppDataModel):
+class Application(ProvAbleModel, ProvApplicationModel, BaseAppDataModel):
     """
     Manage the state of and access to an external application.
 

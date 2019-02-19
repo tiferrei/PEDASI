@@ -4,7 +4,6 @@ Tests for PROV tracking functionality and the models required to support it.
 
 import json
 import pathlib
-import unittest
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -15,6 +14,7 @@ import jsonschema
 import mongoengine
 from mongoengine.queryset.visitor import Q
 
+from applications.models import Application
 from datasources.models import DataSource
 from provenance import models
 
@@ -134,19 +134,6 @@ class ProvWrapperTest(TestCase):
         # Another PROV record should be created when model is changed and saved
         self.assertEqual(self._count_prov(self.datasource), n_provs + 1)
 
-    @unittest.expectedFailure
-    def test_prov_datasource_no_update(self):
-        """
-        Test that a new :class:`ProvEntry` is not created when a model is saved without changes.
-        """
-        n_provs = self._count_prov(self.datasource)
-
-        self.datasource.save()
-
-        # Another PROV record should be created when model is changed and saved
-        self.assertEqual(self._count_prov(self.datasource), n_provs)
-
-    @unittest.expectedFailure
     def test_prov_datasource_null_update(self):
         """
         Test that no new :class:`ProvEntry` is created when a model is saved without changes.
@@ -170,6 +157,89 @@ class ProvWrapperTest(TestCase):
             owner=self.user,
         )
         new_prov_entries = models.ProvWrapper.filter_model_instance(new_datasource)
+
+        intersection = set(prov_entries).intersection(new_prov_entries)
+        self.assertFalse(intersection)
+
+
+class ProvApplicationTest(TestCase):
+    """
+    Test the wrapper that allows us to look up :class:`ProvEntry`s for a given Application.
+    """
+    model = Application
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user_model = get_user_model()
+        cls.user = cls.user_model.objects.create_user('Test Prov User')
+
+    def setUp(self):
+        self.object = self.model.objects.create(
+            name='Test Object',
+            url='http://www.example.com',
+            owner=self.user,
+        )
+
+    def tearDown(self):
+        # Have to delete instance manually since we're not using Django's database manager
+        object_type = ContentType.objects.get_for_model(self.model)
+
+        models.ProvWrapper.objects(
+            Q(app_label=object_type.app_label) &
+            Q(model_name=object_type.model) &
+            Q(related_pk=self.object.pk)
+        ).delete()
+
+    @staticmethod
+    def _count_prov(obj) -> int:
+        """
+        Count PROV records for a given object.
+        """
+        prov_entries = models.ProvWrapper.filter_model_instance(obj)
+        return prov_entries.count()
+
+    def test_prov_application_create(self):
+        """
+        Test that a :class:`ProvEntry` is created when a model is created.
+        """
+        # PROV record should be created when model is created
+        self.assertEqual(self._count_prov(self.object), 1)
+
+    def test_prov_application_update(self):
+        """
+        Test that a new :class:`ProvEntry` is created when a model is updated.
+        """
+        n_provs = self._count_prov(self.object)
+
+        self.object.url = 'http://example.com'
+        self.object.save()
+
+        # Another PROV record should be created when model is changed and saved
+        self.assertEqual(self._count_prov(self.object), n_provs + 1)
+
+    def test_prov_application_null_update(self):
+        """
+        Test that no new :class:`ProvEntry` is created when a model is saved without changes.
+        """
+        n_provs = self._count_prov(self.object)
+
+        self.object.save()
+
+        # No PROV record should be created when saving a model that has not changed
+        self.assertEqual(self._count_prov(self.object), n_provs)
+
+    def test_prov_records_distinct(self):
+        """
+        Test that :class:`ProvEntry`s are not reused.
+        """
+        prov_entries = models.ProvWrapper.filter_model_instance(self.object)
+
+        new_object = self.model.objects.create(
+            name='Another Test Object',
+            url='http://www.example.com',
+            owner=self.user,
+        )
+        new_prov_entries = models.ProvWrapper.filter_model_instance(new_object)
 
         intersection = set(prov_entries).intersection(new_prov_entries)
         self.assertFalse(intersection)

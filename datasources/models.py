@@ -11,11 +11,10 @@ from django.conf import settings
 from django.core import validators
 from django.db import models
 from django.urls import reverse
-import requests
-import requests.exceptions
 
 from core.models import BaseAppDataModel, MAX_LENGTH_API_KEY, MAX_LENGTH_NAME, MAX_LENGTH_PATH, SoftDeletionManager
 from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_AUTH_FUNCTIONS
+from provenance.models import ProvAbleModel
 
 #: Length of request reason field - must include brief description of project
 MAX_LENGTH_REASON = 511
@@ -207,7 +206,7 @@ class UserPermissionLink(models.Model):
         unique_together = (('user', 'datasource'),)
 
 
-class DataSource(BaseAppDataModel):
+class DataSource(ProvAbleModel, BaseAppDataModel):
     """
     Manage access to a data source API.
 
@@ -305,7 +304,7 @@ class DataSource(BaseAppDataModel):
         # TODO avoid determining auth method if existing one still works
         self.auth_method = self.data_connector_class.determine_auth_method(self.url, self.api_key)
 
-        return super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
         """
