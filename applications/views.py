@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -67,7 +68,11 @@ class ApplicationDetailView(DetailView):
         context['has_edit_permission'] = self.request.user.is_superuser or self.request.user == self.object.owner
 
         if self.request.user == self.object.owner or self.request.user.is_superuser:
-            context['api_key'] = Token.objects.get(user=self.object.proxy_user)
+            try:
+                context['api_key'] = self.object.proxy_user.auth_token
+
+            except Token.DoesNotExist:
+                pass
 
         return context
 
@@ -83,3 +88,27 @@ class ApplicationManageAccessView(OwnerPermissionMixin, ManageAccessView):
     model = models.Application
     template_name = 'applications/application/manage_access.html'
     context_object_name = 'application'
+
+
+class ApplicationGetTokenView(OwnerPermissionMixin, DetailView):
+    """
+    Get an API Token for an application.
+    """
+    model = models.Application
+
+    def render_to_response(self, context, **response_kwargs):
+        """
+        Get an existing API Token or create a new one for the currently authenticated user.
+
+        :return: JSON containing Token key
+        """
+        api_token, created = Token.objects.get_or_create(user=self.object.proxy_user)
+
+        return JsonResponse({
+            'status': 'success',
+            'data': {
+                'token': {
+                    'key': api_token.key
+                }
+            }
+        })

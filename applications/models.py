@@ -130,7 +130,7 @@ class Application(BaseAppDataModel):
         proxy_user = get_user_model().objects.create_user(proxy_username)
 
         # Create an API access token for the proxy user
-        Token.objects.create(user=proxy_user)
+        proxy_user.create_auth_token()
 
         return proxy_user
 
