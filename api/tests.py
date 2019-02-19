@@ -482,8 +482,8 @@ class DataSourceApiIoTUKTest(TestCase):
 class DataSourceApiHyperCatTest(TestCase):
     test_name = 'HyperCat'
     plugin_name = 'HyperCat'
-    test_url = 'https://api.cityverve.org.uk/v1/cat/polling-station'
-    dataset = 'https://api.cityverve.org.uk/v1/entity/polling-station/5'
+    test_url = 'https://api.cityverve.org.uk/v1/cat'
+    dataset = 'https://api.cityverve.org.uk/v1/cat/polling-station'
 
     @classmethod
     def setUpTestData(cls):
