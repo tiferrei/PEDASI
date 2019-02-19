@@ -239,6 +239,7 @@ class DataSource(BaseAppDataModel):
 
     #: Name of plugin which allows interaction with this data source
     plugin_name = models.CharField(max_length=MAX_LENGTH_NAME,
+                                   default='DataSetConnector',
                                    blank=False, null=False)
 
     #: If the data source API requires an API key use this one

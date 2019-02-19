@@ -39,7 +39,6 @@ class ProvEntryTest(TestCase):
             name='Test Data Source',
             url='http://www.example.com',
             owner=self.user,
-            plugin_name='TEST'
         )
 
     def tearDown(self):
@@ -99,7 +98,6 @@ class ProvWrapperTest(TestCase):
             name='Test Data Source',
             url='http://www.example.com',
             owner=self.user,
-            plugin_name='TEST'
         )
 
     def tearDown(self):
@@ -130,11 +128,23 @@ class ProvWrapperTest(TestCase):
         """
         n_provs = self._count_prov(self.datasource)
 
-        self.datasource.plugin_name = 'CHANGED'
+        self.datasource.api_key = 'TEST'
         self.datasource.save()
 
         # Another PROV record should be created when model is changed and saved
         self.assertEqual(self._count_prov(self.datasource), n_provs + 1)
+
+    @unittest.expectedFailure
+    def test_prov_datasource_no_update(self):
+        """
+        Test that a new :class:`ProvEntry` is not created when a model is saved without changes.
+        """
+        n_provs = self._count_prov(self.datasource)
+
+        self.datasource.save()
+
+        # Another PROV record should be created when model is changed and saved
+        self.assertEqual(self._count_prov(self.datasource), n_provs)
 
     @unittest.expectedFailure
     def test_prov_datasource_null_update(self):
@@ -158,7 +168,6 @@ class ProvWrapperTest(TestCase):
             name='Another Test Data Source',
             url='http://www.example.com',
             owner=self.user,
-            plugin_name='TEST'
         )
         new_prov_entries = models.ProvWrapper.filter_model_instance(new_datasource)
 
