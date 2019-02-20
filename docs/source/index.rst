@@ -9,7 +9,7 @@ PEDASI
 
 
 Overview
-********
+--------
 
 Developed as a platform and a service to explore research challenges in data security, privacy, and ethics, PEDASI enables providers of data - particularly `Internet of Things`_ data - to share their data securely within a common catalogue for use by application developers and researchers. Data can either be hosted and made accessible directly within PEDASI as an internal data source, or hosted elsewhere and accessible as an external data source through PEDASI.
 
@@ -19,7 +19,7 @@ An initial deployment of the platform is available at https://dev.iotobservatory
 
 
 Key Features
-************
+------------
 
 PEDASI's key features are:
 
@@ -33,9 +33,9 @@ PEDASI's key features are:
 
 
 Resources
-*********
+---------
 
-Documentation is available within this repository for the following stakeholders:
+Documentation is available for the following stakeholders:
 
  - :ref:`Researchers and other end-users<guide_user>`: to discover, explore, and make use of datasets using the web interface
  - :ref:`Administrators<guide_administrator>`: to deploy PEDASI, or provide data or use applications through PEDASI
@@ -47,13 +47,13 @@ This documentation is also available on `Read the Docs`_.
 
 
 License
-*******
+-------
 
 PEDASI is provided under the MIT licence.
 
 
 References
-**********
+----------
 
 * :ref:`genindex`
 * :ref:`modindex`
