@@ -2,9 +2,8 @@ import itertools
 import typing
 
 from django.test import TestCase
-from requests.auth import HTTPBasicAuth
 
-from datasources.connectors.base import BaseDataConnector, HttpHeaderAuth
+from datasources.connectors.base import AuthMethod, BaseDataConnector, HttpHeaderAuth
 
 
 def _get_item_by_key_value(collection: typing.Iterable[typing.Mapping],
@@ -27,160 +26,7 @@ def _count_items_by_key_value(collection: typing.Iterable[typing.Mapping],
 
 
 class ConnectorHyperCatTest(TestCase):
-    url = 'https://portal.bt-hypercat.com/cat'
-
-    # Met Office dataset for weather at Heathrow
-    dataset = 'http://api.bt-hypercat.com/sensors/feeds/c7f361c6-7cb7-4ef5-aed9-397a0c0c4088'
-
-    def _get_connection(self) -> BaseDataConnector:
-        return self.plugin(self.url,
-                           api_key=self.api_key,
-                           auth=HTTPBasicAuth)
-
-    def setUp(self):
-        from decouple import config
-
-        BaseDataConnector.load_plugins('datasources/connectors')
-        self.plugin = BaseDataConnector.get_plugin('HyperCat')
-
-        self.api_key = config('HYPERCAT_BT_API_KEY')
-
-    def test_get_plugin(self):
-        self.assertIsNotNone(self.plugin)
-
-    def test_plugin_init(self):
-        connection = self._get_connection()
-
-        self.assertEqual(connection.location, self.url)
-
-    def test_plugin_type(self):
-        connection = self._get_connection()
-
-        self.assertTrue(connection.is_catalogue)
-
-    def test_plugin_get_metadata(self):
-        connection = self._get_connection()
-
-        result = connection.get_metadata()
-
-        relations = [relation['rel'] for relation in result]
-        for property in [
-            'urn:X-hypercat:rels:hasDescription:en',
-            'urn:X-hypercat:rels:isContentType',
-        ]:
-            self.assertIn(property, relations)
-
-        self.assertEqual('BT Hypercat DataHub Catalog',
-                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasDescription:en')['val'])
-
-        self.assertEqual('application/vnd.hypercat.catalogue+json',
-                         _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:isContentType')['val'])
-
-    def test_plugin_get_datasets(self):
-        connection = self._get_connection()
-
-        datasets = connection.get_datasets()
-
-        self.assertEqual(list,
-                         type(datasets))
-
-        self.assertLessEqual(1,
-                             len(datasets))
-
-        self.assertIn(self.dataset,
-                      datasets)
-
-    def test_plugin_iter_datasets(self):
-        connection = self._get_connection()
-
-        for dataset in connection:
-            self.assertEqual(str,
-                             type(dataset))
-
-    def test_plugin_len_datasets(self):
-        connection = self._get_connection()
-
-        self.assertLessEqual(1,
-                             len(connection))
-
-    def test_plugin_iter_items(self):
-        """
-        Test naive iteration over key-value pairs of datasets within this catalogue.
-
-        This process is SLOW so we only do a couple of iterations.
-        """
-        connection = self._get_connection()
-
-        for k, v in itertools.islice(connection.items(), 5):
-            self.assertEqual(str,
-                             type(k))
-
-            self.assertIsInstance(v,
-                                  BaseDataConnector)
-
-            self.assertEqual(k,
-                             v.location)
-
-    def test_plugin_iter_items_context_manager(self):
-        """
-        Test context-managed iteration over key-value pairs of datasets within this catalogue.
-
-        This process is relatively slow so we only do a couple of iterations.
-        """
-        with self.plugin(self.url, api_key=self.api_key, auth=HTTPBasicAuth) as connection:
-            for k, v in itertools.islice(connection.items(), 5):
-                self.assertEqual(str,
-                                 type(k))
-
-                self.assertIsInstance(v,
-                                      BaseDataConnector)
-
-                self.assertEqual(k,
-                                 v.location)
-
-    def test_plugin_get_dataset_metadata(self):
-        connection = self._get_connection()
-
-        result = connection[self.dataset].get_metadata()
-
-        relations = [relation['rel'] for relation in result]
-        for property in [
-            'urn:X-bt:rels:feedTitle',
-            'urn:X-hypercat:rels:hasDescription:en',
-            'urn:X-bt:rels:feedTag',
-            'urn:X-bt:rels:hasSensorStream',
-            'urn:X-hypercat:rels:isContentType',
-        ]:
-            self.assertIn(property, relations)
-
-        self.assertIn('Met Office',
-                      _get_item_by_key_value(result, 'rel', 'urn:X-bt:rels:feedTitle')['val'])
-
-        self.assertIn('Met Office',
-                      _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasDescription:en')['val'])
-
-        self.assertEqual(1,
-                         _count_items_by_key_value(result, 'rel', 'urn:X-bt:rels:feedTag'))
-
-        self.assertGreaterEqual(_count_items_by_key_value(result, 'rel', 'urn:X-bt:rels:hasSensorStream'),
-                                1)
-
-    def test_plugin_get_dataset_data(self):
-        """
-        Test that we can get data from a single dataset within the catalogue.
-        """
-        connection = self._get_connection()
-
-        dataset = connection[self.dataset]
-        result = dataset.get_data()
-
-        self.assertIsInstance(result, str)
-        self.assertGreaterEqual(len(result), 1)
-        self.assertIn('c7f361c6-7cb7-4ef5-aed9-397a0c0c4088',
-                      result)
-
-
-class ConnectorHyperCatCiscoTest(TestCase):
+    # TODO find working dataset
     url = 'https://api.cityverve.org.uk/v1/cat'
     subcatalogue = 'https://api.cityverve.org.uk/v1/cat/polling-station'
     dataset = 'https://api.cityverve.org.uk/v1/entity/polling-station/5'
@@ -211,6 +57,13 @@ class ConnectorHyperCatCiscoTest(TestCase):
         connection = self._get_connection()
 
         self.assertTrue(connection.is_catalogue)
+
+    def test_determine_auth(self):
+        connection = self._get_connection()
+
+        auth_method = connection.determine_auth_method(connection.location, connection.api_key)
+
+        self.assertEqual(AuthMethod.HEADER, auth_method)
 
     def test_plugin_get_catalogue_metadata(self):
         connection = self._get_connection()
@@ -255,6 +108,54 @@ class ConnectorHyperCatCiscoTest(TestCase):
         }
         for exp in expected:
             self.assertIn(exp, datasets)
+
+    def test_plugin_iter_datasets(self):
+        connection = self._get_connection()
+
+        for dataset in connection:
+            self.assertEqual(str,
+                             type(dataset))
+
+    def test_plugin_len_datasets(self):
+        connection = self._get_connection()
+
+        self.assertLessEqual(1,
+                             len(connection))
+
+    def test_plugin_iter_items(self):
+        """
+        Test naive iteration over key-value pairs of datasets within this catalogue.
+
+        This process is SLOW so we only do a couple of iterations.
+        """
+        connection = self._get_connection()
+
+        for k, v in itertools.islice(connection.items(), 5):
+            self.assertEqual(str,
+                             type(k))
+
+            self.assertIsInstance(v,
+                                  BaseDataConnector)
+
+            self.assertEqual(k,
+                             v.location)
+
+    def test_plugin_iter_items_context_manager(self):
+        """
+        Test context-managed iteration over key-value pairs of datasets within this catalogue.
+
+        This process is relatively slow so we only do a couple of iterations.
+        """
+        with self._get_connection() as connection:
+            for k, v in itertools.islice(connection.items(), 5):
+                self.assertEqual(str,
+                                 type(k))
+
+                self.assertIsInstance(v,
+                                      BaseDataConnector)
+
+                self.assertEqual(k,
+                                 v.location)
 
     def test_plugin_get_subcatalogue_metadata(self):
         connection = self._get_connection()

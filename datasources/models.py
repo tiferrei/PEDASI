@@ -1,18 +1,20 @@
+"""
+This module contains the Django models necessary to manage the set of data sources.
+"""
+
 import contextlib
 import enum
 import json
 import typing
 
 from django.conf import settings
-from django.contrib.auth.models import Group
 from django.core import validators
 from django.db import models
 from django.urls import reverse
-import requests
-import requests.exceptions
 
 from core.models import BaseAppDataModel, MAX_LENGTH_API_KEY, MAX_LENGTH_NAME, MAX_LENGTH_PATH, SoftDeletionManager
 from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_AUTH_FUNCTIONS
+from provenance.models import ProvAbleModel
 
 #: Length of request reason field - must include brief description of project
 MAX_LENGTH_REASON = 511
@@ -75,24 +77,45 @@ class MetadataField(models.Model):
                             blank=False, null=False)
 
     #: Short text identifier for the field
-    short_name = models.CharField(max_length=MAX_LENGTH_NAME,
-                                  validators=[
-                                      validators.RegexValidator(
-                                          '^[a-zA-Z][a-zA-Z0-9_]*\Z',
-                                          'Short name must begin with a letter and consist only of letters, numbers and underscores.',
-                                          'invalid'
-                                      )
-                                  ],
-                                  unique=True,
-                                  blank=False, null=False)
+    short_name = models.CharField(
+        max_length=MAX_LENGTH_NAME,
+        validators=[
+            validators.RegexValidator(
+                r'^[a-zA-Z][a-zA-Z0-9_]*\Z',
+                'Short name must begin with a letter and consist only of letters, numbers and underscores.',
+                'invalid'
+            )
+        ],
+        unique=True,
+        blank=False, null=False
+    )
 
-    # TODO create all operational fields if missing
     #: Does the field have an operational effect within PEDASI?
     operational = models.BooleanField(default=False,
                                       blank=False, null=False)
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def load_inline_fixtures(cls):
+        """
+        Create any instances required for the functioning of PEDASI.
+
+        This is called from within the AppConfig.
+        """
+        fixtures = (
+            ('data_query_param', 'data_query_param', True),
+            ('indexed_field', 'indexed_field', True),
+        )
+
+        for name, short_name, operational in fixtures:
+            obj, created = cls.objects.get_or_create(
+                name=name,
+                short_name=short_name
+            )
+            obj.operational = operational
+            obj.save()
 
 
 class MetadataItem(models.Model):
@@ -183,7 +206,7 @@ class UserPermissionLink(models.Model):
         unique_together = (('user', 'datasource'),)
 
 
-class DataSource(BaseAppDataModel):
+class DataSource(ProvAbleModel, BaseAppDataModel):
     """
     Manage access to a data source API.
 
@@ -215,6 +238,7 @@ class DataSource(BaseAppDataModel):
 
     #: Name of plugin which allows interaction with this data source
     plugin_name = models.CharField(max_length=MAX_LENGTH_NAME,
+                                   default='DataSetConnector',
                                    blank=False, null=False)
 
     #: If the data source API requires an API key use this one
@@ -276,6 +300,12 @@ class DataSource(BaseAppDataModel):
         super().__init__(*args, **kwargs)
         self._data_connector = None
 
+    def save(self, *args, **kwargs):
+        # TODO avoid determining auth method if existing one still works
+        self.auth_method = self.data_connector_class.determine_auth_method(self.url, self.api_key)
+
+        super().save(*args, **kwargs)
+
     def delete(self, using=None, keep_parents=False):
         """
         Soft delete this object.
@@ -329,10 +359,18 @@ class DataSource(BaseAppDataModel):
 
     @property
     def is_catalogue(self) -> bool:
+        """
+        Is this data source a data catalogue?
+        """
         return self.data_connector_class.is_catalogue
 
     @property
     def connector_string(self):
+        """
+        Get the string used to locate the resource associated with this data source.
+
+        e.g. URL, SQL table identifier, etc.
+        """
         if self._connector_string:
             return self._connector_string
         return self.url
@@ -349,13 +387,38 @@ class DataSource(BaseAppDataModel):
         try:
             plugin = BaseDataConnector.get_plugin(self.plugin_name)
 
-        except KeyError as e:
+        except KeyError as exc:
             if not self.plugin_name:
-                raise ValueError('Data source plugin is not set') from e
+                raise ValueError('Data source plugin is not set') from exc
 
-            raise KeyError('Data source plugin not found') from e
+            raise KeyError('Data source plugin not found') from exc
 
         return plugin
+
+    def _get_data_connector(self) -> BaseDataConnector:
+        """
+        Construct the data connector for this source.
+
+        :return: Data connector instance
+        """
+        plugin = self.data_connector_class
+
+        if not self.api_key:
+            data_connector = plugin(self.connector_string)
+
+        else:
+            # Is the authentication method set?
+            auth_method = AuthMethod(self.auth_method)
+            if auth_method == AuthMethod.UNKNOWN:
+                auth_method = plugin.determine_auth_method(self.url, self.api_key)
+
+            # Inject function to get authenticated request
+            auth_class = REQUEST_AUTH_FUNCTIONS[auth_method]
+
+            data_connector = plugin(self.connector_string, self.api_key,
+                                    auth=auth_class)
+
+        return data_connector
 
     @property
     @contextlib.contextmanager
@@ -363,25 +426,12 @@ class DataSource(BaseAppDataModel):
         """
         Context manager to construct the data connector for this source.
 
+        When the context manager is closed, the number of requests to the external API will be added to the total.
+
         :return: Data connector instance
         """
         if self._data_connector is None:
-            plugin = self.data_connector_class
-
-            if not self.api_key:
-                self._data_connector = plugin(self.connector_string)
-
-            else:
-                # Is the authentication method set?
-                auth_method = AuthMethod(self.auth_method)
-                if not auth_method:
-                    auth_method = self.determine_auth_method(self.url, self.api_key)
-
-                # Inject function to get authenticated request
-                auth_class = REQUEST_AUTH_FUNCTIONS[auth_method]
-
-                self._data_connector = plugin(self.connector_string, self.api_key,
-                                              auth=auth_class)
+            self._data_connector = self._get_data_connector()
 
         try:
             # Returns as context manager
@@ -396,6 +446,11 @@ class DataSource(BaseAppDataModel):
 
     @property
     def search_representation(self) -> str:
+        """
+        Provide a text representation of this data source to be entered into a search index.
+
+        :return: Text representation of this data source
+        """
         lines = [
             self.name,
             self.owner.get_full_name(),
@@ -403,12 +458,21 @@ class DataSource(BaseAppDataModel):
         ]
 
         try:
+            # Using the data_connector context manager results in an infinite recursion:
+            #   1. Save data source
+            #   2. Get search representation (this function)
+            #   3. Close data connector context manager
+            #   4. Save data source -> ...
+
+            data_connector = self._get_data_connector()
+            metadata = data_connector.get_metadata()
+
             lines.append(json.dumps(
-                self.data_connector.get_metadata(),
+                metadata,
                 indent=4
             ))
 
-        except:
+        except (KeyError, NotImplementedError, ValueError):
             # KeyError: Plugin was not found
             # NotImplementedError: Plugin does not support metadata
             # ValueError: Plugin was not set
@@ -416,31 +480,6 @@ class DataSource(BaseAppDataModel):
 
         result = '\n'.join(lines)
         return result
-
-    @staticmethod
-    def determine_auth_method(url: str, api_key: str) -> AuthMethod:
-        # If not using an API key - can't require auth
-        if not api_key:
-            return AuthMethod.NONE
-
-        for auth_method_id, auth_function in REQUEST_AUTH_FUNCTIONS.items():
-            try:
-                # Can we get a response using this auth method?
-                if auth_function is None:
-                    response = requests.get(url)
-
-                else:
-                    response = requests.get(url,
-                                            auth=auth_function(api_key, ''))
-
-                response.raise_for_status()
-                return auth_method_id
-
-            except requests.exceptions.HTTPError:
-                pass
-
-        # None of the attempted authentication methods was successful
-        raise requests.exceptions.ConnectionError('Could not authenticate against external API')
 
     def get_absolute_url(self):
         return reverse('datasources:datasource.detail',

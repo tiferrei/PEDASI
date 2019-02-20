@@ -8,9 +8,10 @@ from django.utils.text import slugify
 from rest_framework.authtoken.models import Token
 
 from core.models import BaseAppDataModel, SoftDeletionManager
+from provenance.models import ProvAbleModel, ProvApplicationModel
 
 
-class Application(BaseAppDataModel):
+class Application(ProvAbleModel, ProvApplicationModel, BaseAppDataModel):
     """
     Manage the state of and access to an external application.
 
@@ -130,7 +131,7 @@ class Application(BaseAppDataModel):
         proxy_user = get_user_model().objects.create_user(proxy_username)
 
         # Create an API access token for the proxy user
-        Token.objects.create(user=proxy_user)
+        proxy_user.create_auth_token()
 
         return proxy_user
 

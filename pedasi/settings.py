@@ -89,7 +89,7 @@ THIRD_PARTY_APPS = [
 CUSTOM_APPS = [
     'profiles.apps.ProfilesConfig',  # Refer to AppConfig directly since we override the .ready() method
     'applications',
-    'datasources',
+    'datasources.apps.DatasourcesConfig',
     'provenance',
     'core',
     'api',
@@ -137,7 +137,7 @@ WSGI_APPLICATION = 'pedasi.wsgi.application'
 DATABASES = {
     'default': config(
         'DATABASE_URL',
-        default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
+        default='mysql://pedasi:pedasi@localhost:3306/pedasi',
         cast=dj_database_url.parse
     ),
 }
