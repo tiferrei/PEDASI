@@ -1,4 +1,19 @@
+"""
+Mixins for views to require certain permissions or ownership.
+"""
+
 from django.contrib.auth.mixins import UserPassesTestMixin, PermissionRequiredMixin
+
+
+class SelfOrAdminPermissionMixin(UserPassesTestMixin):
+    """
+    Mixin to require that a user is the linked object or an admin.
+
+    To be used e.g. for edit permission on user profiles
+    """
+    def test_func(self) -> bool:
+        user = self.get_object()
+        return user == self.request.user or self.request.user.is_superuser
 
 
 class OwnerPermissionMixin(PermissionRequiredMixin):
