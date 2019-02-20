@@ -13,9 +13,9 @@ User Model
 
 There are four classes of users within PEDASI:
 
- - *Basic User*: these are anonymous users, able to browse and search the catalogue's public data sources and associated metadata, and retrieve public datasets from those data sources. They can also request a *PEDASI User* account. The data access activities of Basic Users are not tracked by PEDASI.
+ - *Basic User*: these are anonymous users, able to browse and search the catalogue's public data sources and associated metadata and retrieve public datasets from those data sources. They can also request a *PEDASI User* account. The data access activities of Basic Users are not tracked by PEDASI.
 
- - *PEDASI User*: in addition to what a Basic User can do, these users can also request access to specific data sources, which may be approved by *Data Providers*. These users are also *observed* within PEDASI, with data access activities tracked by the system (for those data sources that opt to track user activities).
+ - *PEDASI User*: in addition to what a Basic User can do these users can also request access to specific data sources, which may be approved by *Data Providers*. These users are also *observed* within PEDASI, with data access activities tracked by the system (for those data sources that opt to track user activities).
 
 Another class of user is the *Provider*, used for administering PEDASI data sources and applications. These build on what PEDASI Users can do:
 
@@ -53,7 +53,7 @@ These records are held internally within PEDASI and are available to Central Adm
 Registering for an Account
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The preferred method to register an account with PEDASI is to register your Google account. If you don't have a Google account, you can `sign up for one`_. Once you have an account, you should contact the PEDASI Central Administrator via their contact details and request that your account be added to the system.
+The preferred method to register an account with PEDASI is to register your Google account. If you don't have a Google account you can `sign up for one`_. Once you have an account you should contact the PEDASI Central Administrator via their contact details and request that your account be added to the system.
 
 Once approved, log in to the system as a PEDASI User using your Google account by selecting *Google Login* on the front page navigation bar.
 
@@ -80,7 +80,7 @@ Selecting *Details* for a data source from the Data Sources page shows the follo
 Requesting Access to a Datasource
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you're logged in as a PEDASI User (and not anonymously), you may request access to a data source by selecting *Manage Access* from a data source overview page. From here, you can supply the following details for an access request via a form:
+If you're logged in as a PEDASI User (and not anonymously), you may request access to a data source by selecting *Manage Access* from a data source overview page. From here you can supply the following details for an access request via a form:
 
  - The level of access, where a given level also provides access to previous levels:
 
@@ -98,13 +98,13 @@ The data source's Data Provider will then consider and optionally approve the re
 Using the Data Explorer
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The Data Explorer allows you to explore and obtain data from data sources by building and submitting queries based on that data source's API parameters.
+The Data Explorer allows you to explore and obtain data from data sources by building and submitting queries based on that data source's API parameters. This is also intended as an aid for developers who wish to understand and construct PEDASI queries within their applications.
 
-Selecting *Data Explorer* from the data source overview page shows an interface to do this, using the following process:
+Selecting *Data Explorer* from the data source overview page shows an interface to do this using the following process:
 
- 1. *Select a specific data set, if supported*: firstly, if the data source supports multiple data sets, select one from the *Datasets* panel on the bottom right. Dataset-specific metadata will be displayed in the *Metadata* panel on the bottom left.
+ 1. *Select a specific data set if supported*: firstly, if the data source supports multiple data sets, select one from the *Datasets* panel on the bottom right. Dataset-specific metadata will be displayed in the *Metadata* panel on the bottom left.
 
- 2. *Use the Query Builder to construct a query*: in the *Query Builder* panel on the top left, select a query parameter from the dropdown selector (or if they are not configured, you can add one manually in the *Parameter* field), assign a value to that parameter, and select *Add to Query*. Repeat this as required to build a complete query. You'll be able to see the query that will be sent to PEDASI in the *Query URL* text box as the query is constructed.
+ 2. *Use the Query Builder to construct a query*: in the *Query Builder* panel on the top left, select a query parameter from the dropdown selector (or if they are not configured for this data source, you can add one manually in the *Parameter* field), assign a value to that parameter, and select *Add to Query*. Repeat this as required to build a complete query. You'll be able to see the query that will be sent to PEDASI in the *Query URL* text box as the query is constructed.
 
  3. *Submit the query and see the results*: select *Submit Query* to submit the query, with the results displayed in the *Query Results* panel on the top right.
 
