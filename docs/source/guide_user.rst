@@ -83,10 +83,12 @@ Requesting Access to a Datasource
 If you're logged in as a PEDASI User (and not anonymously), you may request access to a data source by selecting *Manage Access* from a data source overview page. From here, you can supply the following details for an access request via a form:
 
  - The level of access, where a given level also provides access to previous levels:
+
    - *NONE*: to revoke access to a data source
    - *VIEW*: to view a data source's high-level details
    - *META*: to view a data source's metadata
    - *PROV*: to view a data source's PROV records
+
  - Push requested: to allow the data source to receive updates and/or new data from the user, where the data source supports it (currently only internal PEDASI data sources)
  - Reason: the reason for the request
 
