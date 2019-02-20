@@ -98,7 +98,7 @@ class ApplicationGetTokenView(OwnerPermissionMixin, DetailView):
 
     def render_to_response(self, context, **response_kwargs):
         """
-        Get an existing API Token or create a new one for the currently authenticated user.
+        Get an existing API Token or create a new one for the requested :class:`Application`.
 
         :return: JSON containing Token key
         """
@@ -110,5 +110,21 @@ class ApplicationGetTokenView(OwnerPermissionMixin, DetailView):
                 'token': {
                     'key': api_token.key
                 }
+            }
+        })
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Revoke an API Token for the requested :class:`Application`.
+
+        :return: JSON containing Token key
+        """
+        self.object = self.get_object()
+        self.object.proxy_user.revoke_auth_token()
+
+        return JsonResponse({
+            'status': 'success',
+            'data': {
+                'token': None,
             }
         })

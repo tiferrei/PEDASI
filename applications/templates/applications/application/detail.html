@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load bootstrap4 %}
 
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.0/src/js.cookie.min.js"></script>
+{% endblock %}
+
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -64,7 +68,26 @@
                     <td>
                         <span id="spanApiToken">
                             {% if application.proxy_user.auth_token %}
+                                <script type="application/javascript">
+                                    function revokeToken() {
+                                        $.ajax({
+                                            dataType: "json",
+                                            url: "{% url 'applications:token' pk=application.pk %}",
+                                            method: "DELETE",
+                                            headers: {
+                                                "X-CSRFToken": Cookies.get("csrftoken")
+                                            },
+                                            data: null,
+                                            success: function (data) {
+                                                $('#spanApiToken').text("");
+                                            }
+                                        });
+                                    }
+                                </script>
+
                                 {{ application.proxy_user.auth_token }}
+
+                                <button onclick="revokeToken();" class="btn btn-danger" role="button">Revoke API Token</button>
 
                             {% else %}
                                 <script type="application/javascript">

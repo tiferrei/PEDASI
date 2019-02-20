@@ -29,6 +29,10 @@ urlpatterns = [
          views.ApplicationGetTokenView.as_view(),
          name='token'),
 
+    path('<int:pk>/token',
+         views.ApplicationGetTokenView.as_view(),
+         name='token'),
+
     path('<int:pk>/manage-access',
          views.ApplicationManageAccessView.as_view(),
          name='application.manage-access'),
