@@ -20,28 +20,28 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
     Provides views for:
 
     /api/datasources/
-      List all :class:`DataSource`s
+      List all :class:`datasources.models.DataSource`\ s.
 
     /api/datasources/<int>/
-      Retrieve a single :class:`DataSource`
+      Retrieve a single :class:`datasources.models.DataSource`.
 
     /api/datasources/<int>/prov/
-      Retrieve PROV records related to a :class:`DataSource`
+      Retrieve PROV records related to a :class:`datasources.models.DataSource`.
 
     /api/datasources/<int>/metadata/
-      Retrieve :class:`DataSource` metadata via API call to data source URL
+      Retrieve :class:`datasources.models.DataSource` metadata via API call to data source URL.
 
     /api/datasources/<int>/data/
-      Retrieve :class:`DataSource` data via API call to data source URL
+      Retrieve :class:`datasources.models.DataSource` data via API call to data source URL.
 
     /api/datasources/<int>/datasets/
-      Retrieve :class:`DataSource` list of data sets via API call to data source URL
+      Retrieve :class:`datasources.models.DataSource` list of data sets via API call to data source URL.
 
     /api/datasources/<int>/datasets/<href>/metadata/
-      Retrieve :class:`DataSource` metadata for a single dataset via API call to data source URL
+      Retrieve :class:`datasources.models.DataSource` metadata for a single dataset via API call to data source URL.
 
     /api/datasources/<int>/datasets/<href>/metadata/
-      Retrieve :class:`DataSource` data for a single dataset via API call to data source URL
+      Retrieve :class:`datasources.models.DataSource` data for a single dataset via API call to data source URL.
     """
     queryset = models.DataSource.objects.all()
     serializer_class = serializers.DataSourceSerializer
