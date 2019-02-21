@@ -19,7 +19,7 @@ server {
     }
 
     location = /robots.txt {
-        file /var/www/pedasi/deploy/robots.txt;
+        alias /var/www/pedasi/deploy/robots.txt;
     }
 
     location / {
