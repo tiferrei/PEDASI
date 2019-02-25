@@ -57,68 +57,43 @@
           # Required for Ansible to setup DB
           - python3-mysqldb
 
-    - name: Setup dev deployment
-      block:
-      - name: Check if running under Vagrant
-        stat:
-          path: /vagrant
-        register: vagrant_dir
+    - name: Check if running under Vagrant
+      stat:
+        path: /vagrant
+      register: vagrant_dir
 
-      - name: Clone / update from local repo
-        git:
-          repo: '/vagrant'
-          dest: '{{ project_dir }}'
-        when: vagrant_dir.stat.exists == True
+    - name: Clone / update from local repo
+      git:
+        repo: '/vagrant'
+        dest: '{{ project_dir }}'
+      when: vagrant_dir.stat.exists == True
 
-      - name: Clone / update dev branch from main repo
-        git:
-          repo: 'https://github.com/PEDASI/PEDASI.git'
-          dest: '{{ project_dir }}'
-          accept_hostkey: yes
-          version: '{{ branch | default("dev") }}'
-        when: vagrant_dir.stat.exists == False
+    - name: Clone / update branch from main repo
+      git:
+        repo: 'https://github.com/PEDASI/PEDASI.git'
+        dest: '{{ project_dir }}'
+        accept_hostkey: yes
+        version: '{{ branch | default("dev") }}'
+      when: vagrant_dir.stat.exists == False
 
-      - name: Copy dev settings
-        copy:
-          src: 'deploy/.env.dev'
-          dest: '{{ project_dir }}/.env'
-          owner: www-data
-          group: www-data
-          mode: 0600
-
-      when: production is not defined
-
-    - name: Setup production deployment
-      block:
-      - name: Clone / update master branch
-        git:
-          repo: 'https://github.com/PEDASI/PEDASI.git'
-          dest: '{{ project_dir }}'
-          accept_hostkey: yes
-          version: "{{ branch | default('master') }}"
-
-      - name: Copy production settings
-        copy:
-          src: 'deploy/.env.prod'
-          dest: '{{ project_dir }}/.env'
-          owner: www-data
-          group: www-data
-          mode: 0600
-
-      when: production is defined
+    - name: Copy settings
+      copy:
+        src: '{{ env_file | default("deploy/.env.dev") }}'
+        dest: '{{ project_dir }}/.env'
+        owner: www-data
+        group: www-data
+        mode: 0600
 
     - name: Set permissions on manage.py
       file:
         path: '{{ project_dir }}/manage.py'
         mode: 0755
 
-    - name: Create virtualenv
-      command: python3 -m venv '{{ venv_dir }}' creates='{{ venv_dir }}'
-
     - name: Install pip requirements
       pip:
         requirements: '{{ project_dir}}/requirements.txt'
         virtualenv: '{{ venv_dir }}'
+        virtualenv_python: python3
 
     - name: Restart and enable MariaDB
       systemd:
