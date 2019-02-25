@@ -78,7 +78,7 @@
 
     - name: Copy settings
       copy:
-        src: '{{ env_file | default("deploy/.env.dev") }}'
+        src: '{{ env_file | default("deploy/.env") }}'
         dest: '{{ project_dir }}/.env'
         owner: www-data
         group: www-data
@@ -155,23 +155,13 @@
         - { src: '{{ project_dir }}/deploy/uwsgi/sites/pedasi.ini', dest: /etc/uwsgi/sites/pedasi.ini }
         - { src: '{{ project_dir }}/deploy/systemd/system/uwsgi.service', dest: /etc/systemd/system/uwsgi.service }
 
-    - name: Copy web config files - dev
-      copy:
-        src: '{{ project_dir }}/deploy/nginx/sites-available/pedasi.dev'
-        dest: /etc/nginx/sites-available/pedasi
-        remote_src: yes
-        # WARNING: this will not update an existing file
-        force: no
-      when: production is not defined
-
-    - name: Copy web config files - production
+    - name: Copy web config files
       copy:
         src: '{{ project_dir }}/deploy/nginx/sites-available/pedasi'
         dest: /etc/nginx/sites-available/pedasi
         remote_src: yes
         # WARNING: this will not update an existing file
         force: no
-      when: production is defined
 
     - name: Activate Nginx site
       file:

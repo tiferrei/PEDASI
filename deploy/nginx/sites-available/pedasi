@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name localhost pedasi.* pedasi-dev.* *.iotobservatory.io;
+    server_name _;
 
     merge_slashes off;
 
