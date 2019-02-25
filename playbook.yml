@@ -70,20 +70,12 @@
           dest: '{{ project_dir }}'
         when: vagrant_dir.stat.exists == True
 
-      - name: Copy deploy key
-        copy:
-          src: 'deploy/.deployment-key'
-          dest: '~/.deployment-key'
-          mode: 0600
-        when: vagrant_dir.stat.exists == False
-
       - name: Clone / update dev branch from main repo
         git:
-          repo: 'ssh://git@github.com/PEDASI/PEDASI.git'
+          repo: 'https://github.com/PEDASI/PEDASI.git'
           dest: '{{ project_dir }}'
           accept_hostkey: yes
-          key_file: '~/.deployment-key'
-          version: dev
+          version: '{{ branch | default("dev") }}'
         when: vagrant_dir.stat.exists == False
 
       - name: Copy dev settings
@@ -98,19 +90,12 @@
 
     - name: Setup production deployment
       block:
-      - name: Copy deploy key
-        copy:
-          src: 'deploy/.deployment-key'
-          dest: '~/.deployment-key'
-          mode: 0600
-
       - name: Clone / update master branch
         git:
-          repo: 'ssh://git@github.com/PEDASI/PEDASI.git'
+          repo: 'https://github.com/PEDASI/PEDASI.git'
           dest: '{{ project_dir }}'
           accept_hostkey: yes
-          key_file: '~/.deployment-key'
-          version: master
+          version: "{{ branch | default('master') }}"
 
       - name: Copy production settings
         copy:
