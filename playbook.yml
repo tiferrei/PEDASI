@@ -239,7 +239,6 @@
           SPHINXAPIDOC: '{{ venv_dir }}/bin/sphinx-apidoc'
       loop:
       - clean
-      - apidoc
       - html
 
     - name: Django collect static files
