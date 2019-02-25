@@ -37,9 +37,9 @@ Resources
 
 Documentation is available for the following stakeholders:
 
- - :ref:`Researchers and other end-users<guide_user>`: for users wishing to discover, explore, and make use of datasets using the web interface
- - :ref:`Administrators<guide_administrator>`: for those aiming to deploy PEDASI, or provide data or use applications through PEDASI
- - :ref:`Application developers<guide_developer>`: for developers wanting to create applications that access data available through PEDASI
+ - :doc:`Researchers and other end-users<guide_user>`: for users wishing to discover, explore, and make use of datasets using the web interface
+ - :doc:`Administrators<guide_administrator>`: for those aiming to deploy PEDASI, or provide data or use applications through PEDASI
+ - :doc:`Application developers<guide_developer>`: for developers wanting to create applications that access data available through PEDASI
 
 This documentation is also available on `Read the Docs`_.
 
