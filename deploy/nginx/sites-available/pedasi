@@ -13,7 +13,7 @@ server {
     }
 
     location = /report.html {
-        file /var/www/pedasi/report.html;
+        alias /var/www/pedasi/report.html;
         auth_basic "Restricted Content";
         auth_basic_user_file /etc/nginx/.htpasswd;
     }
