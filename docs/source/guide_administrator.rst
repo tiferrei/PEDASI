@@ -1,7 +1,7 @@
 .. _guide_user:
 
-PEDASI User Guide
-=================
+PEDASI Administration Guide
+===========================
 
 .. toctree::
    :maxdepth: 2
