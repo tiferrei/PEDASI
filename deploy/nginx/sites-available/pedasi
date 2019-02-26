@@ -3,6 +3,7 @@ server {
     server_name _;
 
     merge_slashes off;
+    client_max_body_size 100m;
 
     location /favicon.ico {
         alias /var/www/pedasi/static/img/favicon.ico;
