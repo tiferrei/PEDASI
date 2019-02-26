@@ -26,7 +26,7 @@ DEBUG
   Run the server in debug mode?
   Default is 'false'.
 
-ALLOWED_HOSTS
+ALLOWED_HOSTS - required if not in debug mode
   List of hostnames on which the server is permitted to run
 
 DATABASE_URL
