@@ -1,4 +1,4 @@
-.. _guide_user:
+.. _guide_administrator:
 
 PEDASI Administration Guide
 ===========================
@@ -13,6 +13,9 @@ PEDASI Administration Guide
 
 Deploying PEDASI in Production
 ------------------------------
+
+Overview
+^^^^^^^^
 
 A deployment of PEDASI is done automatically to a remote Ubuntu server via a preconfigured Ansible script, which performs the following tasks:
 
@@ -30,14 +33,14 @@ Ensure you have the following prerequisites before you begin:
    - A static IP address
    - A user account with external SSH access enabled and with sudo access privileges (e.g. 'ubuntu' - ubuntu will be used throughout this documentation) 
 
- - A Linux or Mac OS X local machine with:
+ - A Linux or Mac OS X local machine with the following installed:
 
-   - Ansible v2.7.1 or above installed
-   - Git command line client v2 or above installed
+   - Ansible v2.7.1 or above
+   - Git command line client v2 or above
 
 
-Cloning out the PEDASI Repository
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Cloning the PEDASI Repository
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 On your local machine, first clone the PEDASI repository:
 
@@ -59,14 +62,18 @@ Deployment
 Managing Data Sources
 ---------------------
 
+
 Adding a Data Source
 ^^^^^^^^^^^^^^^^^^^^
+
 
 Updating a Data Source
 ^^^^^^^^^^^^^^^^^^^^^^
 
+
 Removing a Data Source
 ^^^^^^^^^^^^^^^^^^^^^^
+
 
 Approving Data Access Requests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -75,11 +82,14 @@ Approving Data Access Requests
 Managing Applications
 ---------------------
 
+
 Adding an Application
 ^^^^^^^^^^^^^^^^^^^^^
 
+
 Updating an Application
 ^^^^^^^^^^^^^^^^^^^^^^^
+
 
 Removing an Application
 ^^^^^^^^^^^^^^^^^^^^^^^
