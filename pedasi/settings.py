@@ -26,6 +26,9 @@ DEBUG
   Run the server in debug mode?
   Default is 'false'.
 
+ALLOWED_HOSTS - required if not in debug mode
+  List of hostnames on which the server is permitted to run
+
 DATABASE_URL
   URL to default SQL database - in `dj-database-url <https://github.com/kennethreitz/dj-database-url>`_ format.
   Default is SQLite3 'db.sqlite3' in project root directory.
@@ -41,7 +44,7 @@ import os
 
 from django.urls import reverse_lazy
 
-from decouple import config
+from decouple import config, Csv
 import dj_database_url
 import mongoengine
 
@@ -54,17 +57,9 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-if DEBUG:
-    ALLOWED_HOSTS = [
-        '*',
-    ]
-
-else:
-    ALLOWED_HOSTS = [
-        'localhost',
-        'pedasi-dev.eastus.cloudapp.azure.com',
-    ]
-
+ALLOWED_HOSTS = config('ALLOWED_HOSTS',
+                       cast=Csv(),
+                       default='*' if DEBUG else '127.0.0.1,localhost.localdomain,localhost')
 
 # Application definition
 
