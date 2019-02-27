@@ -22,7 +22,7 @@ Deploying PEDASI for Development
 Overview
 ^^^^^^^^
 
-A development instance of PEDASI can be automatically deployed using Vagrant. It uses VirtualBox as a virtual machine (VM) management tool to provision a Vagrant-style VM and provisions a PEDASI instance within that VM.
+A development instance of PEDASI can be automatically and rapidly deployed using Vagrant. It uses VirtualBox as a virtual machine (VM) management tool to provision a Vagrant-style VM and provisions a PEDASI instance within that VM.
 
 
 Prerequisites
@@ -47,8 +47,8 @@ On your local machine, from a shell first clone the PEDASI repository:
    $ git clone https://github.com/PEDASI/PEDASI.git
 
 
-Configuration
-^^^^^^^^^^^^^
+Configuring Deployment
+^^^^^^^^^^^^^^^^^^^^^^
 
 First, check the settings in the *Vagrantfile* in the repository's root directory to ensure any provisioned VM will not conflict with any other resources running on the default ports.
 
@@ -60,25 +60,49 @@ Then create a new *.env* file in the repository's *deploy/* directory with the f
    DEBUG=true
 
 
-Deployment
-^^^^^^^^^^
+Managing Deployment
+^^^^^^^^^^^^^^^^^^^
 
-To deploy the Vagrant instance do the following:
+To deploy the Vagrant instance, provision the instance, and deploy PEDASI within it, within the PEDASI repository root directory:
 
 .. code-block:: console
 
    $ vagrant up
 
+The Vagrant instance will now be visible within VirtualBox, and the PEDASI service visible from a browser at http://localhost:8888/.
+
+To access the Vagrant instance from the command line:
+
+.. code-block:: console
+
+   $ vagrant ssh
+
+Please see the `Vagrant documentation`_ for more details on how to use Vagrant, including shutting down and destroying Vagrant instances.
+
+.. _`Vagrant documentation`: https://www.vagrantup.com/docs/
+
 
 Developing an Application
 -------------------------
 
+The following sections will walk you through using the PEDASI Applications API in your own applications. We will use the JavaScript IoTUK Nation Map Demo application (see https://github.com/Southampton-RSG/app-iotorgs-map) as a basic example.
+
+
 Obtaining an Application API Key
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You will first need to register some basic application details to obtain an API key for your application to authenticate with PEDASI. Either:
+
+ - If you wish to develop an application that will use your locally provisioned Vagrant PEDASI instance, you can proceed.
+ - If you aim to develop an application for an instance owned by someone else, and you already have Application Provider privileges associated with your PEDASI account, you can proceed. Otherwise you will need to contact the PEDASI Central Administrator to either register a new application and obtain an API key or request Application Provider privileges for your account.
+
+If you have Application Provider privileges in either case you can create a new application and gain an Application API key yourself following the *Adding an Application* section in the :ref:`Administrator Guide<guide_admin>`, which also contains details for adding the IoTUK Nation Map Demo application.
 
 
 Code Examples
 ^^^^^^^^^^^^^
+
+
 
 
 A Basic Example Application
