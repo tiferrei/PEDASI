@@ -221,7 +221,7 @@ To approve user requests for amended access rights to data sources:
 Application Providers: Managing Applications
 --------------------------------------------
 
-In order for a developer to access PEDASI's capabilities within their application, their application needs to be first registered within PEDASI in order to obtain an API key they can use to authenticate with PEDASI. The following sections will walk you through adding and managing your first application. We will use the IoTUK Nation Database API (see https://iotuk.org.uk/iotuk-nation-database-api/) as a basic example.
+In order for a developer to access PEDASI's capabilities within their application, their application needs to be first registered within PEDASI in order to obtain an API key they can use to authenticate with PEDASI. The following sections will walk you through adding and managing your first application. We will use the IoTUK Nation Map Demo application (see https://github.com/Southampton-RSG/app-iotorgs-map) as a basic example.
 
 If you are not a Central Administrator or don't have Application Provider privileges associated with your account, you'll need to obtain these first. Contact the Central Administrator to grant these privileges for your account.
 
@@ -236,7 +236,7 @@ To add a new application:
 
     - *Name*: add a full name for the application, e.g. IoTUK Nation Map Demo
     - *Description*: add a brief description of the application, including what it aims to achieve using PEDASI
-    - *Url*: specify a public source code repository URL if one exists, e.g. https://github.com/Southampton-RSG/app-iotorgs-map
+    - *Url*: specify a public URL for the deployed application itself if it's web-based, or alternatively a source code repository URL if one exists, e.g. https://github.com/Southampton-RSG/app-iotorgs-map
     - *Access control*: TODO: add in text here, e.g. leave unselected
 
  3. Select *Create* to register the new application within PEDASI, and you'll be presented with an overview page for that application, with a new API key
@@ -248,7 +248,7 @@ Updating an Application
 ^^^^^^^^^^^^^^^^^^^^^^^
 
  1. Select *Applications* from the PEDASI navigation bar to see a list of all applications to which you have access
- 2. Select *Detail* for the application you wish to edit. From here, you can also-
+ 2. Select *Detail* for the application you wish to edit. From here, you can also:
 
     - Select *Revoke API Token*: to revoke the current API token which will prohibit its further use within PEDASI
     - *If an API token has been revoked*, select *Generate API Token* to generate a new API token for this application
