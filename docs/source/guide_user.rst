@@ -86,8 +86,8 @@ Selecting *Details* for a data source from the Data Sources page shows the follo
  - *Metadata*: additional fields, listed by metadata type, for this data (e.g. data query parameters, etc.)
 
 
-Requesting Access to a Datasource
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Requesting Access to a Data Source
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you're logged in as a PEDASI User (and not anonymously), you may request access to a data source by selecting *Manage Access* from a data source overview page. From here you can supply the following details for an access request via a form:
 
@@ -118,6 +118,12 @@ Selecting *Data Explorer* from the data source overview page shows an interface 
  3. *Submit the query and see the results*: select *Submit Query* to submit the query, with the results displayed in the *Query Results* panel on the top right.
 
 Results are presented in the Query Results panel precisely as returned by the data source.
+
+
+Upgrading your Account to Data and/or Application Provider
+----------------------------------------------------------
+
+If you already have a PEDASI User account and would like to add your own data sources or applications to a PEDASI instance, contact the PEDASI site's Central Administrator to obtain these privileges for your account.
 
 
 References
