@@ -8,11 +8,17 @@ PEDASI Administration Guide
    :caption: Contents:
 
 
-.. note:: Please read the :ref:`User Guide<guide_user>` first to give you an overview of the PEDASI platform before reading this guide.
+.. note:: Please read the :ref:`User Guide<guide_user>` first to give you an overview of the PEDASI platform and how to use its features before reading this guide.
 
 
-Deploying PEDASI in Production
-------------------------------
+Purpose
+-------
+
+This guide is for System Administrators aiming to deploy a PEDASI instance, and Data or Application Providers wanting to add, update, or remove data sources or applications within a PEDASI instance.
+
+
+System Administrators: Deploying PEDASI in Production
+-----------------------------------------------------
 
 Overview
 ^^^^^^^^
@@ -59,8 +65,8 @@ Deployment
 ^^^^^^^^^^
 
 
-Managing Data Sources
----------------------
+Data Providers: Managing Data Sources
+-------------------------------------
 
 
 Adding a Data Source
@@ -79,8 +85,8 @@ Approving Data Access Requests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-Managing Applications
----------------------
+Application Providers: Managing Applications
+--------------------------------------------
 
 
 Adding an Application

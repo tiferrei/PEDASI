@@ -1,7 +1,7 @@
 .. _doc-index:
 
-PEDASI
-======
+PEDASI v0.9.0
+=============
 
 .. toctree::
    :maxdepth: 2

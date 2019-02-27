@@ -121,6 +121,13 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
+# Add following as a header for each rst file
+rst_prolog = """
+.. note:: This is a public alpha release, and therefore features and functionality may change and the software and documentation may contain technical bugs or other issues. If you discover any issues please consider registering a `GitHub issue`_.
+
+.. _`GitHub issue`: https://github.com/PEDASI/PEDASI/issues
+"""
+
 
 # -- Options for HTMLHelp output ---------------------------------------------
 

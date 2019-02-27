@@ -11,6 +11,11 @@ PEDASI Developer Guide
 .. note:: Please read the :ref:`User Guide<guide_user>` first to give you an overview of the PEDASI platform before reading this guide.
 
 
+Purpose
+-------
+
+This guide is for application developers wanting to understand how to set up a development environment for PEDASI and develop PEDASI applications.
+
 Deploying PEDASI for Development
 --------------------------------
 

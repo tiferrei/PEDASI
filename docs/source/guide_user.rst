@@ -8,6 +8,15 @@ PEDASI User Guide
    :caption: Contents:
 
 
+.. include:: release_note.rst
+
+
+Purpose
+-------
+
+This guide is for PEDASI users who want to understand the PEDASI platform and how to use its features.
+
+
 User Model
 ----------
 
