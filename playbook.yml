@@ -155,6 +155,11 @@
         - { src: '{{ project_dir }}/deploy/uwsgi/sites/pedasi.ini', dest: /etc/uwsgi/sites/pedasi.ini }
         - { src: '{{ project_dir }}/deploy/systemd/system/uwsgi.service', dest: /etc/systemd/system/uwsgi.service }
 
+    - name: Deactivate default Nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
     - name: Copy web config files
       copy:
         src: '{{ project_dir }}/deploy/nginx/sites-available/pedasi'
