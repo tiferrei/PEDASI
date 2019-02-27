@@ -130,6 +130,8 @@ Data Providers: Managing Data Sources
 
 In order for users to begin using PEDASI, you should provide access to a range of data sources. The following sections will walk you through adding and managing your first data source. We will use the IoTUK Nation Database API (see https://iotuk.org.uk/iotuk-nation-database-api/) as a basic example.
 
+If you are not a Central Administrator or don't have Data Provider privileges associated with your account, you'll need to obtain these first. Contact the Central Administrator to grant these privileges for your account.
+
 Adding a Data Source
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -137,8 +139,8 @@ Before adding a new data source, first check if the license type for that data s
 
 To add a new data source:
 
- 1. Go to https://<server_address> in a browser, and ensure you are logged in either a Central Administrator or Data Provider-enabled account. If you only have a standard PEDASI User account, you'll need to obtain Data Provider privileges first, so contact the Central Administrator to grant these privileges for your account.
- 2. Select *Data Sources* from the PEDASI navigation bar. Then select *New Data Source* from the Data Sources page, and add in details for each of the following fields:
+ 1. Select *Data Sources* from the PEDASI navigation bar to see a list of all data sources to which you have access
+ 2. Select *New Data Source* from the Data Sources page, and add in details for each of the following fields:
 
     - *Name*: add in a unique name for this data source, such as 'UKIoT Nations'
     - *Description*: optionally add in some specific details concerning this data source, such as its owner any links or references to any specifications or other documentation regarding the data source and format of the data that is delivered on request, e.g. some of the overview text at https://iotuk.org.uk/projects/iotuk-nation-database%E2%80%8B/ and a link to the page, and perhaps a link to the API details at https://github.com/TheDataCity/IoT-UK-Nation-Database-APIs. If the data source provides partially or fully encrypted data, also specify links to contact information and/or any reference material for obtaining a means to encrypt the data (not required for IoTUK Nations)
@@ -168,7 +170,7 @@ To edit details for an existing data source:
 
  1. Select *Data Sources* from the navigation bar to see a list of all data sources to which you have access
  2. Select *Detail* for the data source you wish to edit
- 3. Select *Edit* to edit the data source
+ 3. Select *Edit* to edit the data source's details
  4. Edit the fields as instructed in the *Adding a Data Source* section
  5. Select *Update* to update the data source's details
 
@@ -204,23 +206,67 @@ If you need to add a new type of licence for a data source:
 Approving Data Access Requests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+To approve user requests for amended access rights to data sources:
+
+ 1. Select *Data Sources* from the navigation bar to see a list of all data sources to which you have access
+ 2. Select *Detail* for the data source you wish to manage access on
+ 3. Select *Manage Access* to list access requests and manage those requests. You'll see the level of access requested for each user, their current access level, and the reason for the request
+ 4. Select either:
+
+    - *Approve*: to approve the request
+    - *Edit*: to amend the request's access privileges and data push rights (if data push is supported for this data source)
+    - *Reject*: to reject the request
+
 
 Application Providers: Managing Applications
 --------------------------------------------
+
+In order for a developer to access PEDASI's capabilities within their application, their application needs to be first registered within PEDASI in order to obtain an API key they can use to authenticate with PEDASI. The following sections will walk you through adding and managing your first application. We will use the IoTUK Nation Database API (see https://iotuk.org.uk/iotuk-nation-database-api/) as a basic example.
+
+If you are not a Central Administrator or don't have Application Provider privileges associated with your account, you'll need to obtain these first. Contact the Central Administrator to grant these privileges for your account.
 
 
 Adding an Application
 ^^^^^^^^^^^^^^^^^^^^^
 
+To add a new application:
+
+ 1. Select *Applications* from the PEDASI navigation bar to see a list of all applications to which you have access
+ 2. Select *New Application* from the Applications page, and add in details for each of the following fields:
+
+    - *Name*: add a full name for the application, e.g. IoTUK Nation Map Demo
+    - *Description*: add a brief description of the application, including what it aims to achieve using PEDASI
+    - *Url*: specify a public source code repository URL if one exists, e.g. https://github.com/Southampton-RSG/app-iotorgs-map
+    - *Access control*: TODO: add in text here, e.g. leave unselected
+
+ 3. Select *Create* to register the new application within PEDASI, and you'll be presented with an overview page for that application, with a new API key
+
+The API key is what will be used by the developer to authenticate with PEDASI from their application.
+
 
 Updating an Application
 ^^^^^^^^^^^^^^^^^^^^^^^
+
+ 1. Select *Applications* from the PEDASI navigation bar to see a list of all applications to which you have access
+ 2. Select *Detail* for the application you wish to edit. From here, you can also-
+
+    - Select *Revoke API Token*: to revoke the current API token which will prohibit its further use within PEDASI
+    - *If an API token has been revoked*, select *Generate API Token* to generate a new API token for this application
+
+ 3. Select *Edit* to edit the application's details
+ 4. Edit the fields as instructed in the *Adding an Application* section
+ 5. Select *Update* to update the data source's details
 
 
 Removing an Application
 ^^^^^^^^^^^^^^^^^^^^^^^
 
+To remove an application:
 
+ 1. Select *Applications* from the PEDASI navigation bar to see a list of all applications to which you have access
+ 2. Select *Detail* for the application you wish to remove
+ 3. Select *Delete* to indicate you wish to remove this application
+ 4. Select *Delete* to confirm you wish to remove this application
 
 
 References
