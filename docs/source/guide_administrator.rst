@@ -86,11 +86,17 @@ It it necessary to provide some configuration before deploying PEDASI.
 Deployment
 ^^^^^^^^^^
 
-You may now deploy PEDASI using the Ansible provisioning script:
+You may now deploy PEDASI using the Ansible provisioning script. If you have set up your Ubuntu instance to use SSH passwordless access, do the following:
 
 .. code-block:: console
 
    $ ansible-playbook -v -i inventory.yml playbook.yml -u <your username on the remote host>
+
+Otherwise, you will need Ansible to prompt for passwords for the remote user and superuser accounts:
+
+.. code-block:: console
+
+   $ ansible-playbook -v -i inventory.yml playbook.yml -u <your username on the remote host> -k -K
 
 
 Post-Deployment
@@ -109,12 +115,11 @@ After deploying PEDASI you must create and activate an initial administrator acc
 Data Providers: Managing Data Sources
 -------------------------------------
 
-In order for users to begin using PEDASI, you should provide access to a range of data sources.
-The following sections will walk you through adding and managing your first data source.
-We will use the IoTUK Nation Database API (see https://iotuk.org.uk/iotuk-nation-database-api/) as a basic example.
+In order for users to begin using PEDASI, you should provide access to a range of data sources. The following sections will walk you through adding and managing your first data source. We will use the IoTUK Nation Database API (see https://iotuk.org.uk/iotuk-nation-database-api/) as a basic example.
 
 Adding a Data Source
 ^^^^^^^^^^^^^^^^^^^^
+
 
 
 Updating a Data Source
