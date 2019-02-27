@@ -1,3 +1,4 @@
+# TODO describe all required / optional settings
 """
 Django settings for the PEDASI project.
 
