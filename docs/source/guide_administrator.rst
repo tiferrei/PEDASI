@@ -19,7 +19,10 @@ Overview
 
 A deployment of PEDASI is done automatically to a remote Ubuntu server via a preconfigured Ansible script, which performs the following tasks:
 
- 1. 
+ 1. Install prerequisites
+ 2. Configure databases
+ 3. Install PEDASI
+ 4. Configure and start webserver
 
 
 Prerequisites
@@ -52,16 +55,57 @@ On your local machine, first clone the PEDASI repository:
 Configuration
 ^^^^^^^^^^^^^
 
+It it necessary to provide some configuration before deploying PEDASI.
 
+ 1. Tell Ansible to which machine PEDASI should be deployed:
+
+   .. code-block:: none
+      :caption: inventory.yml
+
+      [default]
+      hostname.domain
+
+ 2. Provide required configuration for Django - the required and optional settings are described in :mod:`pedasi.settings`.
+    The required settings are:
+
+   .. code-block:: none
+      :caption: deploy/.env
+
+      SECRET_KEY=<random string>
+
+      SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=<Google OAuth2 key>
+      SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=<Google OAuth2 secret>
 
 
 Deployment
 ^^^^^^^^^^
 
+You may now deploy PEDASI using the Ansible provisioning script:
+
+.. code-block:: console
+
+   $ ansible-playbook -v -i inventory.yml playbook.yml -u <your username on the remote host>
+
+
+Post-Deployment
+^^^^^^^^^^^^^^^
+
+After deploying PEDASI you must create and activate an initial administrator account:
+
+.. code-block:: console
+
+   $ sudo -s
+   $ cd /var/www/pedasi
+   $ source env/bin/activate
+   $ python manage.py createsuperuser --username <username> --email <email address>
+
 
 Managing Data Sources
 ---------------------
 
+In order for users to begin using PEDASI, you should provide access to a range of data sources.
+The following sections will walk you through adding and managing your first data source.
+We will use the IoTUK Nation Database API (see https://iotuk.org.uk/iotuk-nation-database-api/) as a basic example.
 
 Adding a Data Source
 ^^^^^^^^^^^^^^^^^^^^
