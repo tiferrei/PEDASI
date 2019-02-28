@@ -8,7 +8,9 @@ import typing
 
 from django.db.models import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
+
 from rest_framework import decorators, request, response, viewsets
+from requests.exceptions import HTTPError
 
 from .. import permissions
 from datasources import models, serializers
@@ -133,6 +135,10 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
                     'message': error_message,
                 }
                 return response.Response(data, status=400)
+
+            except HTTPError as e:
+                # Pass upstream errors through
+                return response.Response(e.response.text, status=e.response.status_code)
 
     def list(self, request, *args, **kwargs):
         """
