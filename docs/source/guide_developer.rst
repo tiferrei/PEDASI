@@ -83,7 +83,7 @@ Then we should see something like the following (although without the formatting
 Using Python
 ~~~~~~~~~~~~
 
-We can duplicate the cURL request above in Python like this:
+We can duplicate the cURL request above in Python 3. Creating a new Python file (e.g. *api-test.py*) with the following contents:
 
 .. code-block:: python
 
@@ -96,6 +96,12 @@ We can duplicate the cURL request above in Python like this:
    }
    response = requests.get(url, headers=headers)
    print(response)
+
+We can run this example using:
+
+.. code-block:: console
+
+   $ python api-test.py
 
 Which should display the same output as we saw with cURL.
 
