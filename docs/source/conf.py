@@ -24,7 +24,7 @@ django.setup()
 # -- Project information -----------------------------------------------------
 
 project = 'PEDASI'
-copyright = '2018, James Graham, Steve Crouch'
+copyright = '2019 University of Southampton'
 author = 'James Graham, Steve Crouch'
 
 # The short X.Y version
