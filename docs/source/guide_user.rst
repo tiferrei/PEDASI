@@ -121,8 +121,8 @@ Selecting *Data Explorer* from the data source overview page shows an interface 
 Results are presented in the Query Results panel precisely as returned by the data source.
 
 
-Upgrading your Account to Data and/or Application Provider
-----------------------------------------------------------
+Upgrading an Account to Data and/or Application Provider
+--------------------------------------------------------
 
 If you already have a PEDASI User account and would like to add your own data sources or applications to a PEDASI instance, contact the PEDASI site's Central Administrator to obtain these privileges for your account.
 
