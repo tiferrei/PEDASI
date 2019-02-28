@@ -1,3 +1,4 @@
+# TODO describe all required / optional settings
 """
 Django settings for the PEDASI project.
 
@@ -26,6 +27,9 @@ DEBUG
   Run the server in debug mode?
   Default is 'false'.
 
+ALLOWED_HOSTS - required if not in debug mode
+  List of hostnames on which the server is permitted to run
+
 DATABASE_URL
   URL to default SQL database - in `dj-database-url <https://github.com/kennethreitz/dj-database-url>`_ format.
   Default is SQLite3 'db.sqlite3' in project root directory.
@@ -41,7 +45,7 @@ import os
 
 from django.urls import reverse_lazy
 
-from decouple import config
+from decouple import config, Csv
 import dj_database_url
 import mongoengine
 
@@ -54,17 +58,9 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-if DEBUG:
-    ALLOWED_HOSTS = [
-        '*',
-    ]
-
-else:
-    ALLOWED_HOSTS = [
-        'localhost',
-        'pedasi-dev.eastus.cloudapp.azure.com',
-    ]
-
+ALLOWED_HOSTS = config('ALLOWED_HOSTS',
+                       cast=Csv(),
+                       default='*' if DEBUG else '127.0.0.1,localhost.localdomain,localhost')
 
 # Application definition
 
@@ -89,7 +85,7 @@ THIRD_PARTY_APPS = [
 CUSTOM_APPS = [
     'profiles.apps.ProfilesConfig',  # Refer to AppConfig directly since we override the .ready() method
     'applications',
-    'datasources',
+    'datasources.apps.DatasourcesConfig',
     'provenance',
     'core',
     'api',
@@ -137,7 +133,7 @@ WSGI_APPLICATION = 'pedasi.wsgi.application'
 DATABASES = {
     'default': config(
         'DATABASE_URL',
-        default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
+        default='mysql://pedasi:pedasi@localhost:3306/pedasi',
         cast=dj_database_url.parse
     ),
 }
@@ -236,8 +232,8 @@ SOCIAL_AUTH_PIPELINE = [
     # 'social_core.pipeline.social_auth.associate_by_email',
 
     # Create a user account if we haven't found one yet.
-    'social_core.pipeline.user.create_user',
-    # 'profiles.social_auth.create_user_disabled',
+    # 'social_core.pipeline.user.create_user',
+    'profiles.social_auth.create_user_disabled',
 
     # Create the record that associates the social account with the user.
     'social_core.pipeline.social_auth.associate_user',
@@ -248,6 +244,9 @@ SOCIAL_AUTH_PIPELINE = [
 
     # Update the user record with any changed info from the auth service.
     'social_core.pipeline.user.user_details',
+
+    # Email admins to activate the account
+    'profiles.social_auth.email_admins',
 ]
 
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = reverse_lazy('index')
@@ -315,3 +314,23 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'pedasi', 'static'),
     os.path.join(BASE_DIR, 'docs', 'build'),
 ]
+
+
+# Email provider for notification emails
+EMAIL_HOST = config('EMAIL_HOST', default=None)
+EMAIL_PORT = config('EMAIL_PORT', cast=int, default=25)
+
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default=None)
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default=None)
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=False)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False)
+
+EMAIL_SUBJECT_PREFIX = '[PEDASI]'
+
+if DEBUG and not EMAIL_HOST:
+    EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+    EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'mail')
+
+ADMINS = [val.split('|') for val in config('ADMINS', cast=Csv(), default='')]

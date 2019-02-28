@@ -3,7 +3,6 @@ Connectors for handling CSV data.
 """
 
 import csv
-import json
 import typing
 
 from django.http import JsonResponse
@@ -162,15 +161,17 @@ class CsvToMongoConnector(InternalDataConnector, DataSetConnector):
         params = {key: _type_convert(val) for key, val in params.items()}
 
         with context_managers.switch_collection(CsvRow, self.location) as collection:
-            records = collection.objects.filter(**params)
+            records = collection.objects.filter(**params).exclude('_id')
 
-            # To get dictionary from MongoEngine records we need to go via JSON string
-            data = json.loads(records.exclude('_id').to_json())
+            data = list(records.as_pymongo())
 
             # Couldn't store field 'id' in document - recover it
             for item in data:
-                if self.id_field_alias in item:
+                try:
                     item['id'] = item.pop(self.id_field_alias)
+
+                except KeyError:
+                    pass
 
             return JsonResponse({
                 'status': 'success',

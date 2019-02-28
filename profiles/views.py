@@ -1,5 +1,8 @@
+"""
+Views to manage user profiles.
+"""
+
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.views.generic import TemplateView
 from django.views.generic.detail import DetailView
@@ -8,6 +11,7 @@ from rest_framework.authtoken.models import Token
 
 from applications.models import Application
 from datasources.models import DataSource
+from profiles.permissions import SelfOrAdminPermissionMixin
 
 
 class IndexView(TemplateView):
@@ -61,16 +65,15 @@ class UserInactiveView(TemplateView):
     template_name = 'profiles/user/inactive.html'
 
 
-class UserGetTokenView(LoginRequiredMixin, DetailView):
+class UserManageTokenView(SelfOrAdminPermissionMixin, DetailView):
     """
-    Get an API Token for the currently authenticated user.
+    Manage an API Token for the requested user.
     """
-    def get_object(self, queryset=None):
-        return self.request.user
+    model = get_user_model()
 
     def render_to_response(self, context, **response_kwargs):
         """
-        Get an existing API Token or create a new one for the currently authenticated user.
+        Get an existing API Token or create a new one for the requested user.
 
         :return: JSON containing Token key
         """
@@ -82,5 +85,19 @@ class UserGetTokenView(LoginRequiredMixin, DetailView):
                 'token': {
                     'key': api_token.key
                 }
+            }
+        })
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Revoke an API Token for the requested user.
+        """
+        self.object = self.get_object()
+        self.object.revoke_auth_token()
+
+        return JsonResponse({
+            'status': 'success',
+            'data': {
+                'token': None,
             }
         })

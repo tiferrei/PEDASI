@@ -24,7 +24,7 @@ django.setup()
 # -- Project information -----------------------------------------------------
 
 project = 'PEDASI'
-copyright = '2018, James Graham, Steve Crouch'
+copyright = '2019 University of Southampton'
 author = 'James Graham, Steve Crouch'
 
 # The short X.Y version
@@ -43,12 +43,27 @@ release = '0.1.0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinxcontrib.apidoc',
     'sphinx.ext.autodoc',
-    'sphinx.ext.apidoc',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
 ]
+
+# Sphinxcontrib-apidoc settings
+# Add apidoc stage to normal build process
+
+apidoc_module_dir = '../../'
+apidoc_output_dir = 'apidoc'
+apidoc_excluded_paths = [
+    '**/migrations',
+    '**/tests/',
+    '**/tests.py',
+    '**/urls.py',
+    'manage.py',
+    'pedasi/wsgi.py',
+]
+apidoc_separate_modules = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -83,7 +98,7 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -105,6 +120,13 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+
+# Add following as a header for each rst file
+rst_prolog = """
+.. note:: This is a public alpha release, and therefore features and functionality may change and the software and documentation may contain technical bugs or other issues. If you discover any issues please consider registering a `GitHub issue`_.
+
+.. _`GitHub issue`: https://github.com/PEDASI/PEDASI/issues
+"""
 
 
 # -- Options for HTMLHelp output ---------------------------------------------

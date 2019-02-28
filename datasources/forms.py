@@ -24,7 +24,8 @@ class DataSourceForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         try:
-            cleaned_data['auth_method'] = models.DataSource.determine_auth_method(
+            # TODO construct and actual data connector instance here
+            cleaned_data['auth_method'] = connectors.BaseDataConnector.determine_auth_method(
                 cleaned_data['url'],
                 cleaned_data['api_key']
             )

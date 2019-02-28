@@ -25,6 +25,10 @@ urlpatterns = [
          views.ApplicationDeleteView.as_view(),
          name='application.delete'),
 
+    path('<int:pk>/token',
+         views.ApplicationManageTokenView.as_view(),
+         name='token'),
+
     path('<int:pk>/manage-access',
          views.ApplicationManageAccessView.as_view(),
          name='application.manage-access'),

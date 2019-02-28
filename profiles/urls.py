@@ -19,7 +19,7 @@ urlpatterns = [
          views.UserUriView.as_view(),
          name='uri'),
 
-    path('token',
-         views.UserGetTokenView.as_view(),
+    path('<int:pk>/token',
+         views.UserManageTokenView.as_view(),
          name='token'),
 ]

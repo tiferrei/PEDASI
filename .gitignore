@@ -14,6 +14,12 @@ db.sqlite3
 *.pyc
 __pycache__/
 /report.html
+*.log
+
+# Javascript environment
+node_modules/
+package.json
+package-lock.json
 
 # Editor settings
 .idea/

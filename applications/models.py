@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.conf import settings
@@ -8,9 +10,10 @@ from django.utils.text import slugify
 from rest_framework.authtoken.models import Token
 
 from core.models import BaseAppDataModel, SoftDeletionManager
+from provenance.models import ProvAbleModel, ProvApplicationModel
 
 
-class Application(BaseAppDataModel):
+class Application(ProvAbleModel, ProvApplicationModel, BaseAppDataModel):
     """
     Manage the state of and access to an external application.
 
@@ -126,11 +129,12 @@ class Application(BaseAppDataModel):
         if self.proxy_user:
             return self.proxy_user
 
-        proxy_username = 'application-proxy-' + slugify(self.name)
+        # Add random UUID to username to allow multiple applications with the same name
+        proxy_username = 'application-proxy-' + slugify(self.name) + str(uuid4())
         proxy_user = get_user_model().objects.create_user(proxy_username)
 
         # Create an API access token for the proxy user
-        Token.objects.create(user=proxy_user)
+        proxy_user.create_auth_token()
 
         return proxy_user
 
