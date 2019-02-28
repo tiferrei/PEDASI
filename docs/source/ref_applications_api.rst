@@ -8,7 +8,7 @@ Applications API Reference
    :caption: Contents:
 
 
-.. note:: Please read the :ref:`Developer Guide<guide_developer>` first before reading this reference.
+.. note:: Please read the :doc:`Developer Guide<guide_developer>` first before reading this reference.
 
 
 Overview
