@@ -34,5 +34,5 @@ def email_admins(strategy, details, backend, user=None, *args, **kwargs):
     if kwargs['is_new']:
         mail_admins(
             subject='PEDASI Account Created',
-            message='User account created'
+            message='Account created: {0}'.format(user.username)
         )

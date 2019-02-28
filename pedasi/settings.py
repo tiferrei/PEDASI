@@ -321,10 +321,15 @@ EMAIL_PORT = config('EMAIL_PORT', cast=int, default=25)
 
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default=None)
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default=None)
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
 
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=False)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False)
 
+EMAIL_SUBJECT_PREFIX = '[PEDASI]'
+
 if DEBUG and not EMAIL_HOST:
     EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-    EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'mail.log')
+    EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'mail')
+
+ADMINS = [val.split('|') for val in config('ADMINS', cast=Csv(), default='')]
