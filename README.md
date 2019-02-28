@@ -1,43 +1,35 @@
-# PEDASI
+# PEDASI v0.1.0
 
-PEDASI is an Internet of Things (IoT) Observatory demonstrator platform.
+Developed as a platform and a service to explore research challenges in data security, privacy, and ethics, PEDASI enables providers of data - particularly [Internet of Things](https://en.wikipedia.org/wiki/Internet_of_things) data - to share their data securely within a common catalogue for use by application developers and researchers. Data can either be hosted and made accessible directly within PEDASI as an internal data source, or hosted elsewhere and accessible as an external data source through PEDASI.
 
-It functions as middleware between data sources and applications to provide a testbed for investigation of
-research questions in the domain of IoT.
+An initial deployment of the platform is available at [https://dev.iotobservatory.io].
 
+## Key Features
 
-## Running / Deploying PEDASI
+PEDASI’s key features are:
 
-### In Development
-To run PEDASI locally during development you will need to install and run:
+ - Searchable catalogue of supported data sources registered by data owners
+ - Extensible connector interface that currently supports HyperCat and IoTUK Nation Database data sources
+ - Dataset discovery and access via a web interface or via an Applications API
+ - Queryable and extensible metadata associated with datasets
+ - Adoption of W3C PROV-DM specification to track and record dataset creation, update, and access within internal datastore
+ - Internally hosted support for read/write NoSQL datastores
+ - Functions as a reverse proxy to data sources, returning data from requests exactly as supplied by the data source
 
-* MySQL server
-  * Create a schema to hold the PEDASI core database tables
-* MongoDB server
-  * Create a database to hold the PEDASI PROV collections
+## Release Notes
 
-It is recommended that you then create a Python virtual environment in which to run PEDASI.
-The Python requirements are described in the `requirements.txt` file.
+This is a public alpha release, and therefore features and functionality may change and the software and documentation may contain technical bugs or other issues. If you discover any issues please consider registering a [GitHub issue](https://github.com/PEDASI/PEDASI/issues).
 
-PEDASI can be run using the Django development server by `python manage.py runserver`.
+## Documentation
 
-### In Production
+Documentation is available on [readthedocs](https://pedasi.readthedocs.io/en/master/) for users, system administrators, data and application providers, and application developers, and is also installed within a PEDASI deployment (e.g. at [https://dev.iotobservatory.io/static/html]).
 
-This repository contains an Ansible `playbook.yml` file which will perform a full install of PEDASI onto a
-clean host running Ubuntu 18.04 LTS, or update an existing PEDASI instance if it was previously deployed with the same script.
+## Contact Information
 
-To deploy using production settings you must:
-* Create an Ansible inventory file and set `production=True` for the machine you wish to deploy to
-* Create an SSH key and register it as a deployment key on the PEDASI GitHub project
-  * Move the SSH private key file to `deploy/.deployment-key`
-* Create a configuration file (see below) `deploy/.env.prod`
-* Run the Ansible deployment script `ansible-playbook -v -i inventory.yml playbook.yml -u <remote_username>`
+ - Project team: Adrian Cox (a.j.cox@soton.ac.uk), Mark Schueler (m.schueler@soton.ac.uk)
+ - Development team: James Graham (j.graham@soton.ac.uk), Steve Crouch (s.crouch@ecs.soton.ac.uk)
 
+## Licence
 
-## Configuring PEDASI
-Both PEDASI and Django are able to be configured via a `.env` file in the project root.
+PEDASI is provided under the MIT licence - see the [LICENCE.md](LICENCE.md) file for details.
 
-The only required configuration property is the Django SECRET_KEY which should be a randomly generated
-character sequence.
-
-Other configuration properties are described at the top of `pedasi/settings.py`.
