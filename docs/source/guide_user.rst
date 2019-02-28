@@ -89,19 +89,20 @@ Selecting *Details* for a data source from the Data Sources page shows the follo
 Requesting Access to a Data Source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you're logged in as a PEDASI User (and not anonymously), you may request access to a data source by selecting *Manage Access* from a data source overview page. From here you can supply the following details for an access request via a form:
+If you're logged in as a PEDASI User (and not anonymously), you may request access to a data source by selecting *Manage Access* from a data source overview page. Note that if you are also an Application Provider, you can also request access to data sources for your applications using this mechanism. From here you can supply the following details for an access request via a form:
 
- - The level of access, where a given level also provides access to previous levels:
+ - *User*: the identity of the user or application that is making this request (if making this request on behalf of an application, remember to set this to the identity of the application)
+ - *Requested*: The level of access, where a given level also provides access to previous levels:
 
    - *NONE*: to revoke access to a data source
    - *VIEW*: to view a data source's high-level details
    - *META*: to view a data source's metadata
    - *PROV*: to view a data source's PROV records
 
- - Push requested: to allow the data source to receive updates and/or new data from the user, where the data source supports it (currently only internal PEDASI data sources)
- - Reason: the reason for the request
+ - *Push requested*: to allow the data source to receive updates and/or new data from the user or application, where the data source supports it (currently only internal PEDASI data sources)
+ - *Reason*: the reason for the request
 
-The data source's Data Provider will then consider and optionally approve the request. Subsequent requests can be made by the user to either escalate or de-escalate their access level, each requiring approval.
+The data source's Data Provider will then consider and optionally approve the request. Subsequent requests can be made by the user or Application Provider to either escalate or de-escalate a user's or application's access level, each requiring approval.
 
 
 Using the Data Explorer
