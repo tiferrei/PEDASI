@@ -54,7 +54,7 @@ class ApplicationDeleteView(OwnerPermissionMixin, DeleteView):
     template_name = 'applications/application/delete.html'
     context_object_name = 'application'
 
-    permission_required = 'application.delete_application'
+    permission_required = 'applications.delete_application'
     success_url = reverse_lazy('applications:application.list')
 
 
