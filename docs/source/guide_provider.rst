@@ -42,7 +42,7 @@ To add a new data source:
     - *Plugin name*: select an appropriate data connector to interface with this API, e.g. DataSetConnector
     - *Licence*: select an appropriate licence from those available in the dropdown list, e.g. Open Database Licence.
     - *Is encrypted*: select this if the data supplied from the data source is partially or fully encrypted, e.g. leave unselected
-    - *Public permission level*: see the *Requesting Access to a Data Source* section in the :doc:`User Guide<guide_user>` for a breakdown of the different levels of access you can specify for a data source. e.g. DATA
+    - *Public permission level*: see the *Requesting Access to a Data Source* section in the :doc:`User Guide<guide_user>` for a breakdown of the different levels of access you can specify for a data source. e.g. DATA (which is the default)
     - *Prov exempt*: select this if user activity tracking should be enabled for this data source, e.g. leave unselected
 
  3. Then select 'Create' to create this data source, and you'll be presented with an overview page for that data source.
@@ -99,7 +99,7 @@ If you need to add a new type of licence for a data source:
 Approving Data Access Requests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To approve user requests for amended access rights to data sources:
+To approve user or application requests for amended access rights to data sources:
 
  1. Select *Data Sources* from the navigation bar to see a list of all data sources to which you have access
  2. Select *Detail* for the data source you wish to manage access on
@@ -134,7 +134,7 @@ To add a new application:
 
  3. Select *Create* to register the new application within PEDASI, and you'll be presented with an overview page for that application, with a new API key
 
-The API key is what will be used by the developer to authenticate with PEDASI from their application.
+The API key is what will be used by the developer to authenticate with PEDASI from their application, with the application acting as a user within the system.
 
 
 Updating an Application
@@ -149,6 +149,14 @@ Updating an Application
  3. Select *Edit* to edit the application's details
  4. Edit the fields as instructed in the *Adding an Application* section
  5. Select *Update* to update the data source's details
+
+
+Obtaining Access to Data Sources for Applications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As with users, applications also require access rights to data sources that are not public. By default, data sources are created with DATA access permissions and are considered public (awarding access to both data source metadata and data for all users, but not provenance records).
+
+If a data source has a lower level of access than required by the application, a request should be made from the Application Provider on behalf of their application for an appropriate level of access (typically DATA, the default). See *Requesting Access to a Data Source* in the :doc:`User Guide<guide_user>`.
 
 
 Removing an Application
