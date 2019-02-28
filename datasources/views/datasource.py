@@ -47,7 +47,7 @@ class DataSourceDetailView(DetailView):
         context['api_url'] = (
             'https://' if self.request.is_secure() else 'http://' +
             self.request.get_host() +
-            '/api/datasources/{0}/data/'.format(self.object.pk)
+            '/api/datasources/{0}/'.format(self.object.pk)
         )
 
         return context
@@ -203,5 +203,11 @@ class DataSourceExplorerView(HasPermissionLevelMixin, DetailView):
         context['data_query_params'] = self.object.metadata_items.filter(
             field__short_name='data_query_param'
         ).values_list('value', flat=True)
+
+        context['api_url'] = (
+            'https://' if self.request.is_secure() else 'http://' +
+                                                        self.request.get_host() +
+                                                        '/api/datasources/{0}/'.format(self.object.pk)
+        )
 
         return context
