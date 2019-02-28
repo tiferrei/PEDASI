@@ -14,7 +14,7 @@ PEDASI System Administrator Guide
 Purpose
 -------
 
-This guide is for System Administrators wishing to deploy a PEDASI instance, either for production or locally for development.
+This guide is for system administrators wishing to deploy a PEDASI instance, either for production or locally for development.
 
 
 Production Deployment
@@ -104,7 +104,7 @@ Otherwise, you will need Ansible to prompt for passwords for the remote user and
 Create Administrator Account
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-After deploying PEDASI you must create and activate an initial administrator account:
+After deploying PEDASI you must create and activate an initial PEDASI Central Administrator account:
 
 .. code-block:: console
 
@@ -121,7 +121,7 @@ Assigning Data or Application Provider Roles to Accounts
 
 To add Data and/or Application Provider roles to an existing PEDASI User account:
 
- 1. Ensure you are logged in as the PEDASI Administrator account
+ 1. Ensure you are logged in as the PEDASI Central Administrator account
  2. Go to the administrator pages at https://<server_address>/admin
  3. Select *Users* from the *PROFILES* subsection to display a list of all system users
  4. Select the user account you wish to change, to edit that user's profile
@@ -198,8 +198,7 @@ Please see the `Vagrant documentation`_ for more details on how to use Vagrant, 
 Creating Administrator and Provider Accounts
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Follow the instructions in the *Create Administrator Account* subsection of the *Production Deployment* section above to set up an administrator user, as well as the *Assigning Data or Application Provider Roles to Accounts* subsection as required.
-
+Follow the instructions in the *Create Administrator Account* subsection of the *Production Deployment* section above to set up an administrator user, as well as the *Assigning Data or Application Provider Roles to Accounts* subsection if required for other non-administrator users.
 
 
 References
