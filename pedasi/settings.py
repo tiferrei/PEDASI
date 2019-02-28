@@ -243,6 +243,9 @@ SOCIAL_AUTH_PIPELINE = [
 
     # Update the user record with any changed info from the auth service.
     'social_core.pipeline.user.user_details',
+
+    # Email admins to activate the account
+    'profiles.social_auth.email_admins',
 ]
 
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = reverse_lazy('index')
@@ -310,3 +313,23 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'pedasi', 'static'),
     os.path.join(BASE_DIR, 'docs', 'build'),
 ]
+
+
+# Email provider for notification emails
+EMAIL_HOST = config('EMAIL_HOST', default=None)
+EMAIL_PORT = config('EMAIL_PORT', cast=int, default=25)
+
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default=None)
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default=None)
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=False)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False)
+
+EMAIL_SUBJECT_PREFIX = '[PEDASI]'
+
+if DEBUG and not EMAIL_HOST:
+    EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+    EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'mail')
+
+ADMINS = [val.split('|') for val in config('ADMINS', cast=Csv(), default='')]
