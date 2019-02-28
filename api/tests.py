@@ -1,5 +1,7 @@
 import typing
 
+import unittest
+
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 
@@ -554,6 +556,8 @@ class DataSourceApiHyperCatTest(TestCase):
         self.assertLessEqual(1, len(data['data']))
         # TODO test contents of 'data' list
 
+    # CityVerve API is discontinued
+    @unittest.expectedFailure
     def test_api_datasource_get_dataset_metadata(self):
         """
         Test the :class:`DataSource` API functionality to retrieve dataset metadata.
@@ -569,6 +573,8 @@ class DataSourceApiHyperCatTest(TestCase):
         self.assertLessEqual(1, len(data['data']))
         # TODO test contents of 'data' list
 
+    # CityVerve API is discontinued
+    @unittest.expectedFailure
     def test_api_datasource_get_dataset_data(self):
         """
         Test the :class:`DataSource` API functionality to retrieve dataset data.
