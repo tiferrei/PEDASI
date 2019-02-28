@@ -24,7 +24,7 @@ django.setup()
 # -- Project information -----------------------------------------------------
 
 project = 'PEDASI'
-copyright = '2018, James Graham, Steve Crouch'
+copyright = '2019 University of Southampton'
 author = 'James Graham, Steve Crouch'
 
 # The short X.Y version
@@ -120,6 +120,13 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+
+# Add following as a header for each rst file
+rst_prolog = """
+.. note:: This is a public alpha release, and therefore features and functionality may change and the software and documentation may contain technical bugs or other issues. If you discover any issues please consider registering a `GitHub issue`_.
+
+.. _`GitHub issue`: https://github.com/PEDASI/PEDASI/issues
+"""
 
 
 # -- Options for HTMLHelp output ---------------------------------------------

@@ -1,7 +1,7 @@
 .. _doc-index:
 
-PEDASI
-======
+PEDASI v0.1.0
+=============
 
 .. toctree::
    :maxdepth: 2
@@ -37,16 +37,17 @@ Resources
 
 Documentation is available for the following stakeholders:
 
- - :ref:`Researchers and other end-users<guide_user>`: for users wishing to discover, explore, and make use of datasets using the web interface
- - :ref:`Administrators<guide_administrator>`: for those aiming to deploy PEDASI, or provide data or use applications through PEDASI
- - :ref:`Application developers<guide_developer>`: for developers wanting to create applications that access data available through PEDASI
+ - :doc:`Researchers and other end-users<guide_user>`: for users wishing to discover, explore, and make use of datasets using the web interface
+ - :doc:`Data or Application Providers<guide_provider>`: for those aiming to provide data or use applications through PEDASI
+ - :doc:`System Administrators<guide_administrator>`: for those aiming to deploy and manage PEDASI either for development or production
+ - :doc:`Application developers<guide_developer>`: for developers wanting to create applications that access data available through PEDASI
 
 This documentation is also available on `Read the Docs`_.
 
 .. _`Read the Docs`: https://pedasi.readthedocs.io/en/dev
 
 
-License
+Licence
 -------
 
 PEDASI is provided under the MIT licence.
