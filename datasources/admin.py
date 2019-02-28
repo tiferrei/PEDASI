@@ -20,7 +20,7 @@ class DataSourceAdmin(admin.ModelAdmin):
         permission = super().has_change_permission(request, obj)
 
         if obj is not None:
-            permission &= obj.owner == request.user
+            permission &= (obj.owner == request.user) or request.user.is_superuser
 
         return permission
 
@@ -31,7 +31,7 @@ class DataSourceAdmin(admin.ModelAdmin):
         permission = super().has_delete_permission(request, obj)
 
         if obj is not None:
-            permission &= obj.owner == request.user
+            permission &= (obj.owner == request.user) or request.user.is_superuser
 
         return permission
 
