@@ -34,5 +34,12 @@ def email_admins(strategy, details, backend, user=None, *args, **kwargs):
     if kwargs['is_new']:
         mail_admins(
             subject='PEDASI Account Created',
-            message='Account created: {0}'.format(user.username)
+            message=(
+                'New PEDASI user account: {0}\n\n'
+                'A new user account has been created by {1} - {2} and requires admin approval'
+            ).format(
+                user.username,
+                user.get_full_name(),
+                user.email
+            )
         )
