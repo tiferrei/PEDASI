@@ -28,7 +28,7 @@ If you are not a Central Administrator or don't have Data Provider privileges as
 Adding a Data Source
 ^^^^^^^^^^^^^^^^^^^^
 
-Before adding a new data source, first check if the license type for that data source already exists. Select *Licences* from the navigation bar to display all current licenses, and if the licence you need to use isn't already in the list, you'll need to add it as a new licence type. See *Adding a New Data Source Licence* below.
+Before adding a new data source, first check if the licence type for that data source already exists. Select *Licences* from the navigation bar to display all current licences, and if the licence you need to use isn't already in the list, you'll need to add it as a new licence type. See *Adding a New Data Source Licence* below.
 
 To add a new data source:
 
@@ -84,7 +84,7 @@ Adding a New Data Source Licence
 
 If you need to add a new type of licence for a data source:
 
- 1. Select *Licences* from the navigation bar to display all current licenses
+ 1. Select *Licences* from the navigation bar to display all current licences
  2. Select *New License* to create a new licence
  3. Add detail for the following fields:
 

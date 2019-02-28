@@ -47,7 +47,7 @@ This documentation is also available on `Read the Docs`_.
 .. _`Read the Docs`: https://pedasi.readthedocs.io/en/dev
 
 
-License
+Licence
 -------
 
 PEDASI is provided under the MIT licence.
