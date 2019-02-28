@@ -1,6 +1,6 @@
 .. _doc-index:
 
-PEDASI v0.9.0
+PEDASI v0.1.0
 =============
 
 .. toctree::
