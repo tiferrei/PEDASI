@@ -77,6 +77,7 @@ class DataSourceUpdateView(OwnerPermissionMixin, UpdateView):
     context_object_name = 'datasource'
 
     form_class = forms.DataSourceForm
+    permission_required = 'datasources.change_datasource'
 
 
 class DataSourceDeleteView(OwnerPermissionMixin, DeleteView):
@@ -84,6 +85,7 @@ class DataSourceDeleteView(OwnerPermissionMixin, DeleteView):
     template_name = 'datasources/datasource/delete.html'
     context_object_name = 'datasource'
 
+    permission_required = 'datasources.delete_datasource'
     success_url = reverse_lazy('datasources:datasource.list')
 
 

@@ -46,6 +46,7 @@ class ApplicationUpdateView(OwnerPermissionMixin, UpdateView):
     context_object_name = 'application'
 
     fields = '__all__'
+    permission_required = 'applications.change_application'
 
 
 class ApplicationDeleteView(OwnerPermissionMixin, DeleteView):
@@ -53,6 +54,7 @@ class ApplicationDeleteView(OwnerPermissionMixin, DeleteView):
     template_name = 'applications/application/delete.html'
     context_object_name = 'application'
 
+    permission_required = 'application.delete_application'
     success_url = reverse_lazy('applications:application.list')
 
 
