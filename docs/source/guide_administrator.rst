@@ -30,6 +30,8 @@ A deployment of PEDASI is done automatically to a remote Ubuntu server via a pre
  3. Install PEDASI
  4. Configure and start webserver
 
+See the *playbook.yml* Ansible file in the PEDASI repository's root directory for more details.
+
 
 Prerequisites
 ^^^^^^^^^^^^^
@@ -123,8 +125,7 @@ To add Data and/or Application Provider roles to an existing PEDASI User account
  2. Go to the administrator pages at https://<server_address>/admin
  3. Select *Users* from the *PROFILES* subsection to display a list of all system users
  4. Select the user account you wish to change, to edit that user's profile
- 5. Under the *Groups* section under *Permissions*, select *Data Provider* or *Application Provider* and select the right arrow to add this role to the use
-r's profile
+ 5. Under the *Groups* section under *Permissions*, select *Data Provider* or *Application Provider* and select the right arrow to add this role to the user's profile
  6. Select *SAVE* at the bottom of the page
 
 
