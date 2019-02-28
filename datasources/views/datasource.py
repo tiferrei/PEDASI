@@ -44,6 +44,12 @@ class DataSourceDetailView(DetailView):
         except (KeyError, ValueError):
             messages.error(self.request, 'This data source is not configured correctly.  Please notify the owner.')
 
+        context['api_url'] = (
+            'https://' if self.request.is_secure() else 'http://' +
+            self.request.get_host() +
+            '/api/datasources/{0}/data/'.format(self.object.pk)
+        )
+
         return context
 
 
