@@ -1,5 +1,6 @@
 import itertools
 import typing
+import unittest
 
 from django.test import TestCase
 
@@ -157,6 +158,8 @@ class ConnectorHyperCatTest(TestCase):
                 self.assertEqual(k,
                                  v.location)
 
+    # CityVerve API is discontinued
+    @unittest.expectedFailure
     def test_plugin_get_subcatalogue_metadata(self):
         connection = self._get_connection()
 
@@ -179,6 +182,8 @@ class ConnectorHyperCatTest(TestCase):
         self.assertEqual('https://developer.cityverve.org.uk',
                          _get_item_by_key_value(result, 'rel', 'urn:X-hypercat:rels:hasHomepage')['val'])
 
+    # CityVerve API is discontinued
+    @unittest.expectedFailure
     def test_plugin_get_subcatalogue_datasets(self):
         connection = self._get_connection()
 
@@ -200,6 +205,8 @@ class ConnectorHyperCatTest(TestCase):
         for exp in expected:
             self.assertIn(exp, datasets)
 
+    # CityVerve API is discontinued
+    @unittest.expectedFailure
     def test_plugin_get_subcatalogue_dataset_metadata(self):
         connection = self._get_connection()
 
@@ -228,6 +235,8 @@ class ConnectorHyperCatTest(TestCase):
         self.assertEqual('polling-station',
                          _get_item_by_key_value(result, 'rel', 'urn:X-cityverve:rels:type')['val'])
 
+    # CityVerve API is discontinued
+    @unittest.expectedFailure
     def test_plugin_get_subcatalogue_dataset_data(self):
         connection = self._get_connection()
 
