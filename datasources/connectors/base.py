@@ -16,6 +16,13 @@ import requests.auth
 from core import plugin
 
 
+class DatasetNotFoundError(Exception):
+    """
+    Exception raised when a requested dataset cannot be found within a data source.
+    """
+    pass
+
+
 @enum.unique
 class AuthMethod(enum.IntEnum):
     """
@@ -232,6 +239,13 @@ class DataCatalogueConnector(BaseDataConnector, collections_abc.Mapping):
 
     @abc.abstractmethod
     def __getitem__(self, item: str) -> BaseDataConnector:
+        """
+        Get a data connector for a single dataset within this catalogue.
+
+        :param item: Dataset id
+        :return: Data connector for dataset
+        :raises DatasetNotFoundError: Requested dataset cannot be found
+        """
         raise NotImplementedError
 
     def __iter__(self):

@@ -381,7 +381,7 @@ Responses messages:
 API Endpoints - Catalogues
 --------------------------
 
-Data catalogues are a subset of data sources which contain a number of distinct data sets.
+Data catalogues are a subset of data sources which contain a number of distinct datasets.
 
 --------
 
@@ -476,7 +476,7 @@ Parameters:
        - integer
 
      * - dataset_id
-       - The id of the data set within the specific data source, which may be a URI
+       - The id of the dataset within the specific data source, which may be a URI
        - string
 
 Response class (Status 200): application/json
@@ -493,7 +493,7 @@ Responses messages:
        - Response Type
 
      * - 200
-       - Data set metadata
+       - Dataset metadata
        - Successful
        - application/json
 
@@ -523,7 +523,7 @@ Responses messages:
 
             {
                 "status": "error",
-                "message": "Data set does not exist within this data source"
+                "message": "Dataset does not exist within this data source"
             }
 
        - Parameter dataset_id did not refer to a valid dataset within this data source
@@ -557,7 +557,7 @@ Parameters:
        - integer
 
      * - dataset_id
-       - The id of the data set within the specific data source, which may be a URI
+       - The id of the dataset within the specific data source, which may be a URI
        - string
 
      * - query_string
@@ -578,7 +578,7 @@ Responses messages:
        - Response Type
 
      * - 200
-       - Data set data
+       - Dataset data
        - Successful
        - application/json
 
@@ -608,7 +608,7 @@ Responses messages:
 
             {
                 "status": "error",
-                "message": "Data set does not exist within this data source"
+                "message": "Dataset does not exist within this data source"
             }
 
        - Parameter dataset_id did not refer to a valid dataset within this data source
