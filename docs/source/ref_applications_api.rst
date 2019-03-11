@@ -69,10 +69,12 @@ Responses messages:
      * - HTTP Status Code
        - Reason
        - Response
+       - Response Type
 
      * - 
        - 
        - 
+       - application/json
 
 --------
 
@@ -129,7 +131,7 @@ GET /api/datasources/{datasource_id}/metadata/
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Implementation notes:
-  Retrieves metadata for a given data source via an API query to the data source, if supported by the data source. The authenticated user must have META permissions or above to access the data source. E.g. A HyperCat catalogue
+  Retrieves metadata for a given data source which may include an API query to the data source, if supported by the data source. The authenticated user must have META permissions or above to access the data source. In the general case, this is implementation-specific for the data connector, in the case of a HyperCat catalogue, it presents the catalogue record for that dataset.
 
 Parameters:
   .. list-table::
@@ -144,15 +146,40 @@ Parameters:
        - The numeric id of the data source
        - integer
 
+Response class (Status 200): application/json
+  .. code-block:: json
+
+--------
+
+GET /api/datasources/{datasource_id}/datasets/
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Implementation notes:
+  Retrieves the list of dataset IDs within a catalogue, which may be via an API query to the data source, if supported by the data source. The authenticated user must have META permissions or above to access the data source. In the general case, this is implementation-specific for the data connector.
+
+Parameters:
+  .. list-table::
+     :widths: 16 80 16
+     :header-rows: 1
+
+     * - Parameter
+       - Description
+       - Type
+
+     * - datasource_id
+       - The numeric id of the data source
+       - integer
+
+Response class (Status 200): application/json
+  .. code-block:: json
+
 --------
 
 GET /api/datasources/{datasource_id}/metadata/{dataset_id}/
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-GET /api/datasources/{datasource_id}/metadata/{dataset_uri}/
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Implementation notes:
-  Retrieves metadata for a single dataset contained within the given data source via an API query to the data source. The authenticated user must have permission to use the given data source. E.g. An entry within a HyperCat catalogue
+  Specific to data sources which purport to act as catalogues of data, it retrieves metadata for a single dataset contained within the given data source in most cases via an API query to the data source (e.g. HyperCat), although is dependent on data connector implementation. The authenticated user must have permission to use the given data source.
 
 Parameters:
   .. list-table::
@@ -168,12 +195,11 @@ Parameters:
        - integer
 
      * - dataset_id
-       - The numeric id of the data set within the specific data source
-       - integer
+       - The id of the data set within the specific data source, which may be a URI
+       - string
 
-     * - dataset_uri
-       - The uri of the data set within the specific data source
-       - integer
+Response class (Status 200): application/json
+  Dependent on data source
 
 --------
 
@@ -182,7 +208,6 @@ GET /api/datasources/{datasource_id}/data/?{query_string}
 
 Implementation notes:
   In the case where a data source represents a single dataset, retrieve the dataset via an API query to the data source using the given query string. The authenticated user must have permission to use the given data source.
-  If the data source does not represent a single dataset, error.
 
 Parameters:
   .. list-table::
@@ -201,19 +226,16 @@ Parameters:
        - An ampersand-separated set of key=value pairs
        - string
 
-Response class (Status 200): application/json
+Response class (Status 200): type-specific to datasource
   Dependent on data source
 
 --------
 
 GET /api/datasources/{datasource_id}/data/{dataset_id}/
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-GET /api/datasources/{datasource_id}/data/{dataset_uri}/
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Implementation notes:
-  In the case where a data source represents multiple datasets, retrieve a single dataset via an API query to the data source. The authenticated user must have permission to use the given data source.
-  If the data source represents a single dataset, error.
+  In the case where a data source represents a catalogue of datasets, retrieve a single dataset via an API query to the data source. The authenticated user must have permission to use the given data source.
 
 Parameters:
   .. list-table::
@@ -229,14 +251,10 @@ Parameters:
        - integer
 
      * - dataset_id
-       - The numeric id of the data set within the specific data source
-       - integer
+       - The id of the data set within the specific data source, which may be a URI
+       - string
 
-     * - dataset_uri
-       - The uri of the data set within the specific data source
-       - integer
-
-Response class (Status 200): application/json
+Response class (Status 200): type-specific to datasource
   Dependent on data source
 
 --------
@@ -305,35 +323,6 @@ Response class (Status 200): application/json
          }
        ]
      }
-
---------
-
-GET /api/datasources/{datasource_id}/prov/{dataset_id}/
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Implementation notes:
-  Retrieve a single PROV record related to a data source.
-
-Parameters:
-  .. list-table::
-     :widths: 16 80 16
-     :header-rows: 1
-
-     * - Parameter
-       - Description
-       - Type
-
-     * - datasource_id
-       - The numeric id of the data source
-       - integer
-
-     * - dataset_id
-       - The numeric id of the data set within the specific data source
-       - integer
-
-     * - dataset_uri
-       - The uri of the data set within the specific data source
-       - integer
 
 --------
 
