@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load bootstrap4 %}
 
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.0/src/js.cookie.min.js"></script>
+{% endblock %}
+
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -62,28 +66,51 @@
                 <tr>
                     <td>API Key</td>
                     <td>
-                        <span id="spanApiToken">
-                            {% if application.proxy_user.auth_token %}
-                                {{ application.proxy_user.auth_token }}
+                        <script type="application/javascript">
+                            function getToken() {
+                                $.ajax({
+                                    dataType: "json",
+                                    url: "{% url 'applications:token' pk=application.pk %}",
+                                    data: null,
+                                    success: function (data) {
+                                        $('#spanApiToken').text(data.data.token.key);
 
-                            {% else %}
-                                <script type="application/javascript">
-                                    function getToken() {
-                                        $.ajax({
-                                            dataType: "json",
-                                            url: "{% url 'applications:token' pk=application.pk %}",
-                                            data: null,
-                                            success: function (data) {
-                                                $('#spanApiToken').text(data.data.token.key);
-                                            }
-                                        });
+                                        document.getElementById("spanApiTokenPresent").style.display = "inline";
+                                        document.getElementById("spanApiTokenAbsent").style.display = "none";
                                     }
-                                </script>
+                                });
+                            }
 
-                                <button onclick="getToken();" class="btn btn-default" role="button">Generate an API Token</button>
-                            {% endif %}
+                            function revokeToken() {
+                                $.ajax({
+                                    dataType: "json",
+                                    url: "{% url 'applications:token' pk=application.pk %}",
+                                    method: "DELETE",
+                                    headers: {
+                                        "X-CSRFToken": Cookies.get("csrftoken")
+                                    },
+                                    data: null,
+                                    success: function (data) {
+                                        $('#spanApiToken').text("");
+
+                                        document.getElementById("spanApiTokenPresent").style.display = "none";
+                                        document.getElementById("spanApiTokenAbsent").style.display = "inline";
+                                    }
+                                });
+                            }
+                        </script>
+
+                        <span id="spanApiTokenPresent" {% if not application.proxy_user.auth_token %}style="display: none;"{% endif %}>
+                            <span id="spanApiToken">
+                                {{ application.proxy_user.auth_token }}
+                            </span>
+
+                            <button onclick="revokeToken();" class="btn btn-danger" role="button">Revoke API Token</button>
                         </span>
 
+                        <span id="spanApiTokenAbsent" {% if application.proxy_user.auth_token %}style="display: none;"{% endif %}>
+                                <button onclick="getToken();" class="btn btn-default" role="button">Generate API Token</button>
+                        </span>
                     </td>
                 </tr>
             {% endif %}

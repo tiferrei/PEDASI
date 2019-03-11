@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load bootstrap4 %}
 
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.0/src/js.cookie.min.js"></script>
+{% endblock %}
+
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -22,32 +26,58 @@
         </thead>
 
         <tbody>
-        <tr>
-            <td>API Token</td>
-            <td>
-                <span id="spanApiToken">
-                    {% if user == request.user and user.auth_token %}
-                        {{ user.auth_token }}
-
-                    {% else %}
+            {% if user == request.user or request.user.is_superuser %}
+                <tr>
+                    <td>API Token</td>
+                    <td>
                         <script type="application/javascript">
                             function getToken() {
                                 $.ajax({
                                     dataType: "json",
-                                    url: "{% url 'profiles:token' %}",
+                                    url: "{% url 'profiles:token' pk=user.pk %}",
                                     data: null,
                                     success: function (data) {
                                         $('#spanApiToken').text(data.data.token.key);
+
+                                        document.getElementById("spanApiTokenPresent").style.display = "inline";
+                                        document.getElementById("spanApiTokenAbsent").style.display = "none";
+                                    }
+                                });
+                            }
+
+                            function revokeToken() {
+                                $.ajax({
+                                    dataType: "json",
+                                    url: "{% url 'profiles:token' pk=user.pk %}",
+                                    method: "DELETE",
+                                    headers: {
+                                        "X-CSRFToken": Cookies.get("csrftoken")
+                                    },
+                                    data: null,
+                                    success: function (data) {
+                                        $('#spanApiToken').text("");
+
+                                        document.getElementById("spanApiTokenPresent").style.display = "none";
+                                        document.getElementById("spanApiTokenAbsent").style.display = "inline";
                                     }
                                 });
                             }
                         </script>
 
-                        <button onclick="getToken();" class="btn btn-default" role="button">Generate an API Token</button>
-                    {% endif %}
-                </span>
-            </td>
-        </tr>
+                        <span id="spanApiTokenPresent" {% if not user.auth_token %}style="display: none;"{% endif %}>
+                                    <span id="spanApiToken">
+                                        {{ user.auth_token }}
+                                    </span>
+
+                                    <button onclick="revokeToken();" class="btn btn-danger" role="button">Revoke API Token</button>
+                                </span>
+
+                        <span id="spanApiTokenAbsent" {% if user.auth_token %}style="display: none;"{% endif %}>
+                                        <button onclick="getToken();" class="btn btn-default" role="button">Generate API Token</button>
+                                </span>
+                    </td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 

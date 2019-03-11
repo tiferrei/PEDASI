@@ -44,6 +44,12 @@ class DataSourceDetailView(DetailView):
         except (KeyError, ValueError):
             messages.error(self.request, 'This data source is not configured correctly.  Please notify the owner.')
 
+        context['api_url'] = (
+            'https://' if self.request.is_secure() else 'http://' +
+            self.request.get_host() +
+            '/api/datasources/{0}/'.format(self.object.pk)
+        )
+
         return context
 
 
@@ -71,6 +77,7 @@ class DataSourceUpdateView(OwnerPermissionMixin, UpdateView):
     context_object_name = 'datasource'
 
     form_class = forms.DataSourceForm
+    permission_required = 'datasources.change_datasource'
 
 
 class DataSourceDeleteView(OwnerPermissionMixin, DeleteView):
@@ -78,6 +85,7 @@ class DataSourceDeleteView(OwnerPermissionMixin, DeleteView):
     template_name = 'datasources/datasource/delete.html'
     context_object_name = 'datasource'
 
+    permission_required = 'datasources.delete_datasource'
     success_url = reverse_lazy('datasources:datasource.list')
 
 
@@ -197,5 +205,11 @@ class DataSourceExplorerView(HasPermissionLevelMixin, DetailView):
         context['data_query_params'] = self.object.metadata_items.filter(
             field__short_name='data_query_param'
         ).values_list('value', flat=True)
+
+        context['api_url'] = (
+            'https://' if self.request.is_secure() else 'http://' +
+                                                        self.request.get_host() +
+                                                        '/api/datasources/{0}/'.format(self.object.pk)
+        )
 
         return context

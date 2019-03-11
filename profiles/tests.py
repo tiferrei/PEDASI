@@ -44,7 +44,7 @@ class UserTest(TestCase):
             # User should not already have token
             token = Token.objects.get(user=user)
 
-        response = client.get(reverse('profiles:token'))
+        response = client.get(reverse('profiles:token', kwargs={'pk': user.pk}))
 
         self.assertEqual(200, response.status_code)
 

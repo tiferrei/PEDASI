@@ -28,3 +28,10 @@ class User(AbstractUser):
         """
         token, created = Token.objects.get_or_create(user=self)
         return token
+
+    def revoke_auth_token(self):
+        """
+        Revoke and API auth token for this user.
+        """
+        self.auth_token.delete()
+

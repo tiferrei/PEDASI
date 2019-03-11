@@ -203,8 +203,8 @@ class ProvWrapper(mongoengine.Document):
         """
         Get all :class:`ProvEntry` documents related to a particular Django model instance.
 
-        :param instance: Model instance for which to get all :class:`ProvEntry`s
-        :return: List of :class:`ProvEntry`s
+        :param instance: Model instance for which to get all :class:`ProvEntry`\ s
+        :return: List of :class:`ProvEntry`\ s
         """
         instance_type = ContentType.objects.get_for_model(instance)
 

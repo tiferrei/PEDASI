@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.conf import settings
@@ -127,7 +129,8 @@ class Application(ProvAbleModel, ProvApplicationModel, BaseAppDataModel):
         if self.proxy_user:
             return self.proxy_user
 
-        proxy_username = 'application-proxy-' + slugify(self.name)
+        # Add random UUID to username to allow multiple applications with the same name
+        proxy_username = 'application-proxy-' + slugify(self.name) + str(uuid4())
         proxy_user = get_user_model().objects.create_user(proxy_username)
 
         # Create an API access token for the proxy user

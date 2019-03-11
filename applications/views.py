@@ -1,3 +1,7 @@
+"""
+Views to manage and access :class:`Application`s.
+"""
+
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import JsonResponse
 from django.urls import reverse_lazy
@@ -42,6 +46,7 @@ class ApplicationUpdateView(OwnerPermissionMixin, UpdateView):
     context_object_name = 'application'
 
     fields = '__all__'
+    permission_required = 'applications.change_application'
 
 
 class ApplicationDeleteView(OwnerPermissionMixin, DeleteView):
@@ -49,6 +54,7 @@ class ApplicationDeleteView(OwnerPermissionMixin, DeleteView):
     template_name = 'applications/application/delete.html'
     context_object_name = 'application'
 
+    permission_required = 'applications.delete_application'
     success_url = reverse_lazy('applications:application.list')
 
 
@@ -90,15 +96,15 @@ class ApplicationManageAccessView(OwnerPermissionMixin, ManageAccessView):
     context_object_name = 'application'
 
 
-class ApplicationGetTokenView(OwnerPermissionMixin, DetailView):
+class ApplicationManageTokenView(OwnerPermissionMixin, DetailView):
     """
-    Get an API Token for an application.
+    Manage an API Token for an application.
     """
     model = models.Application
 
     def render_to_response(self, context, **response_kwargs):
         """
-        Get an existing API Token or create a new one for the currently authenticated user.
+        Get an existing API Token or create a new one for the requested :class:`Application`.
 
         :return: JSON containing Token key
         """
@@ -110,5 +116,19 @@ class ApplicationGetTokenView(OwnerPermissionMixin, DetailView):
                 'token': {
                     'key': api_token.key
                 }
+            }
+        })
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Revoke an API Token for the requested :class:`Application`.
+        """
+        self.object = self.get_object()
+        self.object.proxy_user.revoke_auth_token()
+
+        return JsonResponse({
+            'status': 'success',
+            'data': {
+                'token': None,
             }
         })

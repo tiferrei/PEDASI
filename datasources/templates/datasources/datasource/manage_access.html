@@ -47,7 +47,13 @@
                 <tr id="requested-user-{{ permission.user.pk }}">
                     <td>
                         <p>
-                            {{ permission.user.username }}
+                            {% if permission.user.application_proxy %}
+                                {{ permission.user.application_proxy.name }}
+                                <a href="{% url 'applications:application.detail' pk=permission.user.application_proxy.pk %}"
+                                   role="button" class="badge badge-info">App</a>
+                            {% else %}
+                                {{ permission.user.username }}
+                            {% endif %}
                         </p>
                         {% if permission.reason %}
                             <div class="alert alert-secondary" role="note">
@@ -105,7 +111,15 @@
         <tbody>
         {% for permission in permissions_granted %}
             <tr id="approved-user-{{ permission.user.pk }}">
-                <td>{{ permission.user.username }}</td>
+                <td>
+                    {% if permission.user.application_proxy %}
+                        {{ permission.user.application_proxy.name }}
+                        <a href="{% url 'applications:application.detail' pk=permission.user.application_proxy.pk %}"
+                           role="button" class="badge badge-info">App</a>
+                    {% else %}
+                        {{ permission.user.username }}
+                    {% endif %}
+                </td>
                 <td>{{ permission.get_requested_display }}</td>
                 <td>{{ permission.get_granted_display }}</td>
                 <td>
