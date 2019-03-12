@@ -4,7 +4,7 @@ This module contains data connector classes for retrieving data from HyperCat ca
 
 import typing
 
-from .base import BaseDataConnector, DataCatalogueConnector, DataSetConnector
+from .base import BaseDataConnector, DataCatalogueConnector, DataSetConnector, DatasetNotFoundError
 
 
 class HyperCat(DataCatalogueConnector):
@@ -27,12 +27,18 @@ class HyperCat(DataCatalogueConnector):
 
         response = self._get_response(params)
 
-        dataset_item = self._get_item_by_key_value(
-            response['items'],
-            'href',
-            item
-        )
-        metadata = dataset_item['item-metadata']
+        try:
+            dataset_item = self._get_item_by_key_value(
+                response['items'],
+                'href',
+                item
+            )
+            metadata = dataset_item['item-metadata']
+
+        except KeyError as e:
+            raise DatasetNotFoundError(
+                'Dataset {0} could not be found'.format(item)
+            ) from e
 
         try:
             try:

@@ -14,6 +14,7 @@ from requests.exceptions import HTTPError
 
 from .. import permissions
 from datasources import models, serializers
+from datasources.connectors.base import DatasetNotFoundError
 from provenance import models as prov_models
 
 
@@ -104,7 +105,8 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         """
         Attempt to pass a response from the data connector using the function `map_response`.
 
-        If the data connectors raises an error (AttributeError or NotImplementedError) then return an error response.
+        If the data connectors raises an error (AttributeError, DatasetNotFoundError or NotImplementedError)
+        then return an error response.
 
         :param map_response: Function to get response from data connector - must return HttpResponse
         :param error_message: Error message in case data connector raises an error
@@ -120,7 +122,15 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
                 params = None
 
             if dataset is not None:
-                data_connector = data_connector[dataset]
+                try:
+                    data_connector = data_connector[dataset]
+
+                except DatasetNotFoundError:
+                    data = {
+                        'status': 'error',
+                        'message': 'Dataset does not exist within this data source'
+                    }
+                    return response.Response(data, status=404)
 
             # Record this action in PROV
             if not instance.prov_exempt:

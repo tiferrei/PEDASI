@@ -80,6 +80,7 @@ It it necessary to provide some configuration before deploying PEDASI.
       :caption: deploy/.env
 
       SECRET_KEY=<random string>
+      ALLOWED_HOSTS=hostname.domain
 
       SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=<Google OAuth2 key>
       SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=<Google OAuth2 secret>
@@ -88,17 +89,14 @@ It it necessary to provide some configuration before deploying PEDASI.
 Deployment
 ^^^^^^^^^^
 
-You may now deploy PEDASI using the Ansible provisioning script. If you have set up your Ubuntu instance to use SSH passwordless access, do the following:
+You may now deploy PEDASI using the Ansible provisioning script. If you have set up your Ubuntu instance to use SSH passwordless access, with passwordless sudo, do the following:
 
 .. code-block:: console
 
    $ ansible-playbook -v -i inventory.yml playbook.yml -u <your username on the remote host>
 
-Otherwise, you will need Ansible to prompt for passwords for the remote user and superuser accounts:
-
-.. code-block:: console
-
-   $ ansible-playbook -v -i inventory.yml playbook.yml -u <your username on the remote host> -k -K
+If you need to provide a password to log in via SSH, add a `-k` flag.
+If you need to provide a password to sudo, add a `-K` flag.
 
 
 Create Administrator Account
