@@ -46,3 +46,18 @@ class DataSourceAdmin(admin.ModelAdmin):
             form.instance.owner = request.user
 
         super().save_model(request, obj, form, change)
+
+
+@admin.register(models.QualityRuleset)
+class QualityRulesetAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(models.QualityLevel)
+class QualityLevelAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(models.QualityCriterion)
+class QualityCriterionAdmin(admin.ModelAdmin):
+    pass
