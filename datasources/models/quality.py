@@ -1,6 +1,7 @@
 """
 This module contains models related to the quality assessment of data sources.
 """
+import itertools
 
 from django.db import models
 
@@ -29,7 +30,26 @@ class QualityRuleset(models.Model):
                                blank=False, null=False)
 
     def __call__(self, datasource: DataSource) -> int:
-        raise NotImplementedError
+        """
+        Evaluate a data source to get its quality level under this ruleset.
+
+        :param datasource: Data source to assess
+        :return: Quality level of data source
+        """
+        # Get list of all levels that the data source passes - stop when a fail is encountered
+        passes = list(
+            itertools.takewhile(
+                lambda x: x(datasource),
+                self.levels.all()
+            )
+        )
+
+        try:
+            # Highest passed level will be the last in the list
+            return passes[-1].level
+
+        except IndexError:
+            return 0
 
 
 class QualityLevel(models.Model):
@@ -38,6 +58,7 @@ class QualityLevel(models.Model):
     """
     class Meta:
         unique_together = (('ruleset', 'level'),)
+        ordering = ['level']
 
     #: Which ruleset does this level belong to?
     ruleset = models.ForeignKey(QualityRuleset, related_name='levels',
@@ -50,14 +71,22 @@ class QualityLevel(models.Model):
     #: Threshold level that must be exceeded by criteria weights to pass this level
     threshold = models.FloatField(blank=True, null=True)
 
-    def __call__(self, datasource: DataSource) -> bool:
+    def __call__(self, datasource: DataSource, rtol: float = 1e-3) -> bool:
         """
         Does a data source pass the criteria for this quality level?
 
         :param datasource: Data source to assess
+        :param rtol: Relative tolerance to compare floating point threshold
         :return: Passes this quality level?
         """
-        raise NotImplementedError
+        threshold = self.threshold
+        if threshold is None:
+            threshold = self.criteria.aggregate(models.Sum('weight'))['weight__sum']
+
+        total = sum(criterion(datasource) for criterion in self.criteria.all())
+
+        # Compare using relative tolerance to account for floating point error
+        return total >= (threshold * (1 - rtol))
 
 
 class QualityCriterion(models.Model):
@@ -66,6 +95,7 @@ class QualityCriterion(models.Model):
     """
     class Meta:
         unique_together = (('quality_level', 'metadata_field'),)
+        verbose_name_plural = 'quality criteria'
 
     #: Which quality level does this criterion belong to?
     quality_level = models.ForeignKey(QualityLevel, related_name='criteria',
@@ -88,7 +118,7 @@ class QualityCriterion(models.Model):
         :param datasource: Data source to assess
         :return: Weight provided to the quality level from passing or failing this criterion
         """
-        raise NotImplementedError
+        return self.weight if datasource.metadata_items.filter(field=self.metadata_field).exists() else 0
 
 
 
