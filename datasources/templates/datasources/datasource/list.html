@@ -56,6 +56,26 @@
                                 No Licence
                             </span>
                         {% endif %}
+                        <span id="qualityLevelBadge{{ datasource.pk }}" class="badge badge-primary"></span>
+
+                        <script type="application/javascript">
+                            // TODO Should this be a single function to loop over all data sources?
+
+                            document.addEventListener("DOMContentLoaded", function () {
+                                fetch("{% url 'api:datasource-quality' pk=datasource.pk %}").then(
+                                    response => response.json()
+
+                                ).then(function (data) {
+                                    levelBadge = document.getElementById("qualityLevelBadge{{ datasource.pk }}");
+
+                                    for (let i = 0; i < data.quality; i++) {
+                                        const star = document.createElement("i");
+                                        star.classList.add("fas", "fa-star");
+                                        levelBadge.appendChild(star);
+                                    }
+                                });
+                            });
+                        </script>
                     </p>
                     <p class="pl-5">
                         {{ datasource.description|truncatechars:120 }}

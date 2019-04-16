@@ -172,7 +172,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
             'quality': ruleset(instance),
         }, status=200)
 
-    @decorators.action(detail=True, permission_classes=[permissions.ProvPermission])
+    @decorators.action(detail=True, permission_classes=[permissions.ProvPermission], name='datasource-quality')
     def prov(self, request, pk=None):
         """
         View for /api/datasources/<int>/prov/

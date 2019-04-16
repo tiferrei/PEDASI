@@ -32,23 +32,39 @@
         <div class="col-md-10 col-sm-8">
             <h2>
                 {{ datasource.name }}
-                {# TODO make this a template tag #}
-                {% if datasource.licence %}
-                    <small>
+                <small>
+                    {% if datasource.licence %}
                         <a href="{% url 'datasources:licence.detail' pk=datasource.licence.pk %}"
                            class="badge badge-info"
                            data-toggle="tooltip" data-placement="bottom" title="{{ datasource.licence.name }}">
                             {{ datasource.licence.short_name }}
                         </a>
-                    </small>
-                {% else %}
-                    <small>
+                    {% else %}
                         <span class="badge badge-warning"
                               data-toggle="tooltip" data-placement="bottom" title="No Licence">
                             No Licence
                         </span>
-                    </small>
-                {% endif %}
+                    {% endif %}
+
+                    <span id="qualityLevelBadge" class="badge badge-primary"></span>
+
+                    <script type="application/javascript">
+                        document.addEventListener("DOMContentLoaded", function () {
+                            fetch("{% url 'api:datasource-quality' pk=datasource.pk %}").then(
+                                response => response.json()
+
+                            ).then(function (data) {
+                                levelBadge = document.getElementById("qualityLevelBadge");
+
+                                for (let i = 0; i < data.quality; i++) {
+                                    const star = document.createElement("i");
+                                    star.classList.add("fas", "fa-star");
+                                    levelBadge.appendChild(star);
+                                }
+                            });
+                        });
+                    </script>
+                </small>
             </h2>
 
             {% if datasource.description %}
