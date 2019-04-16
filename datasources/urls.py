@@ -29,6 +29,10 @@ urlpatterns = [
          views.datasource.DataSourceMetadataAjaxView.as_view(),
          name='datasource.metadata'),
 
+    path('<int:pk>/metadata-dash',
+         views.datasource.DataSourceMetadataView.as_view(),
+         name='datasource.metadata.dash'),
+
     path('<int:pk>/explorer',
          views.datasource.DataSourceExplorerView.as_view(),
          name='datasource.explorer'),

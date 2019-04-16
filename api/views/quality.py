@@ -4,15 +4,16 @@ This module contains the API for data quality rulesets.
 
 from django.shortcuts import get_object_or_404
 
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 
 
 from datasources import models, serializers
+from .. import permissions
 
 
 class QualityRulesetApiViewset(viewsets.ModelViewSet):
     serializer_class = serializers.QualityRulesetSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminOrReadOnly]
 
     def get_queryset(self):
         return models.QualityRuleset.objects.all()
@@ -20,7 +21,7 @@ class QualityRulesetApiViewset(viewsets.ModelViewSet):
 
 class QualityLevelApiViewset(viewsets.ModelViewSet):
     serializer_class = serializers.QualityLevelSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminOrReadOnly]
 
     def get_queryset(self):
         return models.QualityLevel.objects.filter(ruleset=self.kwargs['ruleset_pk'])
@@ -36,7 +37,7 @@ class QualityLevelApiViewset(viewsets.ModelViewSet):
 class QualityCriterionApiViewset(viewsets.ModelViewSet):
     queryset = models.QualityCriterion.objects.all()
     serializer_class = serializers.QualityCriterionSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminOrReadOnly]
 
     def get_queryset(self):
         return models.QualityCriterion.objects.filter(quality_level__level=self.kwargs['level_pk'])

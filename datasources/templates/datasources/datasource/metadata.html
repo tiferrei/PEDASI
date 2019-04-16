@@ -21,56 +21,21 @@
 
     <h2>View Data Source - {{ datasource.name }}</h2>
 
-    <p>
-        Owner: <a href="#" role="link">{{ datasource.owner }}</a>
-    </p>
-
     {% if datasource.description %}
         <p>{{ datasource.description }}</p>
     {% endif %}
 
     <hr>
 
-    <table class="table">
+    <table id="" class="table">
         <thead class="thead">
             <tr>
-                <th>Relation</th>
+                <th>Metadata</th>
                 <th>Values</th>
             </tr>
         </thead>
 
         <tbody>
-            {% for relation, values in metadata.items %}
-                <tr>
-                    <td>{{ relation }}</td>
-                    <td>
-                        {% for value in values %}
-                            <p>{{ value }}</p>
-                        {% endfor %}
-                    </td>
-                </tr>
-            {% endfor %}
         </tbody>
     </table>
-
-    <hr>
-
-    <table class="table">
-        <thead class="thead">
-        <tr>
-            <th>URL</th>
-            <th>Metadata</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        {% for dataset, dataset_metadata in datasets.items %}
-            <tr>
-                <td>{{ dataset }}</td>
-                <td>{{ dataset_metadata }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
 {% endblock %}

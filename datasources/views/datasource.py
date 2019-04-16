@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponse
 from django.urls import reverse_lazy
@@ -190,6 +191,19 @@ class DataSourceMetadataAjaxView(OwnerPermissionMixin, APIView):
         return Response({
             'status': 'success'
         })
+
+
+class DataSourceMetadataView(OwnerPermissionMixin, DetailView):
+    model = models.DataSource
+    template_name = 'datasources/datasource/metadata.html'
+    context_object_name = 'datasource'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['ruleset'] = get_user_model().get_quality_ruleset()
+
+        return context
 
 
 class DataSourceExplorerView(HasPermissionLevelMixin, DetailView):

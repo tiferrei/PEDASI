@@ -51,6 +51,9 @@ class QualityRuleset(models.Model):
         except IndexError:
             return 0
 
+    def __str__(self):
+        return '{0} - {1}'.format(self.name, self.version)
+
 
 class QualityLevel(models.Model):
     """
@@ -88,6 +91,9 @@ class QualityLevel(models.Model):
         # Compare using relative tolerance to account for floating point error
         return total >= (threshold * (1 - rtol))
 
+    def __str__(self):
+        return '{0} - level {1}'.format(self.ruleset, self.level)
+
 
 class QualityCriterion(models.Model):
     """
@@ -119,6 +125,9 @@ class QualityCriterion(models.Model):
         :return: Weight provided to the quality level from passing or failing this criterion
         """
         return self.weight if datasource.metadata_items.filter(field=self.metadata_field).exists() else 0
+
+    def __str__(self):
+        return '{0} - weight {1}'.format(self.metadata_field, self.weight)
 
 
 
