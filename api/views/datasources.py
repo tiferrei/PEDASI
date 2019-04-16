@@ -6,6 +6,7 @@ import csv
 import json
 import typing
 
+from django.contrib.auth import get_user_model
 from django.db.models import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
 
@@ -26,6 +27,9 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
     /api/datasources/<int>/
       Retrieve a single :class:`datasources.models.DataSource`.
+
+    /api/datasources/<int>/quality/
+      Get the quality level of a :class:`datasources.models.DataSource` using the current ruleset.
 
     /api/datasources/<int>/prov/
       Retrieve PROV records related to a :class:`datasources.models.DataSource`.
@@ -153,6 +157,20 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return response.Response(serializer.data)
+
+    @decorators.action(detail=True, permission_classes=[permissions.ViewPermission])
+    def quality(self, request, pk=None):
+        """
+        View for /api/datasources/<int>/quality/
+
+        Get the quality level of a data source using the current ruleset.
+        """
+        ruleset = get_user_model().get_quality_ruleset()
+        instance = self.get_object()
+
+        return response.Response({
+            'quality': ruleset(instance),
+        }, status=200)
 
     @decorators.action(detail=True, permission_classes=[permissions.ProvPermission])
     def prov(self, request, pk=None):
