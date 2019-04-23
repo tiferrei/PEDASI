@@ -28,30 +28,34 @@
     <hr>
 
     <table id="" class="table">
-        <thead class="thead">
-            <tr>
-                <th>Metadata</th>
-                <th>Values</th>
-                <th></th>
-            </tr>
-        </thead>
-
         <tbody>
             {% load datasource_extras %}
 
             {% for level in ruleset.levels.all %}
                 <tr>
-                    <th colspan="3">Level {{ level.level }}</th>
+                    <th>Level {{ level.level }}</th>
                 </tr>
 
                 {% for criterion in level.criteria.all %}
                     <tr>
-                        <td>{{ criterion.metadata_field.name }}</td>
-                        <td>{{ metadata|access:criterion.metadata_field.short_name }}</td>
-
                         <td>
-                            <button type="button" class="btn btn-sm btn-danger"
-                                    data-name="{{ criterion.metadata_field.short_name }}">Remove</button>
+                            <form class="row">
+                                <div class="col-md-4 mb-2">
+                                    <input type="text" class="form-control-plaintext" readonly
+                                           value="{{ criterion.metadata_field.name }}">
+                                </div>
+
+                                <div class="col-md-6 mb-2">
+                                    <input id="input-{{ criterion.metadata_field.short_name }}"
+                                           type="text" class="form-control"
+                                           value="{{ metadata|access:criterion.metadata_field.short_name|default_if_none:'' }}">
+                                </div>
+
+                                <div class="col-md-2 mb-2">
+                                    <button type="submit" class="btn btn-block btn-success"
+                                            data-name="{{ criterion.metadata_field.short_name }}">Save</button>
+                                </div>
+                            </form>
                         </td>
                     </tr>
                 {% endfor %}

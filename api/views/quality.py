@@ -40,8 +40,13 @@ class QualityCriterionApiViewset(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminOrReadOnly]
 
     def get_queryset(self):
-        return models.QualityCriterion.objects.filter(quality_level__level=self.kwargs['level_pk'])
+        return models.QualityCriterion.objects.filter(
+            quality_level__ruleset=self.kwargs['ruleset_pk'],
+            quality_level__level=self.kwargs['level_pk']
+        )
 
     def perform_create(self, serializer):
-        level = get_object_or_404(models.QualityLevel, pk=self.kwargs['level_pk'])
+        level = get_object_or_404(models.QualityLevel,
+                                  ruleset=self.kwargs['ruleset_pk'],
+                                  level=self.kwargs['level_pk'])
         serializer.save(quality_level=level)

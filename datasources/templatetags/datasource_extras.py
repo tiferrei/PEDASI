@@ -12,4 +12,8 @@ def access(value, arg):
     :param arg: Key to look up
     :return: Value of key in dictionary
     """
-    return value[arg]
+    try:
+        return value[arg]
+
+    except KeyError:
+        return None

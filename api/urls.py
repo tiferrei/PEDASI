@@ -15,8 +15,6 @@ app_name = 'api'
 router = routers.DefaultRouter()
 router.register('datasources', DataSourceApiViewset)
 
-# router = routers.SimpleRouter()
-
 router.register('rulesets', QualityRulesetApiViewset, base_name='rulesets')
 ruleset_router = routers.NestedSimpleRouter(router, 'rulesets', lookup='ruleset')
 ruleset_router.register('levels', QualityLevelApiViewset, base_name='levels')
