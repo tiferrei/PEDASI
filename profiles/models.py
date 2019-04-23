@@ -41,7 +41,7 @@ class User(AbstractUser):
     @staticmethod
     def get_quality_ruleset():
         try:
-            return QualityRuleset.objects.prefetch_related('levels').first()
+            return QualityRuleset.objects.first()
 
         except QualityRuleset.DoesNotExist:
             return None

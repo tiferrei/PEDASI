@@ -17,6 +17,9 @@ class QualityRuleset(models.Model):
     class Meta:
         unique_together = (('name', 'version',),)
 
+    # Prevent template engine from trying to call the model
+    do_not_call_in_templates = True
+
     #: Name of the ruleset
     name = models.CharField(max_length=MAX_LENGTH_NAME,
                             blank=False, null=False)
@@ -63,6 +66,9 @@ class QualityLevel(models.Model):
         unique_together = (('ruleset', 'level'),)
         ordering = ['level']
 
+    # Prevent template engine from trying to call the model
+    do_not_call_in_templates = True
+
     #: Which ruleset does this level belong to?
     ruleset = models.ForeignKey(QualityRuleset, related_name='levels',
                                 on_delete=models.CASCADE,
@@ -102,6 +108,9 @@ class QualityCriterion(models.Model):
     class Meta:
         unique_together = (('quality_level', 'metadata_field'),)
         verbose_name_plural = 'quality criteria'
+
+    # Prevent template engine from trying to call the model
+    do_not_call_in_templates = True
 
     #: Which quality level does this criterion belong to?
     quality_level = models.ForeignKey(QualityLevel, related_name='criteria',

@@ -202,6 +202,9 @@ class DataSourceMetadataView(OwnerPermissionMixin, DetailView):
         context = super().get_context_data(**kwargs)
 
         context['ruleset'] = get_user_model().get_quality_ruleset()
+        context['metadata'] = {
+            item.field.short_name: item.value for item in self.object.metadata_items.all()
+        }
 
         return context
 
