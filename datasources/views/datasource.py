@@ -182,7 +182,7 @@ class DataSourceMetadataAjaxView(OwnerPermissionMixin, APIView):
 
         metadata_item = models.MetadataItem.objects.get(
             datasource=datasource,
-            field__short_name=self.request.data['field'],
+            field=self.request.data['field'],
             value=self.request.data['value']
         )
 

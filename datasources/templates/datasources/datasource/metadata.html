@@ -1,6 +1,17 @@
 {% extends "base.html" %}
 {% load bootstrap4 %}
 
+{% block extra_head %}
+    {% load static %}
+
+    <script type="application/javascript" src="{% static 'js/metadata.js' %}"></script>
+
+    <script type="application/javascript">
+        setMetadataUrl("/datasources/{{ datasource.pk }}/metadata");
+        setRatingUrl("{% url 'api:datasource-quality' pk=datasource.pk %}");
+    </script>
+{% endblock %}
+
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -19,7 +30,19 @@
         </ol>
     </nav>
 
-    <h2>View Data Source - {{ datasource.name }}</h2>
+    <h2>
+        View Data Source - {{ datasource.name }}
+
+        <small>
+            <span id="qualityLevelBadge" class="badge badge-primary"></span>
+
+            <script type="application/javascript">
+                document.addEventListener("DOMContentLoaded", function () {
+                    updateLevelBadge();
+                });
+            </script>
+        </small>
+    </h2>
 
     {% if datasource.description %}
         <p>{{ datasource.description }}</p>
@@ -39,21 +62,30 @@
                 {% for criterion in level.criteria.all %}
                     <tr>
                         <td>
-                            <form class="row">
+                            <form class="row"
+                                  onsubmit="submitMetadataForm(event); event.preventDefault();">
                                 <div class="col-md-4 mb-2">
+                                    <input type="hidden" class="fieldDatasourceId" readonly
+                                           value="{{ datasource.id }}">
+
                                     <input type="text" class="form-control-plaintext" readonly
                                            value="{{ criterion.metadata_field.name }}">
+
+                                    <input type="hidden" class="fieldMetadataId" readonly
+                                           value="{{ criterion.metadata_field.id }}">
                                 </div>
 
                                 <div class="col-md-6 mb-2">
-                                    <input id="input-{{ criterion.metadata_field.short_name }}"
-                                           type="text" class="form-control"
-                                           value="{{ metadata|access:criterion.metadata_field.short_name|default_if_none:'' }}">
+                                    {% with metadata|access:criterion.metadata_field.short_name|default_if_none:'' as metadata_value %}
+                                        <input id="input-{{ criterion.metadata_field.short_name }}"
+                                               type="text" class="form-control fieldMetadataValue"
+                                               value="{{ metadata_value }}"
+                                               data-current-value="{{ metadata_value }}">
+                                    {% endwith %}
                                 </div>
 
                                 <div class="col-md-2 mb-2">
-                                    <button type="submit" class="btn btn-block btn-success"
-                                            data-name="{{ criterion.metadata_field.short_name }}">Save</button>
+                                    <button type="submit" class="btn btn-block btn-success">Save</button>
                                 </div>
                             </form>
                         </td>

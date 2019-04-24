@@ -54,7 +54,7 @@
                                 response => response.json()
 
                             ).then(function (data) {
-                                levelBadge = document.getElementById("qualityLevelBadge");
+                                const levelBadge = document.getElementById("qualityLevelBadge");
 
                                 for (let i = 0; i < data.quality; i++) {
                                     const star = document.createElement("i");
