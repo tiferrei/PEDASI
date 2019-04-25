@@ -6,8 +6,10 @@ import csv
 import json
 import typing
 
+from django.contrib.auth import get_user_model
 from django.db.models import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404
 
 from rest_framework import decorators, request, response, viewsets
 from requests.exceptions import HTTPError
@@ -16,6 +18,18 @@ from .. import permissions
 from datasources import models, serializers
 from datasources.connectors.base import DatasetNotFoundError
 from provenance import models as prov_models
+
+
+class MetadataItemApiViewset(viewsets.ModelViewSet):
+    serializer_class = serializers.MetadataItemSerializer
+    permission_classes = [permissions.IsAdminOrReadOnly]
+
+    def get_queryset(self):
+        return models.MetadataItem.objects.filter(datasource=self.kwargs['datasource_pk'])
+
+    def perform_create(self, serializer):
+        datasource = get_object_or_404(models.DataSource, pk=self.kwargs['datasource_pk'])
+        serializer.save(datasource=datasource)
 
 
 class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
@@ -27,6 +41,9 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
     /api/datasources/<int>/
       Retrieve a single :class:`datasources.models.DataSource`.
+
+    /api/datasources/<int>/quality/
+      Get the quality level of a :class:`datasources.models.DataSource` using the current ruleset.
 
     /api/datasources/<int>/prov/
       Retrieve PROV records related to a :class:`datasources.models.DataSource`.
@@ -164,7 +181,21 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return response.Response(serializer.data)
 
-    @decorators.action(detail=True, permission_classes=[permissions.ProvPermission])
+    @decorators.action(detail=True, permission_classes=[permissions.ViewPermission])
+    def quality(self, request, pk=None):
+        """
+        View for /api/datasources/<int>/quality/
+
+        Get the quality level of a data source using the current ruleset.
+        """
+        ruleset = get_user_model().get_quality_ruleset()
+        instance = self.get_object()
+
+        return response.Response({
+            'quality': ruleset(instance),
+        }, status=200)
+
+    @decorators.action(detail=True, permission_classes=[permissions.ProvPermission], name='datasource-quality')
     def prov(self, request, pk=None):
         """
         View for /api/datasources/<int>/prov/

@@ -2,15 +2,9 @@
 {% load bootstrap4 %}
 
 {% block extra_head %}
-    {% if metadata_field_form %}
-        {% load static %}
+    {% load static %}
 
-        <script type="application/javascript" src="{% static 'js/metadata.js' %}"></script>
-
-        <script type="application/javascript">
-            setMetadataUrl("/datasources/{{ datasource.pk }}/metadata");
-        </script>
-    {% endif %}
+    <script type="application/javascript" src="{% static 'js/metadata.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -32,23 +26,28 @@
         <div class="col-md-10 col-sm-8">
             <h2>
                 {{ datasource.name }}
-                {# TODO make this a template tag #}
-                {% if datasource.licence %}
-                    <small>
+                <small>
+                    {% if datasource.licence %}
                         <a href="{% url 'datasources:licence.detail' pk=datasource.licence.pk %}"
                            class="badge badge-info"
                            data-toggle="tooltip" data-placement="bottom" title="{{ datasource.licence.name }}">
                             {{ datasource.licence.short_name }}
                         </a>
-                    </small>
-                {% else %}
-                    <small>
+                    {% else %}
                         <span class="badge badge-warning"
                               data-toggle="tooltip" data-placement="bottom" title="No Licence">
                             No Licence
                         </span>
-                    </small>
-                {% endif %}
+                    {% endif %}
+
+                    <span id="qualityLevelBadge" class="badge badge-primary"></span>
+
+                    <script type="application/javascript">
+                        document.addEventListener("DOMContentLoaded", function () {
+                            updateLevelBadge("{% url 'api:datasource-quality' pk=datasource.pk %}");
+                        });
+                    </script>
+                </small>
             </h2>
 
             {% if datasource.description %}
@@ -68,6 +67,9 @@
             {% if has_edit_permission %}
                 <a href="{% url 'datasources:datasource.access.manage' pk=datasource.pk %}"
                    class="btn btn-block btn-primary" role="button">Manage Access</a>
+
+                <a href="{% url 'datasources:datasource.metadata' pk=datasource.pk %}"
+                   class="btn btn-block btn-secondary" role="button">Manage Metadata</a>
 
                 <a href="{% url 'datasources:datasource.edit' datasource.id %}"
                    class="btn btn-block btn-success" role="button">Edit</a>
@@ -128,9 +130,6 @@
                 <thead>
                 <th scope="col" class="w-25 border-0"></th>
                 <th scope="col" class="border-0"></th>
-                {% if metadata_field_form %}
-                    <th scope="col" class="w-25 border-0"></th>
-                {% endif %}
                 </thead>
 
                 <tbody>
@@ -138,36 +137,10 @@
                     <tr id="metadata-row-{{ metadata_item.field.short_name }}-{{ metadata_item.value }}">
                         <td>{{ metadata_item.field.name }}</td>
                         <td>{{ metadata_item.value }}</td>
-
-                        {% if metadata_field_form %}
-                            <td>
-                                <button role="button"
-                                        onclick="deleteMetadata('{{ metadata_item.field.short_name }}','{{ metadata_item.value }}')"
-                                        class="btn btn-sm btn-danger float-right">Delete</button>
-                            </td>
-                        {% endif %}
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
-
-            {% if metadata_field_form %}
-                <form id="formMetadata" class="form" action="javascript:postMetadata();">
-                    {% csrf_token %}
-
-                    <div class="row">
-                        <div class="col-3">
-                            {% bootstrap_field metadata_field_form.field layout='inline' %}
-                        </div>
-                        <div class="col-6">
-                            {% bootstrap_field metadata_field_form.value layout='inline' %}
-                        </div>
-                        <div class="col-3">
-                            <button type="submit" class="btn btn-block btn-success">Add</button>
-                        </div>
-                    </div>
-                </form>
-            {% endif %}
         </div>
     </div>
 

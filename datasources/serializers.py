@@ -16,8 +16,6 @@ class MetadataFieldSerializer(serializers.ModelSerializer):
 
 
 class MetadataItemSerializer(serializers.ModelSerializer):
-    field = MetadataFieldSerializer(read_only=True)
-
     class Meta:
         model = models.MetadataItem
         fields = ['field', 'value']
@@ -40,3 +38,25 @@ class DataSourceSerializer(serializers.ModelSerializer):
             'encrypted_docs_url',
             'metadata_items'
         ]
+
+
+class QualityCriterionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.QualityCriterion
+        fields = ['weight', 'metadata_field']
+
+
+class QualityLevelSerializer(serializers.ModelSerializer):
+    criteria = QualityCriterionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = models.QualityLevel
+        fields = ['level', 'threshold', 'criteria']
+
+
+class QualityRulesetSerializer(serializers.ModelSerializer):
+    levels = QualityLevelSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = models.QualityRuleset
+        fields = '__all__'

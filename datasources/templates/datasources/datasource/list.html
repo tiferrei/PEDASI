@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% load bootstrap4 %}
 
+{% block extra_head %}
+    {% load static %}
+
+    <script type="application/javascript" src="{% static 'js/metadata.js' %}"></script>
+{% endblock %}
+
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -56,6 +62,17 @@
                                 No Licence
                             </span>
                         {% endif %}
+                        <span id="qualityLevelBadge{{ datasource.pk }}" class="badge badge-primary"></span>
+
+                        <script type="application/javascript">
+                            // TODO Should this be a single function to loop over all data sources?
+                            document.addEventListener("DOMContentLoaded", function () {
+                                updateLevelBadge(
+                                    "{% url 'api:datasource-quality' pk=datasource.pk %}",
+                                    "qualityLevelBadge{{ datasource.pk }}"
+                                );
+                            });
+                        </script>
                     </p>
                     <p class="pl-5">
                         {{ datasource.description|truncatechars:120 }}

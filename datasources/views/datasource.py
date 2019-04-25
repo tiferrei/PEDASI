@@ -1,4 +1,7 @@
+from collections import namedtuple
+
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponse
 from django.urls import reverse_lazy
@@ -36,8 +39,6 @@ class DataSourceDetailView(DetailView):
         context = super().get_context_data(**kwargs)
 
         context['has_edit_permission'] = self.request.user.is_superuser or self.request.user == self.object.owner
-        if context['has_edit_permission']:
-            context['metadata_field_form'] = forms.MetadataFieldForm()
 
         try:
             context['is_catalogue'] = self.object.is_catalogue
@@ -132,64 +133,31 @@ class DataSourceDataSetSearchView(HasPermissionLevelMixin, DetailView):
         return context
 
 
-class DataSourceMetadataAjaxView(OwnerPermissionMixin, APIView):
+FieldValueSet = namedtuple('FieldValueSet', ['field', 'list'])
+
+
+class DataSourceMetadataView(OwnerPermissionMixin, DetailView):
     model = models.DataSource
+    template_name = 'datasources/datasource/metadata.html'
+    context_object_name = 'datasource'
 
-    # Don't redirect to login page if unauthorised
-    raise_exception = True
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-    class MetadataSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = models.MetadataItem
-            fields = '__all__'
+        context['ruleset'] = get_user_model().get_quality_ruleset()
+        context['metadata_fields'] = models.MetadataField.objects.all()
 
-    def get_object(self, pk):
-        return self.model.objects.get(pk=pk)
+        items = []
+        present_fields = {item.field for item in self.object.metadata_items.all()}
+        for field in present_fields:
+            items.append(
+                FieldValueSet(field, [
+                    item for item in self.object.metadata_items.all() if item.field == field
+                ])
+            )
+        context['metadata_items'] = items
 
-    def post(self, request, pk, format=None):
-        """
-        Create a new MetadataItem associated with this DataSource.
-        """
-        datasource = self.get_object(pk)
-        if 'datasource' not in request.data:
-            request.data['datasource'] = datasource.pk
-
-        serializer = self.MetadataSerializer(data=request.data)
-
-        if serializer.is_valid():
-            obj = serializer.save()
-
-            return Response({
-                'status': 'success',
-                'data': {
-                    'datasource': datasource.pk,
-                    'field': obj.field.name,
-                    'field_short': obj.field.short_name,
-                    'value': obj.value,
-                }
-            })
-
-        return Response({'status': 'failure'}, status=400)
-
-    def delete(self, request, pk, format=None):
-        """
-        Delete a MetadataItem associated with this DataSource.
-        """
-        datasource = self.get_object(pk)
-        if 'datasource' not in request.data:
-            request.data['datasource'] = datasource.pk
-
-        metadata_item = models.MetadataItem.objects.get(
-            datasource=datasource,
-            field__short_name=self.request.data['field'],
-            value=self.request.data['value']
-        )
-
-        metadata_item.delete()
-
-        return Response({
-            'status': 'success'
-        })
+        return context
 
 
 class DataSourceExplorerView(HasPermissionLevelMixin, DetailView):

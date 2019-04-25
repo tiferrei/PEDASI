@@ -1,6 +1,7 @@
 "use strict";
 
 let metadataUrl = null;
+let ratingUrl = null;
 
 
 /**
@@ -13,8 +14,14 @@ function setMetadataUrl(url) {
     metadataUrl = url;
 }
 
+function setRatingUrl(url) {
+    "use strict";
+    ratingUrl = url;
+}
+
 
 function getCookie(name) {
+    "use strict";
     const re = new RegExp("(^| )" + name + "=([^;]+)");
     const match = document.cookie.match(re);
     if (match) {
@@ -23,30 +30,33 @@ function getCookie(name) {
 }
 
 
-function tableAppendRow(table, values, id=null) {
-    const row = table.insertRow(-1);
-    if (id !== null) {
-        row.id = id;
+/**
+ * Create a new metadata item or update an existing one.
+ *
+ * @param event Form event
+ */
+function submitMetadataForm(event) {
+    "use strict";
+
+    const metadataIdField = event.target.getElementsByClassName("fieldMetadataId")[0];
+    const metadataValueIdField = event.target.getElementsByClassName("fieldMetadataValueId")[0];
+    const valueField = event.target.getElementsByClassName("fieldMetadataValue")[0];
+
+    let url = metadataUrl;
+    let method = "POST";
+
+    if (metadataValueIdField && metadataValueIdField.value) {
+        url = metadataUrl + metadataValueIdField.value.toString() + "/";
+        method = "PUT";
     }
 
-    for (const value of values) {
-        const cell = row.insertCell(-1);
-        const text = document.createTextNode(value);
-        cell.appendChild(text);
-    }
-
-    return row;
-}
-
-
-function postMetadata() {
     fetch(
-        metadataUrl,
+        url,
         {
-            method: "POST",
+            method: method,
             body: JSON.stringify({
-                field: document.getElementById("id_field").value,
-                value: document.getElementById("id_value").value
+                field: metadataIdField.value,
+                value: valueField.value
             }),
             headers: {
                 "Accept": "application/json",
@@ -54,68 +64,90 @@ function postMetadata() {
                 "X-CSRFToken": getCookie("csrftoken")
             }
         }
-    ).then(
-        response => response.json()
-    ).then(
-        function (response) {
-            if (response.status === "success") {
-                const table = document.getElementById("tableMetadata");
-                const field = response.data.field;
-                const value = response.data.value;
 
-                const row = tableAppendRow(
-                    table,
-                    [field, value],
-                    "metadata-row-" + response.data.field_short + "-" + value
-                );
-
-                const buttonCell = row.insertCell(-1);
-                const button = document.createElement("button");
-
-                button.id = "btn-" + field + "-" + value;
-                button.classList.add("btn", "btn-sm", "btn-danger", "float-right");
-                button.addEventListener(
-                    "click",
-                    function () {
-                        const f = response.data.field_short;
-                        const v = value;
-                        deleteMetadata(f, v);
-                    }
-                );
-                button.textContent = "Delete";
-                buttonCell.appendChild(button);
-                row.appendChild(buttonCell);
-            }
+    ).then(function (response) {
+        if (!response.ok) {
+            throw new Error("Request failed: " + response.statusText);
         }
-    ).catch(
-        function (e) {
-            console.log(e);
+
+        valueField.dataset.currentValue = valueField.value;
+        window.location.reload();
+
+    }).catch(function (error) {
+        console.log(error);
+
+        if (valueField.dataset.currentValue !== null) {
+            valueField.value = valueField.dataset.lastValue;
         }
-    )
+
+    });
 }
 
-function deleteMetadata(field, value) {
+/**
+ * Delete an existing metadata item.
+ *
+ * @param event Form event
+ */
+function deleteMetadataForm(event) {
+    "use strict";
+
+    const metadataIdField = event.target.getElementsByClassName("fieldMetadataValueId")[0];
+
     fetch(
-        metadataUrl,
+        metadataUrl + metadataIdField.value.toString() + "/",
         {
             method: "DELETE",
-            body: JSON.stringify({
-                field: field,
-                value: value
-            }),
             headers: {
                 "Accept": "application/json",
-                "Content-Type": "application/json",
                 "X-CSRFToken": getCookie("csrftoken")
             }
         }
-    ).then(
-        response => response.json()
+
     ).then(function (response) {
-        if (response.status === "success") {
-            const row = document.getElementById("metadata-row-" + field + "-" + value);
-            row.parentNode.removeChild(row);
+        if (!response.ok) {
+            throw new Error("Request failed: " + response.statusText);
         }
 
-    })
+        window.location.reload();
+
+    }).catch(function (error) {
+        console.log(error);
+
+    });
+}
+
+/**
+ * Update the star rating display.
+ *
+ * @param url Url to get quality level for a data source - defaults to global setting 'ratingUrl'
+ * @param badgeId Id of badge element to populate with stars - defaults to 'qualityLevelBadge'
+ */
+function updateLevelBadge(url, badgeId) {
+    "use strict";
+
+    if (!url) {
+        url = ratingUrl;
+    }
+
+    if (!badgeId) {
+        badgeId = "qualityLevelBadge";
+    }
+
+    fetch(url).then(
+        (response) => response.json()
+
+    ).then(function (data) {
+        const levelBadge = document.getElementById(badgeId);
+
+        // Clear existing rating
+        while (levelBadge.hasChildNodes()) {
+            levelBadge.removeChild(levelBadge.lastChild);
+        }
+
+        for (let i = 0; i < data.quality; i++) {
+            const star = document.createElement("i");
+            star.classList.add("fas", "fa-star");
+            levelBadge.appendChild(star);
+        }
+    });
 }

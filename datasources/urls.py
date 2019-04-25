@@ -26,7 +26,7 @@ urlpatterns = [
          name='datasource.delete'),
 
     path('<int:pk>/metadata',
-         views.datasource.DataSourceMetadataAjaxView.as_view(),
+         views.datasource.DataSourceMetadataView.as_view(),
          name='datasource.metadata'),
 
     path('<int:pk>/explorer',

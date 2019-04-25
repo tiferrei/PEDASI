@@ -6,6 +6,8 @@ from django.urls import reverse
 
 from rest_framework.authtoken.models import Token
 
+from datasources.models.quality import QualityRuleset
+
 
 class User(AbstractUser):
     """
@@ -34,4 +36,13 @@ class User(AbstractUser):
         Revoke and API auth token for this user.
         """
         self.auth_token.delete()
+
+    # TODO ruleset should be configurable by user
+    @staticmethod
+    def get_quality_ruleset():
+        try:
+            return QualityRuleset.objects.first()
+
+        except QualityRuleset.DoesNotExist:
+            return None
 

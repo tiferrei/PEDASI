@@ -76,3 +76,14 @@ class DataPushPermission(permissions.BasePermission):
         except models.UserPermissionLink.DoesNotExist:
             # Permission must have been granted explicitly
             return False
+
+
+class IsAdminOrReadOnly(permissions.BasePermission):
+    """
+    Grant admins write access - all others get read-only.
+    """
+    def has_permission(self, request, view):
+        return bool(
+            request.method in permissions.SAFE_METHODS or
+            request.user.is_superuser
+        )
