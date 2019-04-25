@@ -1,5 +1,8 @@
 # PEDASI v0.1.1
 
+[![DOI](https://zenodo.org/badge/144545470.svg)](https://zenodo.org/badge/latestdoi/144545470)
+[![Documentation Status](https://readthedocs.org/projects/pedasi/badge/?version=stable)](https://pedasi.readthedocs.io/en/stable/?badge=stable)
+
 Developed as a platform and a service to explore research challenges in data security, privacy, and ethics, PEDASI enables providers of data - particularly [Internet of Things](https://en.wikipedia.org/wiki/Internet_of_things) data - to share their data securely within a common catalogue for use by application developers and researchers. Data can either be hosted and made accessible directly within PEDASI as an internal data source, or hosted elsewhere and accessible as an external data source through PEDASI.
 
 An initial deployment of the platform is available at https://dev.iotobservatory.io.

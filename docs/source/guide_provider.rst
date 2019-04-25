@@ -22,7 +22,7 @@ Data Providers: Managing Data Sources
 
 In order for users to begin using PEDASI, you should provide access to a range of data sources. The following sections will walk you through adding and managing your first data source. We will use the IoTUK Nation Database API (see https://iotuk.org.uk/iotuk-nation-database-api/) as a basic example.
 
-If you are not a Central Administrator or don't have Data Provider privileges associated with your account, you'll need to obtain these first. Contact the Central Administrator to grant these privileges for your account.
+If you are not a Central Administrator or don't have Data Provider privileges associated with your account, you'll need to obtain these first. Contact the PEDASI Central Administrator to grant these privileges for your account.
 
 
 Adding a Data Source
@@ -116,7 +116,7 @@ Application Providers: Managing Applications
 
 In order for a developer to access PEDASI's capabilities within their application, their application needs to be first registered within PEDASI in order to obtain an API key they can use to authenticate with PEDASI. The following sections will walk you through adding and managing your first application. We will use the IoTUK Nation Map Demo application (see https://github.com/Southampton-RSG/app-iotorgs-map) as a basic example.
 
-If you are not a Central Administrator or don't have Application Provider privileges associated with your account, you'll need to obtain these first. Contact the Central Administrator to grant these privileges for your account.
+If you are not a Central Administrator or don't have Application Provider privileges associated with your account, you'll need to obtain these first. Contact the Central Administrator to request these privileges for your account.
 
 
 Adding an Application
@@ -130,7 +130,7 @@ To add a new application:
     - *Name*: add a full name for the application, e.g. IoTUK Nation Map Demo
     - *Description*: add a brief description of the application, including what it aims to achieve using PEDASI
     - *Url*: specify a public URL for the deployed application itself if it's web-based, or alternatively a source code repository URL if one exists, e.g. https://github.com/Southampton-RSG/app-iotorgs-map
-    - *Access control*: TODO: add in text here, e.g. leave unselected
+    - *Access control*: specify whether the application details are publicly viewable, e.g. leave unselected
 
  3. Select *Create* to register the new application within PEDASI, and you'll be presented with an overview page for that application, with a new API key
 
