@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% load bootstrap4 %}
 
+{% block extra_head %}
+    {% load static %}
+
+    <script type="application/javascript" src="{% static 'js/metadata.js' %}"></script>
+{% endblock %}
+
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -60,20 +66,11 @@
 
                         <script type="application/javascript">
                             // TODO Should this be a single function to loop over all data sources?
-
                             document.addEventListener("DOMContentLoaded", function () {
-                                fetch("{% url 'api:datasource-quality' pk=datasource.pk %}").then(
-                                    response => response.json()
-
-                                ).then(function (data) {
-                                    levelBadge = document.getElementById("qualityLevelBadge{{ datasource.pk }}");
-
-                                    for (let i = 0; i < data.quality; i++) {
-                                        const star = document.createElement("i");
-                                        star.classList.add("fas", "fa-star");
-                                        levelBadge.appendChild(star);
-                                    }
-                                });
+                                updateLevelBadge(
+                                    "{% url 'api:datasource-quality' pk=datasource.pk %}",
+                                    "qualityLevelBadge{{ datasource.pk }}"
+                                );
                             });
                         </script>
                     </p>

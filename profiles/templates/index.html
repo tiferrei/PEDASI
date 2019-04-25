@@ -3,7 +3,10 @@
 
 {% block extra_head %}
     {% load static %}
+
     <link rel="stylesheet" href="{% static 'css/masthead.css' %}">
+
+    <script type="application/javascript" src="{% static 'js/metadata.js' %}"></script>
 {% endblock %}
 
 {% block pre_content %}
@@ -148,7 +151,22 @@
                                      style="width: 150px;">
 
                                 <div class="card-body d-flex flex-column pb-2">
-                                    <h5 class="card-title">{{ datasource.name }}</h5>
+                                    <h5 class="card-title">
+                                        {{ datasource.name }}
+
+                                        <span id="qualityLevelBadge{{ datasource.pk }}"
+                                              class="badge badge-primary float-right"></span>
+
+                                        <script type="application/javascript">
+                                            // TODO Should this be a single function to loop over all data sources?
+                                            document.addEventListener("DOMContentLoaded", function () {
+                                                updateLevelBadge(
+                                                    "{% url 'api:datasource-quality' pk=datasource.pk %}",
+                                                    "qualityLevelBadge{{ datasource.pk }}"
+                                                );
+                                            });
+                                        </script>
+                                    </h5>
                                     <p class="card-text">{{ datasource.description|truncatechars:120 }}</p>
 
                                     <p class="card-text text-right mt-auto">

@@ -118,15 +118,26 @@ function deleteMetadataForm(event) {
 
 /**
  * Update the star rating display.
+ *
+ * @param url Url to get quality level for a data source - defaults to global setting 'ratingUrl'
+ * @param badgeId Id of badge element to populate with stars - defaults to 'qualityLevelBadge'
  */
-function updateLevelBadge() {
+function updateLevelBadge(url, badgeId) {
     "use strict";
 
-    fetch(ratingUrl).then(
+    if (!url) {
+        url = ratingUrl;
+    }
+
+    if (!badgeId) {
+        badgeId = "qualityLevelBadge";
+    }
+
+    fetch(url).then(
         (response) => response.json()
 
     ).then(function (data) {
-        const levelBadge = document.getElementById("qualityLevelBadge");
+        const levelBadge = document.getElementById(badgeId);
 
         // Clear existing rating
         while (levelBadge.hasChildNodes()) {
