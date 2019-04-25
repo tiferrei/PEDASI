@@ -1,18 +1,6 @@
 {% extends "base.html" %}
 {% load bootstrap4 %}
 
-{% block extra_head %}
-    {% if metadata_field_form %}
-        {% load static %}
-
-        <script type="application/javascript" src="{% static 'js/metadata.js' %}"></script>
-
-        <script type="application/javascript">
-            setMetadataUrl("/datasources/{{ datasource.pk }}/metadata");
-        </script>
-    {% endif %}
-{% endblock %}
-
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -144,9 +132,6 @@
                 <thead>
                 <th scope="col" class="w-25 border-0"></th>
                 <th scope="col" class="border-0"></th>
-                {% if metadata_field_form %}
-                    <th scope="col" class="w-25 border-0"></th>
-                {% endif %}
                 </thead>
 
                 <tbody>
@@ -154,36 +139,10 @@
                     <tr id="metadata-row-{{ metadata_item.field.short_name }}-{{ metadata_item.value }}">
                         <td>{{ metadata_item.field.name }}</td>
                         <td>{{ metadata_item.value }}</td>
-
-                        {% if metadata_field_form %}
-                            <td>
-                                <button role="button"
-                                        onclick="deleteMetadata('{{ metadata_item.field.short_name }}','{{ metadata_item.value }}')"
-                                        class="btn btn-sm btn-danger float-right">Delete</button>
-                            </td>
-                        {% endif %}
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
-
-            {% if metadata_field_form %}
-                <form id="formMetadata" class="form" action="javascript:postMetadata();">
-                    {% csrf_token %}
-
-                    <div class="row">
-                        <div class="col-3">
-                            {% bootstrap_field metadata_field_form.field layout='inline' %}
-                        </div>
-                        <div class="col-6">
-                            {% bootstrap_field metadata_field_form.value layout='inline' %}
-                        </div>
-                        <div class="col-3">
-                            <button type="submit" class="btn btn-block btn-success">Add</button>
-                        </div>
-                    </div>
-                </form>
-            {% endif %}
         </div>
     </div>
 

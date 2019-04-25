@@ -97,12 +97,6 @@ class PermissionGrantForm(forms.ModelForm):
         fields = ['granted', 'push_granted']
 
 
-class MetadataFieldForm(forms.ModelForm):
-    class Meta:
-        model = models.MetadataItem
-        fields = ['field', 'value']
-
-
 class LicenceForm(forms.ModelForm):
     class Meta:
         model = models.Licence
