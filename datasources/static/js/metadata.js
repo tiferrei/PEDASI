@@ -29,13 +29,31 @@ function getCookie(name) {
     }
 }
 
-function updateMetadata(metadataIdField, valueField) {
+
+/**
+ * Create a new metadata item or update an existing one.
+ *
+ * @param event Form event
+ */
+function submitMetadataForm(event) {
     "use strict";
 
+    const metadataIdField = event.target.getElementsByClassName("fieldMetadataId")[0];
+    const metadataValueIdField = event.target.getElementsByClassName("fieldMetadataValueId")[0];
+    const valueField = event.target.getElementsByClassName("fieldMetadataValue")[0];
+
+    let url = metadataUrl;
+    let method = "POST";
+
+    if (metadataValueIdField && metadataValueIdField.value) {
+        url = metadataUrl + metadataValueIdField.value.toString() + "/";
+        method = "PUT";
+    }
+
     fetch(
-        metadataUrl,
+        url,
         {
-            method: "POST",
+            method: method,
             body: JSON.stringify({
                 field: metadataIdField.value,
                 value: valueField.value
@@ -48,75 +66,69 @@ function updateMetadata(metadataIdField, valueField) {
         }
 
     ).then(function (response) {
-        if (response.status !== 200) {
-            throw new Error("Request failed")
+        if (!response.ok) {
+            throw new Error("Request failed: " + response.statusText);
         }
 
         valueField.dataset.currentValue = valueField.value;
+        window.location.reload();
 
-        return response.json()
+    }).catch(function (error) {
+        console.log(error);
 
-    }).then(function (response) {
-        console.log(response);
+        if (valueField.dataset.currentValue !== null) {
+            valueField.value = valueField.dataset.lastValue;
+        }
+
     });
 }
 
-function deleteMetadata(metadataIdField, valueField) {
+/**
+ * Delete an existing metadata item.
+ *
+ * @param event Form event
+ */
+function deleteMetadataForm(event) {
     "use strict";
 
+    const metadataIdField = event.target.getElementsByClassName("fieldMetadataValueId")[0];
+
     fetch(
-        metadataUrl,
+        metadataUrl + metadataIdField.value.toString() + "/",
         {
             method: "DELETE",
-            body: JSON.stringify({
-                field: metadataIdField.value,
-                value: valueField.dataset.currentValue
-            }),
             headers: {
                 "Accept": "application/json",
-                "Content-Type": "application/json",
                 "X-CSRFToken": getCookie("csrftoken")
             }
         }
 
     ).then(function (response) {
-        if (response.status !== 200) {
-            throw new Error("Request failed");
+        if (!response.ok) {
+            throw new Error("Request failed: " + response.statusText);
         }
 
-        valueField.dataset.currentValue = "";
+        window.location.reload();
 
-        return response.json();
+    }).catch(function (error) {
+        console.log(error);
 
-    }).catch(
-        error => console.log(error)
-    )
+    });
 }
 
-function submitMetadataForm(event) {
-    "use strict";
-
-    const metdataIdField = event.target.getElementsByClassName("fieldMetadataId")[0];
-    const valueField = event.target.getElementsByClassName("fieldMetadataValue")[0];
-
-    if (valueField.value) {
-        updateMetadata(metdataIdField, valueField);
-    } else {
-        deleteMetadata(metdataIdField, valueField);
-    }
-
-    updateLevelBadge();
-}
-
+/**
+ * Update the star rating display.
+ */
 function updateLevelBadge() {
     "use strict";
 
     fetch(ratingUrl).then(
-        response => response.json()
+        (response) => response.json()
 
     ).then(function (data) {
         const levelBadge = document.getElementById("qualityLevelBadge");
 
+        // Clear existing rating
         while (levelBadge.hasChildNodes()) {
             levelBadge.removeChild(levelBadge.lastChild);
         }

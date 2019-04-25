@@ -9,6 +9,7 @@ import typing
 from django.contrib.auth import get_user_model
 from django.db.models import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404
 
 from rest_framework import decorators, request, response, viewsets
 from requests.exceptions import HTTPError
@@ -16,6 +17,18 @@ from requests.exceptions import HTTPError
 from .. import permissions
 from datasources import models, serializers
 from provenance import models as prov_models
+
+
+class MetadataItemApiViewset(viewsets.ModelViewSet):
+    serializer_class = serializers.MetadataItemSerializer
+    permission_classes = [permissions.IsAdminOrReadOnly]
+
+    def get_queryset(self):
+        return models.MetadataItem.objects.filter(datasource=self.kwargs['datasource_pk'])
+
+    def perform_create(self, serializer):
+        datasource = get_object_or_404(models.DataSource, pk=self.kwargs['datasource_pk'])
+        serializer.save(datasource=datasource)
 
 
 class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):

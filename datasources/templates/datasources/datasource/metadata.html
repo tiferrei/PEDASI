@@ -7,7 +7,7 @@
     <script type="application/javascript" src="{% static 'js/metadata.js' %}"></script>
 
     <script type="application/javascript">
-        setMetadataUrl("/datasources/{{ datasource.pk }}/metadata");
+        setMetadataUrl("{% url 'api:metadata-item-list' datasource_pk=datasource.pk %}");
         setRatingUrl("{% url 'api:datasource-quality' pk=datasource.pk %}");
     </script>
 {% endblock %}
@@ -50,47 +50,163 @@
 
     <hr>
 
-    <table id="" class="table">
+    {% load datasource_extras %}
+
+    <h2>Quality Metadata</h2>
+
+    <table class="table">
         <tbody>
-            {% load datasource_extras %}
 
             {% for level in ruleset.levels.all %}
                 <tr>
-                    <th>Level {{ level.level }}</th>
+                    <th class="row">
+                        <div class="col-md-3">
+                            Level {{ level.level }}
+                        </div>
+
+                        <div class="col-md-1">
+                            {{ level.threshold }}
+                        </div>
+                    </th>
                 </tr>
 
                 {% for criterion in level.criteria.all %}
+                    {% with metadata_items|access:criterion.metadata_field.short_name as metadata_field_group %}
+                        <tr>
+                            <td>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <span class="form-text">{{ criterion.metadata_field.name }}</span>
+                                    </div>
+
+                                    <div class="col-md-1">
+                                        {{ criterion.weight }}
+                                    </div>
+
+                                    <div class="col-md-8">
+                                        {% for item in metadata_field_group.list %}
+                                            <form class="row"
+                                                  onsubmit="submitMetadataForm(event); event.preventDefault();"
+                                                  onreset="deleteMetadataForm(event); event.preventDefault();">
+                                                <div class="col-md-8">
+                                                    <input type="hidden" class="fieldDatasourceId" readonly
+                                                           value="{{ datasource.id }}">
+
+                                                    <input type="hidden" class="fieldMetadataId" readonly
+                                                           value="{{ metadata_field_group.field.id }}">
+
+                                                    <input type="hidden" class="fieldMetadataValueId" readonly
+                                                           value="{{ item.id }}">
+
+                                                    <input type="text" class="form-control mb-2 fieldMetadataValue"
+                                                           value="{{ item.value }}" data-last-value="{{ item.value }}">
+                                                </div>
+
+                                                <div class="col-md-2">
+                                                    <button type="submit" class="btn btn-block btn-success mb-2">Save</button>
+                                                </div>
+
+                                                <div class="col-md-2">
+                                                    <button type="reset" class="btn btn-block btn-danger mb-2">Delete</button>
+                                                </div>
+                                            </form>
+                                        {% endfor %}
+
+                                    <form class="row"
+                                          onsubmit="submitMetadataForm(event); event.preventDefault();">
+                                        <div class="col-md-8">
+                                            <input type="hidden" class="fieldDatasourceId" readonly
+                                                   value="{{ datasource.id }}">
+
+                                            <input type="hidden" class="fieldMetadataId" readonly
+                                                   value="{{ criterion.metadata_field.id }}">
+
+                                            <input type="text" class="form-control mb-2 fieldMetadataValue">
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-block btn-success mb-2">Save</button>
+                                        </div>
+                                    </form>
+
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endwith %}
+
+                {% endfor %}
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>All Metadata</h2>
+
+    <table class="table">
+        <tbody>
+            {% for metadata_field in metadata_fields %}
+                {% with metadata_items|access:metadata_field.short_name as metadata_field_group %}
                     <tr>
                         <td>
-                            <form class="row"
-                                  onsubmit="submitMetadataForm(event); event.preventDefault();">
-                                <div class="col-md-4 mb-2">
-                                    <input type="hidden" class="fieldDatasourceId" readonly
-                                           value="{{ datasource.id }}">
-
-                                    <input type="text" class="form-control-plaintext" readonly
-                                           value="{{ criterion.metadata_field.name }}">
-
-                                    <input type="hidden" class="fieldMetadataId" readonly
-                                           value="{{ criterion.metadata_field.id }}">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <span class="form-text">{{ metadata_field.name }}</span>
                                 </div>
 
-                                <div class="col-md-6 mb-2">
-                                    {% with metadata|access:criterion.metadata_field.short_name|default_if_none:'' as metadata_value %}
-                                        <input id="input-{{ criterion.metadata_field.short_name }}"
-                                               type="text" class="form-control fieldMetadataValue"
-                                               value="{{ metadata_value }}"
-                                               data-current-value="{{ metadata_value }}">
-                                    {% endwith %}
-                                </div>
+                                <div class="col-md-8">
+                                    {% for item in metadata_field_group.list %}
+                                        <form class="row"
+                                              onsubmit="submitMetadataForm(event); event.preventDefault();"
+                                              onreset="deleteMetadataForm(event); event.preventDefault();">
+                                            <div class="col-md-8">
+                                                <input type="hidden" class="fieldDatasourceId" readonly
+                                                       value="{{ datasource.id }}">
 
-                                <div class="col-md-2 mb-2">
-                                    <button type="submit" class="btn btn-block btn-success">Save</button>
+                                                <input type="hidden" class="fieldMetadataId" readonly
+                                                       value="{{ metadata_field_group.field.id }}">
+
+                                                <input type="hidden" class="fieldMetadataValueId" readonly
+                                                       value="{{ item.id }}">
+
+                                                <input type="text" class="form-control mb-2 fieldMetadataValue"
+                                                       value="{{ item.value }}" data-last-value="{{ item.value }}">
+                                            </div>
+
+                                            <div class="col-md-2">
+                                                <button type="submit" class="btn btn-block btn-success mb-2">Save</button>
+                                            </div>
+
+                                            <div class="col-md-2">
+                                                <button type="reset" class="btn btn-block btn-danger mb-2">Delete</button>
+                                            </div>
+                                        </form>
+                                    {% endfor %}
+
+                                    <form class="row"
+                                          onsubmit="submitMetadataForm(event); event.preventDefault();">
+                                        <div class="col-md-8">
+                                            <input type="hidden" class="fieldDatasourceId" readonly
+                                                   value="{{ datasource.id }}">
+
+                                            <input type="hidden" class="fieldMetadataId" readonly
+                                                   value="{{ metadata_field.id }}">
+
+                                            <input type="text" class="form-control mb-2 fieldMetadataValue">
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-block btn-success mb-2">Save</button>
+                                        </div>
+                                    </form>
                                 </div>
-                            </form>
+                            </div>
                         </td>
                     </tr>
-                {% endfor %}
+                {% endwith %}
             {% endfor %}
         </tbody>
     </table>

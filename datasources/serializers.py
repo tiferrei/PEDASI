@@ -16,8 +16,6 @@ class MetadataFieldSerializer(serializers.ModelSerializer):
 
 
 class MetadataItemSerializer(serializers.ModelSerializer):
-    field = MetadataFieldSerializer(read_only=True)
-
     class Meta:
         model = models.MetadataItem
         fields = ['field', 'value']

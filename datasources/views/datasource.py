@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -131,64 +133,7 @@ class DataSourceDataSetSearchView(HasPermissionLevelMixin, DetailView):
         return context
 
 
-class DataSourceMetadataAjaxView(OwnerPermissionMixin, APIView):
-    model = models.DataSource
-
-    # Don't redirect to login page if unauthorised
-    raise_exception = True
-
-    class MetadataSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = models.MetadataItem
-            fields = '__all__'
-
-    def get_object(self, pk):
-        return self.model.objects.get(pk=pk)
-
-    def post(self, request, pk, format=None):
-        """
-        Create a new MetadataItem associated with this DataSource.
-        """
-        datasource = self.get_object(pk)
-        if 'datasource' not in request.data:
-            request.data['datasource'] = datasource.pk
-
-        serializer = self.MetadataSerializer(data=request.data)
-
-        if serializer.is_valid():
-            obj = serializer.save()
-
-            return Response({
-                'status': 'success',
-                'data': {
-                    'datasource': datasource.pk,
-                    'field': obj.field.name,
-                    'field_short': obj.field.short_name,
-                    'value': obj.value,
-                }
-            })
-
-        return Response({'status': 'failure'}, status=400)
-
-    def delete(self, request, pk, format=None):
-        """
-        Delete a MetadataItem associated with this DataSource.
-        """
-        datasource = self.get_object(pk)
-        if 'datasource' not in request.data:
-            request.data['datasource'] = datasource.pk
-
-        metadata_item = models.MetadataItem.objects.get(
-            datasource=datasource,
-            field=self.request.data['field'],
-            value=self.request.data['value']
-        )
-
-        metadata_item.delete()
-
-        return Response({
-            'status': 'success'
-        })
+FieldValueSet = namedtuple('FieldValueSet', ['field', 'list'])
 
 
 class DataSourceMetadataView(OwnerPermissionMixin, DetailView):
@@ -200,9 +145,17 @@ class DataSourceMetadataView(OwnerPermissionMixin, DetailView):
         context = super().get_context_data(**kwargs)
 
         context['ruleset'] = get_user_model().get_quality_ruleset()
-        context['metadata'] = {
-            item.field.short_name: item.value for item in self.object.metadata_items.all()
-        }
+        context['metadata_fields'] = models.MetadataField.objects.all()
+
+        items = []
+        present_fields = {item.field for item in self.object.metadata_items.all()}
+        for field in present_fields:
+            items.append(
+                FieldValueSet(field, [
+                    item for item in self.object.metadata_items.all() if item.field == field
+                ])
+            )
+        context['metadata_items'] = items
 
         return context
 
