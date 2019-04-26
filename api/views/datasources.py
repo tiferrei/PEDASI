@@ -21,15 +21,20 @@ from provenance import models as prov_models
 
 
 class MetadataItemApiViewset(viewsets.ModelViewSet):
+    """
+    API ViewSet for viewing and managing dynamic metadata items on a data sources.
+    """
     serializer_class = serializers.MetadataItemSerializer
-    permission_classes = [permissions.IsAdminOrReadOnly]
+    permission_classes = [permissions.IsOwnerOrReadOnly]
+
+    def get_datasource(self):
+        return get_object_or_404(models.DataSource, pk=self.kwargs['datasource_pk'])
 
     def get_queryset(self):
         return models.MetadataItem.objects.filter(datasource=self.kwargs['datasource_pk'])
 
     def perform_create(self, serializer):
-        datasource = get_object_or_404(models.DataSource, pk=self.kwargs['datasource_pk'])
-        serializer.save(datasource=datasource)
+        serializer.save(datasource=self.get_datasource())
 
 
 class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
