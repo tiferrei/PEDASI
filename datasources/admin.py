@@ -48,6 +48,30 @@ class DataSourceAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+class PipelineStageInline(admin.TabularInline):
+    model = models.PipelineStage
+    readonly_fields = ('plugin_name',)
+    extra = 0
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(models.Pipeline)
+class PipelineAdmin(admin.ModelAdmin):
+    inlines = [
+        PipelineStageInline,
+    ]
+
+
+@admin.register(models.PipelineStage)
+class PipelineStageAdmin(admin.ModelAdmin):
+    pass
+
+
 @admin.register(models.QualityRuleset)
 class QualityRulesetAdmin(admin.ModelAdmin):
     pass

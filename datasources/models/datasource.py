@@ -15,6 +15,8 @@ from core.models import BaseAppDataModel, MAX_LENGTH_API_KEY, MAX_LENGTH_NAME, M
 from datasources.connectors.base import AuthMethod, BaseDataConnector, REQUEST_AUTH_FUNCTIONS
 from provenance.models import ProvAbleModel
 
+from .pipeline import Pipeline
+
 #: Length of request reason field - must include brief description of project
 MAX_LENGTH_REASON = 511
 
@@ -209,6 +211,11 @@ class DataSource(ProvAbleModel, BaseAppDataModel):
     #: Has this object been soft deleted?
     is_deleted = models.BooleanField(default=False,
                                      editable=False, blank=False, null=False)
+
+    #: Which pipeline should be used to preprocess this data?
+    pipeline = models.ForeignKey(Pipeline, on_delete=models.PROTECT,
+                                 related_name='+',
+                                 blank=True, null=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

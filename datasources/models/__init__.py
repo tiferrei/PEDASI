@@ -16,6 +16,12 @@ from .metadata import (
 )
 
 
+from .pipeline import (
+    Pipeline,
+    PipelineStage
+)
+
+
 from .quality import (
     QualityRuleset,
     QualityLevel,
