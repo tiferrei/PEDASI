@@ -56,6 +56,7 @@ class MetadataField(models.Model):
         fixtures = (
             ('data_query_param', 'data_query_param', True),
             ('indexed_field', 'indexed_field', True),
+            ('schema', 'schema', True),
         )
 
         for name, short_name, operational in fixtures:

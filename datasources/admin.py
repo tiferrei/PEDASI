@@ -8,10 +8,30 @@ class MetadataFieldAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(models.MetadataItem)
+class MetadataItemAdmin(admin.ModelAdmin):
+    pass
+
+
+class MetadataItemInline(admin.TabularInline):
+    model = models.MetadataItem
+    readonly_fields = ('field', 'value',)
+    extra = 0
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(models.DataSource)
 class DataSourceAdmin(admin.ModelAdmin):
     readonly_fields = ['owner']
     form = forms.DataSourceForm
+    inlines = [
+        MetadataItemInline,
+    ]
 
     def has_change_permission(self, request, obj=None) -> bool:
         """

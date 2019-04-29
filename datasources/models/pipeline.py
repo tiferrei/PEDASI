@@ -7,11 +7,15 @@ from core.models import MAX_LENGTH_NAME
 from ..pipeline.base import BasePipelineStage
 
 
-class BasePipelineError(BaseException):
+class PipelineRuntimeError(BaseException):
     pass
 
 
-class PipelineValidationError(BasePipelineError):
+class PipelineValidationError(PipelineRuntimeError):
+    pass
+
+
+class PipelineSetupError(BaseException):
     pass
 
 
@@ -35,7 +39,8 @@ class Pipeline(models.Model):
     name = models.CharField(max_length=MAX_LENGTH_NAME,
                             blank=False, null=False)
 
-    def __call__(self, data: typing.Mapping, *args, **kwargs) -> typing.Mapping:
+    def __call__(self, data: typing.Mapping,
+                 options: typing.Optional[typing.Mapping] = None) -> typing.Mapping:
         """
         Run data through this pipeline.
 
@@ -43,7 +48,7 @@ class Pipeline(models.Model):
         :return: Processed data
         """
         for stage in self.stages.all():
-            data = stage(data)
+            data = stage(data, options=options)
 
         return data
 
@@ -68,7 +73,8 @@ class PipelineStage(models.Model):
                                  related_name='stages',
                                  blank=False, null=False)
 
-    def __call__(self, data: typing.Mapping, *args, **kwargs) -> typing.Mapping:
+    def __call__(self, data: typing.Mapping,
+                 options: typing.Optional[typing.Mapping] = None) -> typing.Mapping:
         """
         Run data through this pipeline stage.
 
@@ -79,7 +85,7 @@ class PipelineStage(models.Model):
 
         plugin = BasePipelineStage.get_plugin(self.plugin_name)
 
-        return plugin()(data)
+        return plugin(options=options)(data)
 
     def __str__(self):
         return self.plugin_name

@@ -253,7 +253,7 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
                     status=200
                 )
 
-            except models.pipeline.BasePipelineError as e:
+            except (models.pipeline.PipelineRuntimeError, models.pipeline.PipelineSetupError) as e:
                 return JsonResponse({
                     'status': 'error',
                     'message': str(e),

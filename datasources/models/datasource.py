@@ -373,8 +373,12 @@ class DataSource(ProvAbleModel, BaseAppDataModel):
 
             data = data_connector.get_data(params=params)
 
-        return self.pipeline(data)
-
+        return self.pipeline(
+            data,
+            options={
+                item.field.short_name: item.value for item in self.metadata_items.all()
+            }
+        )
 
     @property
     def search_representation(self) -> str:
