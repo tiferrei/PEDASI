@@ -54,16 +54,22 @@ class MetadataField(models.Model):
         This is called from within the AppConfig.
         """
         fixtures = (
-            ('data_query_param', 'data_query_param', True),
-            ('indexed_field', 'indexed_field', True),
-            ('schema', 'schema', True),
+            ('Accepted Query Parameter', 'data_query_param', True),
+            ('Indexed Field', 'indexed_field', True),
+            ('Validation Schema', 'schema', True),
         )
 
         for name, short_name, operational in fixtures:
-            obj, created = cls.objects.get_or_create(
-                name=name,
-                short_name=short_name
-            )
+            try:
+                obj = cls.objects.get(short_name=short_name)
+
+            except cls.DoesNotExist:
+                obj = cls.objects.create(
+                    name=name,
+                    short_name=short_name
+                )
+
+            obj.name = name
             obj.operational = operational
             obj.save()
 

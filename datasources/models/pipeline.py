@@ -20,9 +20,11 @@ class PipelineSetupError(BaseException):
 
 
 class Pipeline(models.Model):
-    class Meta:
-        pass
+    """
+    Model representing a data pipeline.
 
+    A pipeline may contain multiple stages.
+    """
     # Prevent template engine from trying to call the model
     do_not_call_in_templates = True
 
@@ -57,6 +59,9 @@ class Pipeline(models.Model):
 
 
 class PipelineStage(models.Model):
+    """
+    Model representing a stage of a data pipeline.
+    """
     class Meta:
         order_with_respect_to = 'pipeline'
 

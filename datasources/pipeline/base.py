@@ -13,6 +13,9 @@ from .. import models
 
 
 class BasePipelineStage(metaclass=plugin.Plugin):
+    """
+    Base class for pipeline stages.  Allows the defined classes to be used as plugins.
+    """
     #: Help string to be shown when a user is building a pipeline
     description = None
 
@@ -21,6 +24,12 @@ class BasePipelineStage(metaclass=plugin.Plugin):
 
     @abc.abstractmethod
     def __call__(self, data: typing.Mapping) -> typing.Mapping:
+        """
+        Pass data through the pipeline stage.
+
+        :param data: Data to process
+        :return: Processed data
+        """
         raise NotImplementedError
 
 
@@ -37,10 +46,10 @@ class NullPipelineStage(BasePipelineStage):
 
 class JsonValidationPipelineStage(BasePipelineStage):
     """
-    Always raises an error.
+    Validate returned data against a JSON schema.
     """
     #: Help string to be shown when a user is building a pipeline
-    description = 'Raise an error'
+    description = 'Validates data against a JSON schema'
 
     def __init__(self, options: typing.Optional[typing.Mapping] = None):
         super().__init__(options)
