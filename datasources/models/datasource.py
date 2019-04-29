@@ -365,6 +365,17 @@ class DataSource(ProvAbleModel, BaseAppDataModel):
 
             self.save()
 
+    def get_data(self, params: typing.Optional[typing.Mapping] = None,
+                 dataset: typing.Optional[str] = None):
+        with self.data_connector as data_connector:
+            if dataset is not None:
+                data_connector = data_connector[dataset]
+
+            data = data_connector.get_data(params=params)
+
+        return self.pipeline(data)
+
+
     @property
     def search_representation(self) -> str:
         """

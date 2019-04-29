@@ -7,6 +7,14 @@ from core.models import MAX_LENGTH_NAME
 from ..pipeline.base import BasePipelineStage
 
 
+class BasePipelineError(BaseException):
+    pass
+
+
+class PipelineValidationError(BasePipelineError):
+    pass
+
+
 class Pipeline(models.Model):
     class Meta:
         pass
@@ -35,7 +43,7 @@ class Pipeline(models.Model):
         :return: Processed data
         """
         for stage in self.stages.all():
-            data = stage.transform(data)
+            data = stage(data)
 
         return data
 
@@ -70,6 +78,8 @@ class PipelineStage(models.Model):
         BasePipelineStage.load_plugins('datasources/pipeline')
 
         plugin = BasePipelineStage.get_plugin(self.plugin_name)
+
+        return plugin()(data)
 
     def __str__(self):
         return self.plugin_name

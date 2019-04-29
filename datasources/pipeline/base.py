@@ -6,6 +6,7 @@ import abc
 import typing
 
 from core import plugin
+from .. import models
 
 
 class BasePipelineStage(metaclass=plugin.Plugin):
@@ -16,16 +17,27 @@ class BasePipelineStage(metaclass=plugin.Plugin):
         pass
 
     @abc.abstractmethod
-    def transform(self, data: typing.Mapping) -> typing.Mapping:
+    def __call__(self, data: typing.Mapping) -> typing.Mapping:
         raise NotImplementedError
 
 
 class NullPipelineStage(BasePipelineStage):
     """
-    Base class for pipeline stage plugins which transform or pre-process data being passed through PEDASI.
+    Pipeline stage which does nothing.  For testing purposes.
     """
     #: Help string to be shown when a user is building a pipeline
     description = 'Does nothing'
 
-    def transform(self, data: typing.Mapping) -> typing.Mapping:
+    def __call__(self, data: typing.Mapping) -> typing.Mapping:
         return data
+
+
+class JsonValidationPipelineStage(BasePipelineStage):
+    """
+    Always raises an error.
+    """
+    #: Help string to be shown when a user is building a pipeline
+    description = 'Raise an error'
+
+    def __call__(self, data: typing.Mapping) -> typing.Mapping:
+        raise models.pipeline.PipelineValidationError('Data failed validation')

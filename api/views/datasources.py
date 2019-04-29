@@ -240,6 +240,32 @@ class DataSourceApiViewset(viewsets.ReadOnlyModelViewSet):
 
         Retrieve :class:`DataSource` data via API call to data source URL.
         """
+        datasource = self.get_object()
+
+        if datasource.pipeline:
+            params = self.request.query_params
+            if not params:
+                params = None
+
+            try:
+                return JsonResponse(
+                    datasource.get_data(params=params),
+                    status=200
+                )
+
+            except models.pipeline.BasePipelineError as e:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': str(e),
+                }, status=400)
+
+            except IOError as e:
+                # Pass upstream errors through
+                return JsonResponse({
+                    'status': 'error',
+                    'message': str(e),
+                }, status=400)
+
         def map_response(data_connector, params):
             r = data_connector.get_response(params=params)
             try:
