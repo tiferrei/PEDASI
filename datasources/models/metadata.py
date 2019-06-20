@@ -60,9 +60,9 @@ class MetadataField(models.Model):
 
         for name, short_name, operational in fixtures:
             obj, created = cls.objects.get_or_create(
-                name=name,
                 short_name=short_name
             )
+            obj.name = name
             obj.operational = operational
             obj.save()
 
