@@ -5,7 +5,8 @@ See https://python-social-auth.readthedocs.io/en/latest/
 """
 
 from django.core.mail import mail_admins
-
+from django.conf import settings
+from django.shortcuts import reverse
 
 from social_core.pipeline.user import create_user
 
@@ -32,14 +33,23 @@ def email_admins(strategy, details, backend, user=None, *args, **kwargs):
     Email the PEDASI admins if a new account has been created and requires approval
     """
     if kwargs['is_new']:
+        message = (
+            'New PEDASI user account: {0}\n\n'
+            'A new user account has been created by {1} - {2} and requires admin approval.'
+        ).format(
+            user.username,
+            user.get_full_name(),
+            user.email,
+        )
+
+        try:
+            admin_url = 'https://' + settings.ALLOWED_HOSTS[0] + reverse('admin:profiles_user_change', args=(user.id,))
+            message += ' Please view and enable the account at {0}'.format(admin_url)
+
+        except IndexError:
+            pass
+
         mail_admins(
             subject='PEDASI Account Created',
-            message=(
-                'New PEDASI user account: {0}\n\n'
-                'A new user account has been created by {1} - {2} and requires admin approval'
-            ).format(
-                user.username,
-                user.get_full_name(),
-                user.email
-            )
+            message=message
         )
