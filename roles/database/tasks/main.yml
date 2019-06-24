@@ -1,0 +1,53 @@
+---
+# Setup MongoDB repo
+# sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
+- name: Import MongoDB repo key
+  apt_key:
+    keyserver: hkp://keyserver.ubuntu.com:80
+    id: 9DA31620334BD75D9DCB49F368818C72E52529D4
+
+# echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
+- name: Add MongoDB repo to apt list
+  apt_repository:
+    repo: deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse
+    filename: mongodb-org-4.0
+
+- name: Install apt prerequisites
+  apt:
+    name: '{{ packages }}'
+    state: latest
+    update_cache: yes
+  vars:
+    packages:
+      - python3
+      - mysql-server
+      - libmysqlclient-dev
+      - mongodb-org
+      - apache2-utils
+      # Required for Ansible to setup DB
+      - python3-mysqldb
+
+- name: Restart and enable MariaDB
+  systemd:
+    name: mysql
+    state: restarted
+    enabled: yes
+    daemon-reload: yes
+
+- name: Create default database
+  mysql_db:
+    name: 'pedasi'
+    state: present
+
+- name: Create DB user
+  mysql_user:
+    name: 'pedasi'
+    # TODO generate a real password
+    password: 'pedasi'
+    state: present
+    priv: 'pedasi.*:ALL'
+
+- name: Restart services
+  systemd: name={{ item }} state=restarted
+  with_items:
+    - mongod
