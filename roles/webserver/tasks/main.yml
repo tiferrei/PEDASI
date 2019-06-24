@@ -93,11 +93,15 @@
   with_items:
     - { src: '{{ project_dir }}/deploy/uwsgi/sites/pedasi.ini', dest: /etc/uwsgi/sites/pedasi.ini }
     - { src: '{{ project_dir }}/deploy/systemd/system/uwsgi.service', dest: /etc/systemd/system/uwsgi.service }
+  notify:
+    - restart uwsgi
 
 - name: Deactivate default Nginx site
   file:
     path: /etc/nginx/sites-enabled/default
     state: absent
+  notify:
+    - restart nginx
 
 - name: Copy web config files
   copy:
@@ -106,18 +110,16 @@
     remote_src: yes
     # WARNING: this will not update an existing file
     force: no
+  notify:
+    - restart nginx
 
 - name: Activate Nginx site
   file:
     src: /etc/nginx/sites-available/pedasi
     dest: /etc/nginx/sites-enabled/pedasi
     state: link
-
-- name: Restart services
-  systemd: name={{ item }} state=restarted
-  with_items:
-    - nginx
-    - uwsgi
+  notify:
+    - restart nginx
 
 - name: Set permissions on report.html
   file:
@@ -131,20 +133,14 @@
   file:
     path: /etc/nginx/sites-enabled/default
     state: absent
-
-- name: Restart Nginx
-  systemd:
-    name: nginx
-    state: restarted
+  notify:
+    - restart nginx
 
 - name: Open firewall
   ufw:
     rule: allow
-    name: "{{ item }}"
+    name: "Nginx Full"
     state: enabled
-  with_items:
-    - 'Nginx Full'
-    - 'OpenSSH'
 
 - name: Setup Goaccess Cron job
   cron:

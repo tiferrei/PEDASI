@@ -1,0 +1,14 @@
+---
+- name: Test connection
+  ping:
+
+- name: Update apt packages
+  apt:
+    update_cache: yes
+    upgrade: yes
+
+- name: Open SSH port
+  ufw:
+    rule: allow
+    name: "OpenSSH"
+    state: enabled

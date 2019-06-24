@@ -26,13 +26,9 @@
       - apache2-utils
       # Required for Ansible to setup DB
       - python3-mysqldb
-
-- name: Restart and enable MariaDB
-  systemd:
-    name: mysql
-    state: restarted
-    enabled: yes
-    daemon-reload: yes
+  notify:
+    - restart mysql
+    - restart mongod
 
 - name: Create default database
   mysql_db:
@@ -46,8 +42,3 @@
     password: 'pedasi'
     state: present
     priv: 'pedasi.*:ALL'
-
-- name: Restart services
-  systemd: name={{ item }} state=restarted
-  with_items:
-    - mongod
