@@ -1,12 +1,10 @@
 ---
-- hosts: default
+- hosts: all
   become_user: root
   become_method: sudo
   become: yes
 
   vars:
-    project_dir: '/var/www/pedasi'
-    venv_dir: '{{ project_dir }}/env'
     ansible_python_interpreter: /usr/bin/python3
 
   pre_tasks:

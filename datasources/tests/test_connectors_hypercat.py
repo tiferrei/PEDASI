@@ -4,6 +4,8 @@ import unittest
 
 from django.test import TestCase
 
+from decouple import config
+
 from datasources.connectors.base import AuthMethod, BaseDataConnector, HttpHeaderAuth
 
 
@@ -26,6 +28,8 @@ def _count_items_by_key_value(collection: typing.Iterable[typing.Mapping],
     return len(matches)
 
 
+@unittest.skipIf(config.get('HYPERCAT_CISCO_API_KEY', default=None) is None,
+                 'Cisco HyperCat API key not provided')
 class ConnectorHyperCatTest(TestCase):
     # TODO find working dataset
     url = 'https://api.cityverve.org.uk/v1/cat'
@@ -38,8 +42,6 @@ class ConnectorHyperCatTest(TestCase):
                            auth=HttpHeaderAuth)
 
     def setUp(self):
-        from decouple import config
-
         BaseDataConnector.load_plugins('datasources/connectors')
         self.plugin = BaseDataConnector.get_plugin('HyperCat')
 

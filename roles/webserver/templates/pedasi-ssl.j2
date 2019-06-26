@@ -1,6 +1,6 @@
 server {
-    listen 80 default_server;
-    server_name _;
+    listen 443 ssl;
+    server_name {{ inventory_hostname }} localhost 127.0.0.1;
 
     merge_slashes off;
     client_max_body_size 100m;
@@ -27,4 +27,7 @@ server {
         include     uwsgi_params;
         uwsgi_pass  unix:/run/uwsgi/pedasi.sock;
     }
+
+    ssl_certificate /etc/ssl/crt/{{ inventory_hostname }}.crt;
+    ssl_certificate_key /etc/ssl/private/{{ inventory_hostname }}.pem;
 }

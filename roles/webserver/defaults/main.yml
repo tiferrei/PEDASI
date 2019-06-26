@@ -1,0 +1,11 @@
+---
+deploy_mode_dict:
+  1: Production
+  2: Staging
+  3: Development
+deploy_mode: 3
+
+secret_key: "{{ lookup('password', '/tmp/secretkeyfile') }}"
+
+project_dir: '/var/www/pedasi'
+venv_dir: '{{ project_dir }}/env'

@@ -1,8 +1,4 @@
 ---
-- name: Add Certbot repo
-  apt_repository:
-    repo: ppa:certbot/certbot
-
 - name: Install apt prerequisites
   apt:
     name: '{{ packages }}'
@@ -19,7 +15,6 @@
       - libmysqlclient-dev
       - goaccess
       - apache2-utils
-      - python-certbot-nginx
 
 - name: Clone / update from local repo
   git:
@@ -35,9 +30,9 @@
     version: '{{ branch | default("dev") }}'
   when: vagrant_dir.stat.exists == False
 
-- name: Copy settings
-  copy:
-    src: '{{ env_file | default("deploy/.env") }}'
+- name: Copy settings template
+  template:
+    src: '{{ env_file | default("env.j2") }}'
     dest: '{{ project_dir }}/.env'
     owner: www-data
     group: www-data
@@ -85,14 +80,16 @@
     mode: 0755
 
 - name: Copy web config files
-  file:
-    src: '{{ item.src }}'
-    dest: '{{ item.dest }}'
-    state: link
-    force: yes
-  with_items:
-    - { src: '{{ project_dir }}/deploy/uwsgi/sites/pedasi.ini', dest: /etc/uwsgi/sites/pedasi.ini }
-    - { src: '{{ project_dir }}/deploy/systemd/system/uwsgi.service', dest: /etc/systemd/system/uwsgi.service }
+  copy:
+    src: pedasi.ini
+    dest: /etc/uwsgi/sites/pedasi.ini
+  notify:
+    - restart uwsgi
+
+- name: Setup uWSGI service
+  copy:
+    src: uwsgi.service
+    dest: /etc/systemd/system/uwsgi.service
   notify:
     - restart uwsgi
 
@@ -103,11 +100,74 @@
   notify:
     - restart nginx
 
-- name: Copy web config files
-  copy:
-    src: '{{ project_dir }}/deploy/nginx/sites-available/pedasi'
+- name: Prepare for SSL certificate generation using LetsEncrypt  # TODO: Automate certificate generation
+  block:
+    - name: Add Certbot repo
+      apt_repository:
+        repo: ppa:certbot/certbot
+
+    - name: Install apt prerequisites
+      apt:
+        name: python-certbot-nginx
+        state: latest
+        update_cache: yes
+  when: deploy_mode == 1
+
+- name: Generate self-signed SSL certificate
+  block:
+    - name: Create directories
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - /etc/ssl
+        - /etc/ssl/crt
+        - /etc/ssl/private
+        - /etc/ssl/csr
+
+    - name: Create keys
+      openssl_privatekey:
+        path: /etc/ssl/private/{{ inventory_hostname }}.pem
+        owner: www-data
+        group: www-data
+
+    - name: Create Certificate Signing Request (CSR)
+      openssl_csr:
+        path: /etc/ssl/csr/{{ inventory_hostname }}.csr
+        privatekey_path: /etc/ssl/private/{{ inventory_hostname }}.pem
+        common_name: "{{ inventory_hostname }}"
+        owner: www-data
+        group: www-data
+
+    - name: Generate certificate
+      openssl_certificate:
+        path: /etc/ssl/crt/{{ inventory_hostname }}.crt
+        privatekey_path: /etc/ssl/private/{{ inventory_hostname }}.pem
+        csr_path: /etc/ssl/csr/{{ inventory_hostname }}.csr
+        provider: selfsigned
+        owner: www-data
+        group: www-data
+
+    - name: Copy Nginx site
+      template:
+        src: pedasi-ssl.j2
+        dest: /etc/nginx/sites-available/pedasi-ssl
+      notify:
+        - restart nginx
+
+    - name: Activate Nginx site
+      file:
+        src: /etc/nginx/sites-available/pedasi-ssl
+        dest: /etc/nginx/sites-enabled/pedasi-ssl
+        state: link
+      notify:
+        - restart nginx
+  when: deploy_mode > 1
+
+- name: Copy Nginx site
+  template:
+    src: pedasi.j2
     dest: /etc/nginx/sites-available/pedasi
-    remote_src: yes
     # WARNING: this will not update an existing file
     force: no
   notify:
