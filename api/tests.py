@@ -8,6 +8,8 @@ from django.test import Client, TestCase
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
+from decouple import config
+
 from datasources import connectors, models
 
 
@@ -481,6 +483,8 @@ class DataSourceApiIoTUKTest(TestCase):
         self.assertLessEqual(1, len(data['data']))
 
 
+@unittest.skipIf(config('HYPERCAT_CISCO_API_KEY', default=None) is None,
+                 'Cisco HyperCat API key not provided')
 class DataSourceApiHyperCatTest(TestCase):
     test_name = 'HyperCat'
     plugin_name = 'HyperCat'
@@ -489,8 +493,6 @@ class DataSourceApiHyperCatTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        from decouple import config
-
         cls.user = get_user_model().objects.create_user('Test API User')
 
         cls.api_key = config('HYPERCAT_CISCO_API_KEY')

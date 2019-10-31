@@ -28,7 +28,7 @@ def _count_items_by_key_value(collection: typing.Iterable[typing.Mapping],
     return len(matches)
 
 
-@unittest.skipIf(config.get('HYPERCAT_CISCO_API_KEY', default=None) is None,
+@unittest.skipIf(config('HYPERCAT_CISCO_API_KEY', default=None) is None,
                  'Cisco HyperCat API key not provided')
 class ConnectorHyperCatTest(TestCase):
     # TODO find working dataset
