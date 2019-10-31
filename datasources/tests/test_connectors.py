@@ -38,8 +38,8 @@ class ConnectorPluginTest(TestCase):
             BaseDataConnector.get_plugin('thisplugindoesnotexist')
 
 
-class ConnectorIoTUKTest(TestCase):
-    url = 'https://api.iotuk.org.uk/iotOrganisation'
+class ConnectorBaseTest(TestCase):
+    url = 'https://api.github.com/repos/PEDASI/PEDASI/issues'
 
     def _get_connection(self) -> BaseDataConnector:
         return self.plugin(self.url)
@@ -61,30 +61,41 @@ class ConnectorIoTUKTest(TestCase):
 
         self.assertFalse(connection.is_catalogue)
 
-    def test_plugin_get_data_fails(self):
+    def test_plugin_get_data(self):
         connection = self._get_connection()
 
         result = connection.get_data()
 
-        self.assertIn('status', result)
-        self.assertEqual(result['status'], 400)
+        self.assertTrue(len(result))
 
-        self.assertIn('results', result)
-        self.assertEqual(result['results'], -1)
+        first_issue = result[0]
+        self.assertIn('url', first_issue)
+        self.assertTrue(first_issue['url'].startswith(self.url))
 
     def test_plugin_get_data_query(self):
         connection = self._get_connection()
 
-        result = connection.get_data(params={'year': 2018})
+        # Get all closed issues from PEDASI repo
+        closed_issues = connection.get_data(params={'state': 'closed'})
 
-        self.assertIn('status', result)
-        self.assertEqual(result['status'], 200)
+        self.assertTrue(len(closed_issues))
 
-        self.assertIn('results', result)
-        self.assertGreater(result['results'], 0)
+        first_closed_issue = closed_issues[0]
+        self.assertIn('state', first_closed_issue)
+        self.assertEqual(first_closed_issue['state'], 'closed')
 
-        self.assertIn('data', result)
-        self.assertGreater(len(result['data']), 0)
+        self.assertIn(first_closed_issue, closed_issues)
+
+        # Get all open issues from PEDASI repo
+        open_issues = connection.get_data(params={'state': 'open'})
+
+        if open_issues:
+            first_open_issue = open_issues[0]
+            self.assertIn('state', first_open_issue)
+            self.assertEqual(first_open_issue['state'], 'open')
+
+        self.assertNotIn(first_closed_issue, open_issues)
+
 
     def test_determine_auth(self):
         connection = self._get_connection()
@@ -95,7 +106,7 @@ class ConnectorIoTUKTest(TestCase):
 
 
 class ConnectorRestApiTest(TestCase):
-    url = 'https://api.iotuk.org.uk/'
+    url = 'https://api.github.com/repos/PEDASI/PEDASI'
 
     def _get_connection(self) -> BaseDataConnector:
         return self.plugin(self.url)
@@ -117,16 +128,27 @@ class ConnectorRestApiTest(TestCase):
 
         self.assertTrue(connection.is_catalogue)
 
+    def test_plugin_get_data(self):
+        connection = self._get_connection()
+
+        result = connection.get_data()
+
+        self.assertIn('name', result)
+        self.assertEqual('PEDASI', result['name'])
+
+
     def test_plugin_dataset_get_data_query(self):
         connection = self._get_connection()
 
-        result = connection['iotOrganisation'].get_data(params={'year': 2018})
+        closed_issues = connection['issues'].get_data(params={'state': 'closed'})
+        
+        import pprint
+        pprint.pprint(closed_issues)
 
-        self.assertIn('status', result)
-        self.assertEqual(result['status'], 200)
+        self.assertTrue(len(closed_issues))
 
-        self.assertIn('results', result)
-        self.assertGreater(result['results'], 0)
+        first_closed_issue = closed_issues[0]
+        self.assertIn('state', first_closed_issue)
+        self.assertEqual(first_closed_issue['state'], 'closed')
 
-        self.assertIn('data', result)
-        self.assertGreater(len(result['data']), 0)
+        self.assertIn(first_closed_issue, closed_issues)
