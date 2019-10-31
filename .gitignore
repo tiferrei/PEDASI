@@ -1,9 +1,8 @@
 # Configuration files
 .env
-/deploy/.env*
-/deploy/.deployment-key*
 /Makefile
-/inventory.yml
+/staging.yml
+/production.yml
 
 # Database
 db.sqlite3
@@ -14,7 +13,7 @@ db.sqlite3
 *.pyc
 __pycache__/
 /report.html
-*.log
+/*.log
 
 # Javascript environment
 node_modules/
@@ -23,6 +22,7 @@ package-lock.json
 
 # Editor settings
 .idea/
+.vscode/
 
 # Local deployment
 .vagrant/
@@ -30,6 +30,8 @@ playbook.retry
 ubuntu-bionic-18.04-cloudimg-console.log
 /static/
 /whoosh_index/
+/cache/
+/mail/
 
 # Documentation
 /docs/build/

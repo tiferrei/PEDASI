@@ -1,0 +1,30 @@
+server {
+    listen 80 default_server;
+    server_name {{ inventory_hostname }} localhost 127.0.0.1;
+
+    merge_slashes off;
+    client_max_body_size 100m;
+
+    location /favicon.ico {
+        alias /var/www/pedasi/static/img/favicon.ico;
+    }
+
+    location /static/ {
+        alias /var/www/pedasi/static/;
+    }
+
+    location = /report.html {
+        alias /var/www/pedasi/report.html;
+        auth_basic "Restricted Content";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+    }
+
+    location = /robots.txt {
+        alias /var/www/pedasi/deploy/robots.txt;
+    }
+
+    location / {
+        include     uwsgi_params;
+        uwsgi_pass  unix:/run/uwsgi/pedasi.sock;
+    }
+}
