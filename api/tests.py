@@ -237,7 +237,7 @@ class DataSourceApiPermissionsTest(TestCase):
 
         self.test_name = 'Permissions'
         # TODO don't rely on external URL for testing
-        self.test_url = 'https://api.iotuk.org.uk/iotOrganisation'
+        self.test_url = 'https://api.github.com/repos/PEDASI/PEDASI'
 
     def tearDown(self):
         try:
@@ -345,7 +345,7 @@ class DataSourceApiPermissionsTest(TestCase):
             public_permission_level=models.UserPermissionLevels.NONE
         )
 
-        url = '/api/datasources/{}/data/?year=2018'.format(self.model.pk)
+        url = '/api/datasources/{}/data/'.format(self.model.pk)
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, 403)
@@ -408,7 +408,7 @@ class DataSourceApiPermissionsTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class DataSourceApiIoTUKTest(TestCase):
+class DataSourceApiGitHubTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = get_user_model().objects.create_user('Test API User')
@@ -417,8 +417,8 @@ class DataSourceApiIoTUKTest(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
-        self.test_name = 'IoTUK'
-        self.test_url = 'https://api.iotuk.org.uk/iotOrganisation'
+        self.test_name = 'GitHub PEDASI'
+        self.test_url = 'https://api.github.com/repos/PEDASI/PEDASI'
 
     def tearDown(self):
         try:
@@ -458,6 +458,7 @@ class DataSourceApiIoTUKTest(TestCase):
         """
         Test the :class:`DataSource` API functionality to retrieve data.
         """
+        # No data sources created yet
         response = self.client.get('/api/datasources/1/data/')
         self.assertEqual(response.status_code, 404)
 
@@ -469,18 +470,12 @@ class DataSourceApiIoTUKTest(TestCase):
         )
 
         response = self.client.get('/api/datasources/{}/data/'.format(self.model.pk))
-        # Query should fail since IoTUK requires query filters
-        self.assertEqual(response.status_code, 400)
-
-        response = self.client.get('/api/datasources/{}/data/?year=2017'.format(self.model.pk))
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
 
-        self.assertIn('results', data)
-        self.assertLessEqual(1, data['results'])
-        self.assertIn('data', data)
-        self.assertLessEqual(1, len(data['data']))
+        self.assertIn('name', data)
+        self.assertEqual('PEDASI', data['name'])
 
 
 @unittest.skipIf(config('HYPERCAT_CISCO_API_KEY', default=None) is None,
