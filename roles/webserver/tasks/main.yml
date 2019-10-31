@@ -235,3 +235,8 @@
     command: collectstatic
     app_path: "{{ project_dir }}"
     virtualenv: "{{ venv_dir }}"
+
+- name: Force Nginx restart
+  command: /bin/true
+  notify:
+    - restart nginx
