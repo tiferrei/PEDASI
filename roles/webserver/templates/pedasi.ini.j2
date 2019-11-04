@@ -1,6 +1,6 @@
 [uwsgi]
 project = pedasi
-uid = www-data
+uid = {{ web_user }}
 base = /var/www
 
 chdir = %(base)/%(project)
@@ -12,6 +12,6 @@ master = true
 processes = 2
 
 socket = /run/uwsgi/%(project).sock
-chown-socket = %(uid):www-data
+chown-socket = %(uid):{{ web_user }}
 chmod-socket = 660
 vacuum = true

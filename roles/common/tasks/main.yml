@@ -6,9 +6,36 @@
   apt:
     update_cache: yes
     upgrade: yes
+  when: ansible_distribution == "Ubuntu"
+
+- name: Enable RedHat Software Collections
+  rhsm_repository:
+    name: rhel-server-rhscl-7-rpms
+  when: ansible_distribution == "RHEL"
+
+- name: Enable RedHat Software Collections
+  yum:
+    name: centos-release-scl
+    state: latest
+  when: ansible_distribution == "CentOS"
+
+- name: Update yum packages
+  yum:
+    name: '*'
+    state: latest
+    update_cache: yes
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Open SSH port
   ufw:
     rule: allow
     name: "OpenSSH"
     state: enabled
+  when: ansible_distribution == "Ubuntu"
+
+- name: Open SSH port
+  firewalld:
+    service: ssh
+    permanent: yes
+    state: enabled
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"

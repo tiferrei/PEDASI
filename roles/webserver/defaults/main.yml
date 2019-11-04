@@ -7,5 +7,13 @@ deploy_mode: 3
 
 secret_key: "{{ lookup('password', '/tmp/secretkeyfile') }}"
 
+# Null values to override in inventory file
+email_host_password:
+default_from_email:
+admin_name:
+admin_email:
+
 project_dir: '/var/www/pedasi'
 venv_dir: '{{ project_dir }}/env'
+
+web_user: '{{ "www-data" if ansible_distribution == "Ubuntu" else "nginx" }}'
