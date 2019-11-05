@@ -127,10 +127,19 @@
 
 - name: Setup uWSGI service
   template:
-    src: uwsgi.service.j2
+    src: ubuntu-uwsgi.service.j2
     dest: /etc/systemd/system/uwsgi.service
   notify:
     - restart uwsgi
+  when: ansible_distribution == "Ubuntu"
+
+- name: Setup uWSGI service
+  template:
+    src: rhel-uwsgi.service.j2
+    dest: /etc/systemd/system/uwsgi.service
+  notify:
+    - restart uwsgi
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Deactivate default Nginx site
   file:
@@ -312,6 +321,13 @@
     command: collectstatic
     app_path: "{{ project_dir }}"
     virtualenv: "{{ venv_dir }}"
+
+- name: Set SELinux permission on files served with Nginx
+  file:
+    path: '{{ project_dir }}/static'
+    recurse: yes
+    setype: httpd_sys_content_t
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Force Nginx restart
   command: /bin/true
