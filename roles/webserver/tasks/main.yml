@@ -72,7 +72,7 @@
 - name: Create venv on RHEL
   shell: |
     source scl_source enable rh-python36
-    python3 -m venv venv
+    python3 -m venv {{ venv_dir }}
   when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Install pip requirements
@@ -305,16 +305,16 @@
     minute: 0
     job: "{{ venv_dir }}/bin/python {{ project_dir }}/manage.py reset_api_count"
 
-# - name: Compile documentation
-#   make:
-#     chdir: '{{ project_dir }}/docs'
-#     target: '{{ item }}'
-#     params:
-#       SPHINXBUILD: '{{ venv_dir }}/bin/sphinx-build'
-#       SPHINXAPIDOC: '{{ venv_dir }}/bin/sphinx-apidoc'
-#   loop:
-#   - clean
-#   - html
+- name: Compile documentation
+  make:
+    chdir: '{{ project_dir }}/docs'
+    target: '{{ item }}'
+    params:
+      SPHINXBUILD: '{{ venv_dir }}/bin/sphinx-build'
+      SPHINXAPIDOC: '{{ venv_dir }}/bin/sphinx-apidoc'
+  loop:
+  - clean
+  - html
 
 - name: Django collect static files
   django_manage:
@@ -330,6 +330,17 @@
   when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Force Nginx restart
-  command: /bin/true
-  notify:
-    - restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+    enabled: yes
+    daemon-reload: yes
+  when: ansible_distribution == "Ubuntu"
+
+- name: Force Nginx restart
+  systemd:
+    name: rh-nginx114-nginx
+    state: restarted
+    enabled: yes
+    daemon-reload: yes
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"

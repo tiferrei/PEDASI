@@ -16,3 +16,11 @@
     name: mongod
     state: restarted
     enabled: yes
+  when: ansible_distribution == "Ubuntu"
+
+- name: restart mongod
+  service:
+    name: rh-mongodb34-mongod
+    state: restarted
+    enabled: yes
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"

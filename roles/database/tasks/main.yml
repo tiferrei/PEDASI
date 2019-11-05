@@ -40,7 +40,6 @@
       update_cache: yes
     vars:
       packages:
-        - python36
         - mariadb
         - mariadb-server
         - mariadb-devel
@@ -54,15 +53,19 @@
   when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Force DB restart
-  command: /bin/true
-  notify:
-    - restart mysql
+  systemd:
+    name: mysql
+    state: restarted
+    enabled: yes
+    daemon-reload: yes
   when: ansible_distribution == "Ubuntu"
 
 - name: Force DB restart
-  command: /bin/true
-  notify:
-    - restart mariadb
+  systemd:
+    name: mariadb
+    state: restarted
+    enabled: yes
+    daemon-reload: yes
   when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Create default database
