@@ -15,6 +15,32 @@
       - libmysqlclient-dev
       - goaccess
       - apache2-utils
+  when: ansible_distribution == "Ubuntu"
+
+- name: Activate EPEL
+  yum:
+    name: epel-release
+    state: latest
+    update_cache: yes
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
+
+- name: Install yum prerequisites
+  yum:
+    name: '{{ packages }}'
+    state: latest
+    update_cache: yes
+  vars:
+    packages:
+      - gcc
+      - python2-cryptography
+      - python-setuptools
+      - rh-nginx114
+      - rh-python36
+      - git
+      - mariadb-devel
+      - goaccess
+      - httpd-tools
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Clone / update from local repo
   git:
@@ -34,14 +60,20 @@
   template:
     src: '{{ env_file | default("env.j2") }}'
     dest: '{{ project_dir }}/.env'
-    owner: www-data
-    group: www-data
+    owner: '{{ web_user }}'
+    group: '{{ web_user }}'
     mode: 0600
 
 - name: Set permissions on manage.py
   file:
     path: '{{ project_dir }}/manage.py'
     mode: 0755
+
+- name: Create venv on RHEL
+  shell: |
+    source scl_source enable rh-python36
+    python3 -m venv {{ venv_dir }}
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Install pip requirements
   pip:
@@ -58,8 +90,8 @@
   file:
     path: '{{ project_dir }}/static'
     state: directory
-    owner: www-data
-    group: www-data
+    owner: '{{ web_user }}'
+    group: '{{ web_user }}'
     mode: 0775
 
 - name: Run Django migrations
@@ -72,6 +104,13 @@
   pip:
     name: uwsgi
     state: latest
+  when: ansible_distribution == "Ubuntu"
+
+- name: Install uWSGI on RHEL
+  shell: |
+    source scl_source enable rh-python36
+    pip3 install uwsgi
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Setup uWSGI config
   file:
@@ -80,18 +119,27 @@
     mode: 0755
 
 - name: Copy web config files
-  copy:
-    src: pedasi.ini
+  template:
+    src: pedasi.ini.j2
     dest: /etc/uwsgi/sites/pedasi.ini
   notify:
     - restart uwsgi
 
 - name: Setup uWSGI service
-  copy:
-    src: uwsgi.service
+  template:
+    src: ubuntu-uwsgi.service.j2
     dest: /etc/systemd/system/uwsgi.service
   notify:
     - restart uwsgi
+  when: ansible_distribution == "Ubuntu"
+
+- name: Setup uWSGI service
+  template:
+    src: rhel-uwsgi.service.j2
+    dest: /etc/systemd/system/uwsgi.service
+  notify:
+    - restart uwsgi
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Deactivate default Nginx site
   file:
@@ -111,7 +159,7 @@
         name: python-certbot-nginx
         state: latest
         update_cache: yes
-  when: deploy_mode == 1
+  when: deploy_mode == 1 and ansible_distribution == "Ubuntu"
 
 - name: Generate self-signed SSL certificate
   block:
@@ -128,16 +176,16 @@
     - name: Create keys
       openssl_privatekey:
         path: /etc/ssl/private/{{ inventory_hostname }}.pem
-        owner: www-data
-        group: www-data
+        owner: '{{ web_user }}'
+        group: '{{ web_user }}'
 
     - name: Create Certificate Signing Request (CSR)
       openssl_csr:
         path: /etc/ssl/csr/{{ inventory_hostname }}.csr
         privatekey_path: /etc/ssl/private/{{ inventory_hostname }}.pem
         common_name: "{{ inventory_hostname }}"
-        owner: www-data
-        group: www-data
+        owner: '{{ web_user }}'
+        group: '{{ web_user }}'
 
     - name: Generate certificate
       openssl_certificate:
@@ -145,67 +193,106 @@
         privatekey_path: /etc/ssl/private/{{ inventory_hostname }}.pem
         csr_path: /etc/ssl/csr/{{ inventory_hostname }}.csr
         provider: selfsigned
-        owner: www-data
-        group: www-data
+        owner: '{{ web_user }}'
+        group: '{{ web_user }}'
 
-    - name: Copy Nginx site
-      template:
-        src: pedasi-ssl.j2
-        dest: /etc/nginx/sites-available/pedasi-ssl
-      notify:
-        - restart nginx
+    - block:
+      - name: Copy Nginx site
+        template:
+          src: pedasi-ssl.j2
+          dest: /etc/nginx/sites-available/pedasi-ssl
+        notify:
+          - restart nginx
 
-    - name: Activate Nginx site
-      file:
-        src: /etc/nginx/sites-available/pedasi-ssl
-        dest: /etc/nginx/sites-enabled/pedasi-ssl
-        state: link
-      notify:
-        - restart nginx
+      - name: Activate Nginx site
+        file:
+          src: /etc/nginx/sites-available/pedasi-ssl
+          dest: /etc/nginx/sites-enabled/pedasi-ssl
+          state: link
+        notify:
+          - restart nginx
+      when: ansible_distribution == "Ubuntu"
+
+    - block:
+      - name: Copy Nginx site
+        template:
+          src: pedasi-ssl.j2
+          dest: /etc/opt/rh/rh-nginx114/nginx/conf.d/pedasi-ssi.conf
+          # WARNING: this will not update an existing file
+          force: no
+        notify:
+          - restart nginx
+      when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
+
   when: deploy_mode > 1
 
-- name: Copy Nginx site
-  template:
-    src: pedasi.j2
-    dest: /etc/nginx/sites-available/pedasi
-    # WARNING: this will not update an existing file
-    force: no
-  notify:
-    - restart nginx
+- block:
+  - name: Copy Nginx site
+    template:
+      src: pedasi.j2
+      dest: /etc/nginx/sites-available/pedasi
+      # WARNING: this will not update an existing file
+      force: no
+    notify:
+      - restart nginx
 
-- name: Activate Nginx site
-  file:
-    src: /etc/nginx/sites-available/pedasi
-    dest: /etc/nginx/sites-enabled/pedasi
-    state: link
-  notify:
-    - restart nginx
+  - name: Activate Nginx site
+    file:
+      src: /etc/nginx/sites-available/pedasi
+      dest: /etc/nginx/sites-enabled/pedasi
+      state: link
+    notify:
+      - restart nginx
+
+  # Interferes with wildcard server_name in dev deployment
+  - name: Remove default Nginx server config
+    file:
+      path: /etc/nginx/sites-enabled/default
+      state: absent
+    notify:
+      - restart nginx
+  when: ansible_distribution == "Ubuntu"
+
+- block:
+  - name: Copy Nginx site
+    template:
+      src: pedasi.j2
+      dest: /etc/opt/rh/rh-nginx114/nginx/conf.d/pedasi.conf
+      # WARNING: this WILL update an existing file
+      force: yes
+    notify:
+      - restart nginx
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Set permissions on report.html
   file:
     path: "{{ project_dir }}/report.html"
     state: touch
-    owner: www-data
-    group: www-data
+    owner: '{{ web_user }}'
+    group: '{{ web_user }}'
 
-# Interferes with wildcard server_name in dev deployment
-- name: Remove default Nginx server config
-  file:
-    path: /etc/nginx/sites-enabled/default
-    state: absent
-  notify:
-    - restart nginx
-
-- name: Open firewall
+- name: Open firewall ports
   ufw:
     rule: allow
     name: "Nginx Full"
     state: enabled
+  when: ansible_distribution == "Ubuntu"
+
+- name: Open firewall ports
+  firewalld:
+    service: '{{ item }}'
+    immediate: yes
+    permanent: yes
+    state: enabled
+  with_items:
+    - http
+    - https
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: Setup Goaccess Cron job
   cron:
     name: "Generate Goaccess report"
-    user: www-data
+    user: '{{ web_user }}'
     state: present
     minute: "*/10"
     job: "{{ project_dir }}/scripts/goaccess.sh {{ project_dir }}/report.html"
@@ -213,10 +300,10 @@
 - name: Setup external API access counters reset Cron job
   cron:
     name: "Reset external API access counters"
-    user: www-data
+    user: '{{ web_user }}'
     state: present
-    hour: 0
-    minute: 0
+    hour: '0'
+    minute: '0'
     job: "{{ venv_dir }}/bin/python {{ project_dir }}/manage.py reset_api_count"
 
 - name: Compile documentation
@@ -236,7 +323,25 @@
     app_path: "{{ project_dir }}"
     virtualenv: "{{ venv_dir }}"
 
+- name: Set SELinux permission on files served with Nginx
+  file:
+    path: '{{ project_dir }}/static'
+    recurse: yes
+    setype: httpd_sys_content_t
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
+
 - name: Force Nginx restart
-  command: /bin/true
-  notify:
-    - restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+    enabled: yes
+    daemon-reload: yes
+  when: ansible_distribution == "Ubuntu"
+
+- name: Force Nginx restart
+  systemd:
+    name: rh-nginx114-nginx
+    state: restarted
+    enabled: yes
+    daemon-reload: yes
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"

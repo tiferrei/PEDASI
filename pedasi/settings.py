@@ -119,6 +119,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'social_django.context_processors.backends',
+                'profiles.context_processors.oauth2_enabled',
             ],
         },
     },
@@ -188,6 +189,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Social auth app configuration
 
+OAUTH2_ENABLED = False
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY', default=None)
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET', default=None)
 
@@ -199,6 +201,8 @@ if SOCIAL_AUTH_GOOGLE_OAUTH2_KEY is not None and SOCIAL_AUTH_GOOGLE_OAUTH2_SECRE
     AUTHENTICATION_BACKENDS += [
         'social_core.backends.google.GoogleOAuth2',
     ]
+
+    OAUTH2_ENABLED = True
 
 SOCIAL_AUTH_PIPELINE = [
     # Get the information we can about the user and return it in a simple

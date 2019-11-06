@@ -4,6 +4,14 @@
     name: nginx
     state: restarted
     enabled: yes
+  when: ansible_distribution == "Ubuntu"
+
+- name: restart nginx
+  service:
+    name: rh-nginx114-nginx
+    state: restarted
+    enabled: yes
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
 
 - name: restart uwsgi
   service:

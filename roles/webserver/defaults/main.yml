@@ -9,3 +9,18 @@ secret_key: "{{ lookup('password', '/tmp/secretkeyfile') }}"
 
 project_dir: '/var/www/pedasi'
 venv_dir: '{{ project_dir }}/env'
+
+web_user: '{{ "www-data" if ansible_distribution == "Ubuntu" else "nginx" }}'
+
+###########################################
+# Null values to override in inventory file
+
+# Email configuration
+email_host_password:
+default_from_email:
+admin_name:
+admin_email:
+
+# Google OAuth2
+oauth2_key:
+oauth2_secret:
