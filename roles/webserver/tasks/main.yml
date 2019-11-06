@@ -301,8 +301,8 @@
     name: "Reset external API access counters"
     user: '{{ web_user }}'
     state: present
-    hour: 0
-    minute: 0
+    hour: '0'
+    minute: '0'
     job: "{{ venv_dir }}/bin/python {{ project_dir }}/manage.py reset_api_count"
 
 - name: Compile documentation
