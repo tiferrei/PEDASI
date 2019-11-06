@@ -83,7 +83,7 @@
                         </li>
 
                     {% else %}
-                        {% if 'google-oauth2' in backends.backends %}
+                        {% if OAUTH2_ENABLED and 'google-oauth2' in backends.backends %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'social:begin' 'google-oauth2' %}">Google Login</a>
                             </li>
