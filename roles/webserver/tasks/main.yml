@@ -271,16 +271,17 @@
     owner: '{{ web_user }}'
     group: '{{ web_user }}'
 
-- name: Open firewall
+- name: Open firewall ports
   ufw:
     rule: allow
     name: "Nginx Full"
     state: enabled
   when: ansible_distribution == "Ubuntu"
 
-- name: Open firewall port
+- name: Open firewall ports
   firewalld:
     service: '{{ item }}'
+    immediate: yes
     permanent: yes
     state: enabled
   with_items:
