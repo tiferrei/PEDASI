@@ -11,7 +11,7 @@
 - name: Enable RedHat Software Collections
   rhsm_repository:
     name: rhel-server-rhscl-7-rpms
-  when: ansible_distribution == "RHEL"
+  when: ansible_distribution == "RedHat"
 
 - name: Enable RedHat Software Collections
   yum:
@@ -24,7 +24,7 @@
     name: '*'
     state: latest
     update_cache: yes
-  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat"
 
 - name: Open SSH port
   ufw:
@@ -38,4 +38,4 @@
     service: ssh
     permanent: yes
     state: enabled
-  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat"

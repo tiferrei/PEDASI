@@ -23,4 +23,4 @@
     name: rh-mongodb34-mongod
     state: restarted
     enabled: yes
-  when: ansible_distribution == "CentOS" or ansible_distribution == "RHEL"
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat"
