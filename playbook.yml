@@ -70,7 +70,7 @@
 
     - name: Clone / update branch from main repo
       git:
-        repo: 'https://github.com/PEDASI/PEDASI.git'
+        repo: 'https://github.com/tiferrei/PEDASI.git'
         dest: '{{ project_dir }}'
         accept_hostkey: yes
         version: '{{ branch | default("dev") }}'
